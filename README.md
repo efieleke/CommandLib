@@ -3,7 +3,7 @@ CommandLib
 
 CommandLib is a C# library that simplifies coordination of synchronous and asynchronous activities. The library is built upon class Command, which represents an action. A Command may be run synchronously or asynchronously, and may be aborted.
 
-Two collection classes add depth and flexibility. ParallelCommands, itself a Command, executes its collection of commands concurrently, and SequentialCommands executes its commands in sequence. Using these classes, it's possible to create a deep nesting of coordinated activities. For example, SequentialCommands can hold instances of ParallelCommands, SequentialCommands, and any other Command-derived object.
+ParallelCommands, itself a Command, executes a collection of commands concurrently, and SequentialCommands executes its commands in sequence. Using these classes, it's possible to create a deep nesting of coordinated actions. For example, SequentialCommands can hold instances of ParallelCommands, SequentialCommands, and any other Command-derived object.
 
 PeriodicCommand repeats its action at a given interval, ScheduledCommand runs once at a specific time, and RecurringCommand runs at times that are provided via a callback.
 
@@ -25,7 +25,7 @@ Code coverage of CommandLib would be at 100%, except that some test methods were
 
 Example Usage
 ----
-A sample project is included that chronicles the story of two lovestruck robots attempting to meet each other at the origin. Besides ethos, it demonstrates how to author a naturally asynchronous Command, and makes use of ParallelCommands, SequentialCommands, PeriodicCommand, TimeLimitedCommand and RetryableCommand.
+A sample project is included that chronicles the story of two lovestruck robots attempting to meet each other at a location. Besides ethos, it demonstrates how to author a naturally asynchronous Command, and makes use of ParallelCommands, SequentialCommands, PeriodicCommand, TimeLimitedCommand and RetryableCommand.
 
 Contributions
 ----

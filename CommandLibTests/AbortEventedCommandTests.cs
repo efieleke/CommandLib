@@ -109,7 +109,7 @@ namespace CommandLibTests
             }
         }
 
-        [TestMethod]
+        [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Usage", "CA2202:Do not dispose objects multiple times"), TestMethod]
         public void AbortEventedCommand_TestMustBeTopLevel()
         {
             using (System.Threading.ManualResetEvent abortEvent = new System.Threading.ManualResetEvent(false))

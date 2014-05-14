@@ -47,23 +47,29 @@ namespace CommandLibTests
             {
                 variableCommand = new CommandLib.VariableCommand(this);
                 Assert.AreEqual(variableCommand.CommandToRun, null);
-                CommandLib.Command cmd = GenerateCommand();
-                variableCommand.CommandToRun = cmd;
-                Assert.AreNotEqual(variableCommand.CommandToRun, null);
-                variableCommand.CommandToRun = cmd;
-                variableCommand.CommandToRun = GenerateCommand();
             }
 
             public abstract CommandLib.Command GenerateCommand();
 
             protected sealed override object SyncExecuteImpl(object runtimeArg)
             {
+                SetupCommand();
                 return variableCommand.SyncExecute(runtimeArg);
             }
 
             protected sealed override void AsyncExecuteImpl(CommandLib.ICommandListener listener, object runtimeArg)
             {
+                SetupCommand();
                 variableCommand.AsyncExecute(listener, runtimeArg);
+            }
+
+            private void SetupCommand()
+            {
+                CommandLib.Command cmd = GenerateCommand();
+                variableCommand.CommandToRun = cmd;
+                Assert.AreNotEqual(variableCommand.CommandToRun, null);
+                variableCommand.CommandToRun = cmd;
+                variableCommand.CommandToRun = GenerateCommand();
             }
 
             private CommandLib.VariableCommand variableCommand;

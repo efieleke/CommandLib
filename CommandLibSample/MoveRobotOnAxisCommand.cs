@@ -36,6 +36,11 @@ namespace CommandLibSample
                 {
                     robot.MoveYCompleteEvent -= MoveCompleted;
                 }
+
+                if (asyncResult != null)
+                {
+                    asyncResult.Dispose();
+                }
             }
 
             base.Dispose(disposing);
@@ -57,6 +62,11 @@ namespace CommandLibSample
 
             lock (criticalSection)
             {
+                if (asyncResult != null)
+                {
+                    asyncResult.Dispose();
+                }
+
                 asyncResult = result;
             }
         }

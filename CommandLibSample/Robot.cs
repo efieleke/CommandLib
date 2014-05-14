@@ -15,7 +15,7 @@ namespace CommandLibSample
             this.yPos = yPos;
         }
 
-        internal interface IAbortableAsyncResult : IAsyncResult
+        internal interface IAbortableAsyncResult : IAsyncResult, IDisposable
         {
             Object UserData { get;  }
             bool Aborted { get; }
@@ -175,6 +175,16 @@ namespace CommandLibSample
                 this.userData = userData;
             }
 
+            ~Operation()
+            {
+                Dispose(false);
+            }
+
+            public void Dispose()
+            {
+                Dispose(true);
+            }
+
             public object AsyncState
             {
                 get { throw new NotImplementedException(); }
@@ -210,10 +220,25 @@ namespace CommandLibSample
                 abortEvent.Set();
             }
 
+            protected virtual void Dispose(bool disposing)
+            {
+                if (!disposed)
+                {
+                    disposed = true;
+
+                    if (disposing)
+                    {
+                        doneEvent.Dispose();
+                        abortEvent.Dispose();
+                    }
+                }
+            }
+
             internal bool aborted = false;
             internal System.Threading.ManualResetEvent doneEvent = new System.Threading.ManualResetEvent(false);
             internal System.Threading.ManualResetEvent abortEvent = new System.Threading.ManualResetEvent(false);
             internal Object userData;
+            private bool disposed = false;
         }
 
         private String name;
