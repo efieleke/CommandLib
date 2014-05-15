@@ -93,6 +93,14 @@ namespace CommandLib
             GC.SuppressFinalize(this);
         }
 
+        /// <summary>
+        /// Returns the unique identifier for this command.
+        /// </summary>
+        public long Id
+        {
+            get { return id;  }
+        }
+
         /// <summary>Executes the command and does not return until it finishes.</summary>
         /// <returns>
         /// Concrete commands may return a value of interest. See the concrete command class for details.
@@ -241,15 +249,18 @@ namespace CommandLib
             }
 
             PreExecute();
+            Command topLevelCmd = GetTopLevelParent(this);
 
             try
             {
+                topLevelCmd.OnDescendantStarted(this);
                 AsyncExecuteImpl(new ListenerProxy(this, listener), runtimeArg);
             }
             catch (Exception exc)
             {
-                DecrementExecuting();
                 AttachErrorInfo("AsyncExecute", exc);
+                topLevelCmd.OnDescendantFinished(this, exc);
+                DecrementExecuting();
                 throw;
             }
         }
@@ -346,11 +357,42 @@ namespace CommandLib
             return new AbortEventedCommand(commandToLink, this);
         }
 
+        /// <summary>
+        /// Returns the owner, or the command that an <see cref="AbortEventedCommand"/> is linked to (if any).
+        /// </summary>
+        public Command Parent
+        {
+            get
+            {
+                return GetParent(this);
+            }
+        }
+
+        /// <summary>
+        /// Counts the number of parents until the top level command is reached
+        /// </summary>
+        /// <remarks>A parent is considered an owner, or the command that an <see cref="AbortEventedCommand"/> is linked to (if any).</remarks>
+        int Depth
+        {
+            get
+            {
+                int result = 0;
+
+                for (Command parent = GetParent(this); parent != null; parent = GetParent(parent))
+                {
+                    ++result;
+                }
+
+                return result;
+            }
+        }
+
         /// <summary>A description of the Command</summary>
         /// <remarks>
         /// This is the name of the concrete class of this command, preceded by the names of the classes of each parent,
-        /// up to the top-level parent (for example, 'SequentialCommands=>PauseCommand'). A parent is considered the
-        /// owner or the command that an <see cref="AbortEventedCommand"/> is linked to (if any).
+        /// up to the top-level parent. The description ends with this command's unique id (for example,
+        /// 'SequentialCommands=>PauseCommand(23)'). A parent is considered the owner, or the command that an
+        /// <see cref="AbortEventedCommand"/> is linked to (if any).
         /// </remarks>
         public String Description
         {
@@ -363,7 +405,7 @@ namespace CommandLib
                     result = parent.GetType().Name + "=>" + result;
                 }
 
-                return result;
+                return result + "(" + id.ToString() + ")";
             }
         }
 
@@ -438,6 +480,73 @@ namespace CommandLib
         {
         }
 
+        /// <summary>
+        /// Invoked by the Command framework whenever a descendant command starts execution. Default implementation is to write a debug trace statement.
+        /// </summary>
+        /// <param name="command">
+        /// The command that started execution. Implementations should treat this as a non-modifyable object.
+        /// </param>
+        /// <remarks>
+        /// This method is only invoked for top-level commands (i.e. commands with no owner), with the exception that it is not invoked
+        /// for AbortEventedCommand objects, if they are linked to a different Command.
+        /// <para>
+        /// A descendant is considered an owned command, or a command owned by an owned command, etc. In other words, all children, grandchildren,
+        /// great grandchildren, etc. AbortEventedCommand objects are also considered descendants, even though they have no owner, if they are linked
+        /// to this Command or one of its descendants.
+        /// </para>
+        /// <para>
+        /// If the implementation of this method throws, it will wreak havoc. Make sure an override does not throw.
+        /// </para>
+        /// </remarks>
+        protected virtual void OnDescendantStarted(Command command)
+        {
+            String parentId = command.Parent == null ? "none" : command.Parent.Id.ToString();
+            String spaces = new String(' ', command.Depth);
+            System.Diagnostics.Debug.Print("{0}Command {1}({2}) started. Parent Id: {3}", spaces, command.GetType().FullName, command.Id.ToString(), parentId);
+        }
+
+        /// <summary>
+        /// Invoked by the Command framework whenever a descendant command finishes execution, for whatever reason (success, failure, or abort).
+        /// Default implementation is to write a debug trace statement.
+        /// </summary>
+        /// <param name="command">
+        /// The command that finished execution. Implementations should treat this as a non-modifyable object.
+        /// </param>
+        /// <param name="exc">
+        /// Will be null if the command succeeded. Otherwise will be a CommandAbortedException is the command was aborted, or some other
+        /// Exception type if the command failed.
+        /// </param>
+        /// <remarks>
+        /// This method is only invoked for top-level commands (i.e. commands with no owner), with the exception that it is not invoked
+        /// for AbortEventedCommand objects, if they are linked to a different Command.
+        /// <para>
+        /// A descendant is considered an owned command, or a command owned by an owned command, etc. In other words, all children, grandchildren,
+        /// great grandchildren, etc. AbortEventedCommand objects are also considered descendants, even though they have no owner, if they are linked
+        /// to this Command or one of its descendants.
+        /// </para>
+        /// <para>
+        /// If the implementation of this method throws, it will wreak havoc. Make sure an override does not throw.
+        /// </para>
+        /// </remarks>
+        protected virtual void OnDescendantFinished(Command command, Exception exc)
+        {
+            String parentId = command.Parent == null ? "none" : command.Parent.Id.ToString();
+            String spaces = new String(' ', command.Depth);
+
+            if (exc == null)
+            {
+                System.Diagnostics.Debug.Print("{0}Command {1}({2}) succeeded. Parent Id: {3}", spaces, command.GetType().FullName, command.Id.ToString(), parentId);
+            }
+            else if (exc is CommandAbortedException)
+            {
+                System.Diagnostics.Debug.Print("{0}Command {1}({2}) aborted. Parent Id: {3}", spaces, command.GetType().FullName, command.Id.ToString(), parentId);
+            }
+            else
+            {
+                System.Diagnostics.Debug.Print("{0}Command {1}({2}) failed. Parent Id: {3}. Reason: {4}", spaces, command.GetType().FullName, command.Id.ToString(), parentId, exc.Message);
+            }
+        }
+
         /// <summary>Construct a Command</summary>
         /// <param name="owner">
         /// Specify null to indicate a top-level command. Otherwise, this command will be owned by 'owner'. Owned commands respond to
@@ -453,6 +562,8 @@ namespace CommandLib
             {
                 owner.TakeOwnership(this);
             }
+
+            id = System.Threading.Interlocked.Increment(ref nextId);
         }
 
         /// <summary>Make this command the owner of the command passed as an argument.</summary>
@@ -621,6 +732,18 @@ namespace CommandLib
             return null;
         }
 
+        private static Command GetTopLevelParent(Command command)
+        {
+            Command cmd = command;
+            
+            while ( cmd.Parent != null)
+            {
+                cmd = cmd.Parent;
+            }
+
+            return cmd;
+        }
+
         private void SetAbortEvent(Command target)
         {
             target.abortEvent = abortEvent;
@@ -644,18 +767,24 @@ namespace CommandLib
         {
             CheckDisposed();
             PreExecute();
+            Command topLevelCmd = GetTopLevelParent(this);
 
             try
             {
-                return SyncExecuteImpl(runtimeArg);
+                topLevelCmd.OnDescendantStarted(this);
+                Object result = SyncExecuteImpl(runtimeArg);
+                topLevelCmd.OnDescendantFinished(this, null);
+                return result;
             }
-            catch (CommandLib.CommandAbortedException)
+            catch (CommandLib.CommandAbortedException exc)
             {
+                topLevelCmd.OnDescendantFinished(this, exc);
                 throw;
             }
             catch (Exception exc)
             {
                 AttachErrorInfo("BaseSyncExecute", exc);
+                topLevelCmd.OnDescendantFinished(this, exc);
                 throw;
             }
             finally
@@ -720,6 +849,8 @@ namespace CommandLib
                 }
 
                 listener.CommandSucceeded(result);
+                Command topLevelCmd = GetTopLevelParent(command);
+                topLevelCmd.OnDescendantFinished(command, null);
                 command.DecrementExecuting();
             }
 
@@ -731,6 +862,8 @@ namespace CommandLib
                 }
 
                 listener.CommandAborted();
+                Command topLevelCmd = GetTopLevelParent(command);
+                topLevelCmd.OnDescendantFinished(command, new CommandAbortedException());
                 command.DecrementExecuting();
             }
 
@@ -743,6 +876,8 @@ namespace CommandLib
 
                 command.AttachErrorInfo("ListenerProxy.CommandFailed", exc);
                 listener.CommandFailed(exc);
+                Command topLevelCmd = GetTopLevelParent(command);
+                topLevelCmd.OnDescendantFinished(command, exc);
                 command.DecrementExecuting();
             }
 
@@ -751,6 +886,7 @@ namespace CommandLib
             private int asyncExeThreadId;
         }
 
+        private readonly long id;
         private Command owner = null;
         private HashSet<Command> children = new HashSet<Command>();
         private int executing = 0;
@@ -758,5 +894,7 @@ namespace CommandLib
         private System.Threading.ManualResetEvent abortEvent = null;
         private bool disposed = false;
         private Object childLock = new Object();
+
+        static long nextId = 0;
     }
 }
