@@ -71,6 +71,7 @@
     <Compile Include="SequentialCommandsTests.cs" />
     <Compile Include="ParallelCommandsTests.cs" />
     <Compile Include="ComplexCommandTest.cs" />
+    <Compile Include="TestCommandMonitor.cs" />
     <Compile Include="TimeLimitedCommandTests.cs" />
     <Compile Include="RetryableCommandTests.cs" />
     <Compile Include="BadAbortTests.cs" />

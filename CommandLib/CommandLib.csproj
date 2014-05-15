@@ -46,6 +46,8 @@
   <ItemGroup>
     <Compile Include="AbortEventedCommand.cs" />
     <Compile Include="AsyncCommand.cs" />
+    <Compile Include="CommandTracer.cs" />
+    <Compile Include="ICommandMonitor.cs" />
     <Compile Include="RecurringCommand.cs" />
     <Compile Include="RetryableCommand.cs" />
     <Compile Include="ScheduledCommand.cs" />

@@ -10,6 +10,18 @@ namespace CommandLibTests
     {
         internal static void Run(CommandLib.Command cmd, Object runtimeArg, Object expectedResult, Comparison<Object> compare = null)
         {
+            Assert.IsTrue(CommandLib.Command.Monitor != null);
+
+            try
+            {
+                CommandLib.Command.Monitor = null;
+                Assert.Fail("Command.Monitor was successfully set to null");
+            }
+            catch (ArgumentNullException)
+            {
+            }
+
+            CommandLib.Command.Monitor = new TestCommandMonitor();
             CmdListener listener = new CmdListener(CmdListener.CallbackType.Succeeded, expectedResult, compare);
             cmd.Abort(); // should be a no-op
             cmd.AsyncExecute(listener, runtimeArg);

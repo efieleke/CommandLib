@@ -10,6 +10,7 @@ namespace CommandLibTests
     {
         internal static void Run<T>(CommandLib.Command cmd, Object runtimeArg) where T : Exception
         {
+            CommandLib.Command.Monitor = new TestCommandMonitor();
             CmdListener listener = new CmdListener(CmdListener.CallbackType.Failed, null);
             cmd.AsyncExecute(listener, runtimeArg);
             cmd.Wait();

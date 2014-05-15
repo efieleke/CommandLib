@@ -10,6 +10,7 @@ namespace CommandLibTests
     {
         internal static void Run(CommandLib.Command cmd, Object runtimeArg, int maxDelayTime)
         {
+            CommandLib.Command.Monitor = new TestCommandMonitor();
             CmdListener listener = new CmdListener(CmdListener.CallbackType.Aborted, null);
 
             cmd.AsyncExecute(listener, runtimeArg);
