@@ -95,6 +95,17 @@ namespace CommandLib
         }
 
         /// <summary>
+        /// Returns diagnostic information about this object's state
+        /// </summary>
+        /// <returns>
+        /// The returned text includes the duration, as well as whether an external stop event is defined
+        /// </returns>
+        public override string ExtendedDescription()
+        {
+            return String.Format("Duration: {0}; External stop event? {1}", Duration, externalCutShortEvent != null);
+        }
+
+        /// <summary>
         /// Implementations should override only if they contain members that must be disposed. Remember to invoke the base class implementation from within any override.
         /// </summary>
         /// <param name="disposing">Will be true if this was called as a direct result of the object being explicitly disposed.</param>

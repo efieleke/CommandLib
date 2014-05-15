@@ -25,7 +25,8 @@ namespace CommandLib
         {
             String parentId = command.Parent == null ? "none" : command.Parent.Id.ToString();
             String spaces = new String(' ', command.Depth);
-            System.Diagnostics.Debug.Print("{0}Command {1}({2}) started. Parent Id: {3}", spaces, command.GetType().FullName, command.Id.ToString(), parentId);
+            String message = String.Format("{0}{1}({2}) started. Parent Id: {3}", spaces, command.GetType().FullName, command.Id.ToString(), parentId);
+            PrintMessage(command, message);
         }
 
         /// <summary>
@@ -37,19 +38,34 @@ namespace CommandLib
         {
             String parentId = command.Parent == null ? "none" : command.Parent.Id.ToString();
             String spaces = new String(' ', command.Depth);
+            String message;
 
             if (exc == null)
             {
-                System.Diagnostics.Debug.Print("{0}Command {1}({2}) succeeded. Parent Id: {3}", spaces, command.GetType().FullName, command.Id.ToString(), parentId);
+                message = String.Format("{0}{1}({2}) succeeded. Parent Id: {3}", spaces, command.GetType().FullName, command.Id.ToString(), parentId);
             }
             else if (exc is CommandAbortedException)
             {
-                System.Diagnostics.Debug.Print("{0}Command {1}({2}) aborted. Parent Id: {3}", spaces, command.GetType().FullName, command.Id.ToString(), parentId);
+                message = String.Format("{0}{1}({2}) aborted. Parent Id: {3}", spaces, command.GetType().FullName, command.Id.ToString(), parentId);
             }
             else
             {
-                System.Diagnostics.Debug.Print("{0}Command {1}({2}) failed. Parent Id: {3}. Reason: {4}", spaces, command.GetType().FullName, command.Id.ToString(), parentId, exc.Message);
+                message = String.Format("{0}{1}({2}) failed. Parent Id: {3}. Reason: {4}", spaces, command.GetType().FullName, command.Id.ToString(), parentId, exc.Message);
             }
+
+            PrintMessage(command, message);
+        }
+
+        static private void PrintMessage(Command command, String message)
+        {
+            String extendedInfo = command.ExtendedDescription();
+
+            if (!String.IsNullOrWhiteSpace(extendedInfo))
+            {
+                message += " [" + extendedInfo + "]";
+            }
+
+            System.Diagnostics.Debug.Print(message);
         }
     }
 }

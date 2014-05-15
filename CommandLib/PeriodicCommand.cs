@@ -252,6 +252,18 @@ namespace CommandLib
         }
 
         /// <summary>
+        /// Returns diagnostic information about this object's state
+        /// </summary>
+        /// <returns>
+        /// The returned text includes the repetition count, the duration between executions, whether to start with a pause,
+        /// as well as whether an external stop event is defined
+        /// </returns>
+        public override string ExtendedDescription()
+        {
+            return String.Format("Repetitions: {0}; Interval: {1} External stop event? {2}", RepeatCount, Interval, startWithPause, stopEvent != null);
+        }
+
+        /// <summary>
         /// Do not call this method from a derived class. It is called by the framework.
         /// </summary>
         /// <param name="runtimeArg">Not applicable</param>

@@ -111,6 +111,21 @@ namespace CommandLib
         }
 
         /// <summary>
+        /// Returns Command context information related to an exception, if present
+        /// </summary>
+        /// <param name="exc">The exception object of interest</param>
+        /// <returns>Text that describes the command that raised the exception during its execution</returns>
+        public static String GetAttachedErrorInfo(Exception exc)
+        {
+            if (exc.Data.Contains("CommandContext"))
+            {
+                return (String)exc.Data["CommandContext"];
+            }
+
+            return null;
+        }
+
+        /// <summary>
         /// Call to dispose this command and release any resources that it holds. Only call this on top-level commands (i.e. commands that have no owner)
         /// </summary>
         public void Dispose()
@@ -416,9 +431,11 @@ namespace CommandLib
         /// <summary>A description of the Command</summary>
         /// <remarks>
         /// This is the name of the concrete class of this command, preceded by the names of the classes of each parent,
-        /// up to the top-level parent. The description ends with this command's unique id (for example,
-        /// 'SequentialCommands=>PauseCommand(23)'). A parent is considered the owner, or the command that an
-        /// <see cref="AbortEventedCommand"/> is linked to (if any).
+        /// up to the top-level parent. This is followed with this command's unique id (for example, 'SequentialCommands=>PauseCommand(23)').
+        /// The description ends with details of about the current state of the command, if available.
+        /// <para>
+        /// A parent is considered the owner, or the command that an <see cref="AbortEventedCommand"/> is linked to (if any).
+        /// </para>
         /// </remarks>
         public String Description
         {
@@ -431,8 +448,35 @@ namespace CommandLib
                     result = parent.GetType().Name + "=>" + result;
                 }
 
-                return result + "(" + id.ToString() + ")";
+                result += "(" + id.ToString() + ")";
+                String extendedDescription = ExtendedDescription();
+
+                if (!String.IsNullOrWhiteSpace(extendedDescription))
+                {
+                    result += " " + extendedDescription;
+                }
+
+                return result;
             }
+        }
+
+
+        /// <summary>
+        /// Information about the command (beyond its type and id), if available, for diagnostic purposes.
+        /// </summary>
+        /// <returns>
+        /// Implementations should return information about the current state of the Command, if available. Return an empty string
+        /// or null if there is no useful state information to report.
+        /// </returns>
+        /// <remarks>
+        /// This information is included as part of the <see cref="Description"/> property. It is meant for diagnostic purposes.
+        /// <para>
+        /// Implementations must be thread safe, and they must not not throw.
+        /// </para>
+        /// </remarks>
+        public virtual String ExtendedDescription()
+        {
+            return "";
         }
 
         /// <summary>
@@ -449,21 +493,6 @@ namespace CommandLib
         public System.Threading.WaitHandle DoneEvent
         {
             get { return doneEvent; }
-        }
-
-        /// <summary>
-        /// Returns context information related to the exception, if present
-        /// </summary>
-        /// <param name="exc">The exception object of interest</param>
-        /// <returns>Text that describes the command that raised the exception during its execution</returns>
-        public static String GetAttachedErrorInfo(Exception exc)
-        {
-            if (exc.Data.Contains("CommandContext"))
-            {
-                return (String)exc.Data["CommandContext"];
-            }
-
-            return null;
         }
 
         /// <summary>Executes the command and does not return until it finishes.</summary>

@@ -126,6 +126,17 @@ namespace CommandLib
         }
 
         /// <summary>
+        /// Returns diagnostic information about this object's state
+        /// </summary>
+        /// <returns>
+        /// The returned text includes the time to execute as well as whether to run immediately if the scheduled time is in the past.
+        /// </returns>
+        public override string ExtendedDescription()
+        {
+            return String.Format("Time to execute: {0}; Run immediately if time is in the past? {1}", TimeOfExecution, runImmediatelyIfTimeIsPast);
+        }
+
+        /// <summary>
         /// Do not call this method from a derived class. It is called by the framework.
         /// </summary>
         /// <param name="runtimeArg">Not applicable</param>

@@ -100,6 +100,17 @@ namespace CommandLib
         }
 
         /// <summary>
+        /// Returns diagnostic information about this object's state
+        /// </summary>
+        /// <returns>
+        /// The returned text includes the number of commands in the collection, as well as whether abort upon failure is set or not
+        /// </returns>
+        public override string ExtendedDescription()
+        {
+            return String.Format("Number of commands: {0}; Abort upon failure? {1}", commands.Count - 1, abortUponFailure);
+        }
+
+        /// <summary>
         /// Implementations should override only if they contain members that must be disposed. Remember to invoke the base class implementation from within any override.
         /// </summary>
         /// <param name="disposing">Will be true if this was called as a direct result of the object being explicitly disposed.</param>

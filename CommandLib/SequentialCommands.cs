@@ -70,6 +70,17 @@ namespace CommandLib
         }
 
         /// <summary>
+        /// Returns diagnostic information about this object's state
+        /// </summary>
+        /// <returns>
+        /// The returned text includes the number of commands in the collection
+        /// </returns>
+        public override string ExtendedDescription()
+        {
+            return String.Format("Number of commands: {0}", commands.Count);
+        }
+
+        /// <summary>
         /// Do not call this method from a derived class. It is called by the framework.
         /// </summary>
         /// <param name="runtimeArg">Not applicable</param>

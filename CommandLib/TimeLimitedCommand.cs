@@ -60,6 +60,17 @@ namespace CommandLib
         }
 
         /// <summary>
+        /// Returns diagnostic information about this object's state
+        /// </summary>
+        /// <returns>
+        /// The returned text includes the timeout duration.
+        /// </returns>
+        public override string ExtendedDescription()
+        {
+            return String.Format("Timeout MS: {0}", timeoutMS);
+        }
+
+        /// <summary>
         /// Implementations should override only if they contain members that must be disposed. Remember to invoke the base class implementation from within any override.
         /// </summary>
         /// <param name="disposing">Will be true if this was called as a direct result of the object being explicitly disposed.</param>
