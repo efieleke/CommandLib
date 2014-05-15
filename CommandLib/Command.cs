@@ -481,17 +481,17 @@ namespace CommandLib
         }
 
         /// <summary>
-        /// Invoked by the Command framework whenever a descendant command starts execution. Default implementation is to write a debug trace statement.
+        /// Invoked by the Command framework whenever a command or any of its descendants starts execution.
         /// </summary>
         /// <param name="command">
-        /// The command that started execution. Implementations should treat this as a non-modifyable object.
+        /// The command that started execution. Implementations should treat this as a non-modifiable object.
         /// </param>
         /// <remarks>
-        /// This method is only invoked for top-level commands (i.e. commands with no owner), with the exception that it is not invoked
-        /// for AbortEventedCommand objects, if they are linked to a different Command.
+        /// Only top-level commands will have this method called (i.e. commands with no owner that are not
+        /// <see cref="AbortEventedCommand"/> objects linked to a Command).
         /// <para>
         /// A descendant is considered an owned command, or a command owned by an owned command, etc. In other words, all children, grandchildren,
-        /// great grandchildren, etc. AbortEventedCommand objects are also considered descendants, even though they have no owner, if they are linked
+        /// great grandchildren, etc. <see cref="AbortEventedCommand"/> objects are also considered descendants, even though they have no owner, if they are linked
         /// to this Command or one of its descendants.
         /// </para>
         /// <para>
@@ -506,22 +506,22 @@ namespace CommandLib
         }
 
         /// <summary>
-        /// Invoked by the Command framework whenever a descendant command finishes execution, for whatever reason (success, failure, or abort).
+        /// Invoked by the Command framework whenever a command or any of its descendants finishes execution, for whatever reason (success, failure, or abort).
         /// Default implementation is to write a debug trace statement.
         /// </summary>
         /// <param name="command">
-        /// The command that finished execution. Implementations should treat this as a non-modifyable object.
+        /// The command that finished execution. Implementations should treat this as a non-modifiable object.
         /// </param>
         /// <param name="exc">
-        /// Will be null if the command succeeded. Otherwise will be a CommandAbortedException is the command was aborted, or some other
+        /// Will be null if the command succeeded. Otherwise will be a <see cref="CommandAbortedException"/> is the command was aborted, or some other
         /// Exception type if the command failed.
         /// </param>
         /// <remarks>
-        /// This method is only invoked for top-level commands (i.e. commands with no owner), with the exception that it is not invoked
-        /// for AbortEventedCommand objects, if they are linked to a different Command.
+        /// Only top-level commands will have this method called (i.e. commands with no owner that are not
+        /// <see cref="AbortEventedCommand"/> objects linked to a Command).
         /// <para>
         /// A descendant is considered an owned command, or a command owned by an owned command, etc. In other words, all children, grandchildren,
-        /// great grandchildren, etc. AbortEventedCommand objects are also considered descendants, even though they have no owner, if they are linked
+        /// great grandchildren, etc. <see cref="AbortEventedCommand"/> objects are also considered descendants, even though they have no owner, if they are linked
         /// to this Command or one of its descendants.
         /// </para>
         /// <para>
