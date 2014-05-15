@@ -260,7 +260,7 @@ namespace CommandLib
         /// </returns>
         public override string ExtendedDescription()
         {
-            return String.Format("Repetitions: {0}; Interval: {1} External stop event? {2}", RepeatCount, Interval, startWithPause, stopEvent != null);
+            return String.Format("Repetitions: {0}; Interval: {1}; Start with pause? {2}; External stop event? {3}", RepeatCount, Interval, startWithPause, stopEvent != null);
         }
 
         /// <summary>
