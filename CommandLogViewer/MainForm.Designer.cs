@@ -213,6 +213,7 @@
             this.parentList.Location = new System.Drawing.Point(15, 479);
             this.parentList.MultiSelect = false;
             this.parentList.Name = "parentList";
+            this.parentList.Scrollable = false;
             this.parentList.Size = new System.Drawing.Size(883, 45);
             this.parentList.TabIndex = 5;
             this.parentList.UseCompatibleStateImageBehavior = false;

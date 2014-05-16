@@ -23,6 +23,10 @@ Unit Tests
 ----
 Code coverage of CommandLib would be at 100%, except that some test methods were disabled in the interest of not being reliant upon a test web server. If you want to run them (and have the test coverage back to 100%) modify the URLs that the tests use and remove the comments that precede the TestMethod attribute for those tests. The disabled tests reside within DownloadFileCommandTests.cs, DownloadStringCommandTests.cs and UploadDataCommandTests.cs.
 
+Diagnostics
+----
+The Command class provides a static ICommandMonitor property. If set to a CommandTracer, diagnostic output is written to the debug stream. If set to a CommandLogger, diagnostic output is written to file (and optionally the debug stream as well). Using the provided CommandLogViewer app, it is possible to see the status of all command executions, including their parent/child relationships. This viewer is not polished; it is meant for developers and testers, not end users.
+
 Example Usage
 ----
 A sample project is included that chronicles the story of two lovestruck robots attempting to meet each other at a location. Besides ethos, it demonstrates how to author a naturally asynchronous Command, and makes use of ParallelCommands, SequentialCommands, PeriodicCommand, TimeLimitedCommand and RetryableCommand.
@@ -37,4 +41,4 @@ Eric Fieleke
 
 Future plans
 ----
-I intend to port this over to C++ and/or Java. When I will get around to doing so, I don't know; that depends in part upon interest.
+I intend to eventually port this over to C++ and/or Java. When I will get around to doing so, I don't know; that depends in part upon interest.

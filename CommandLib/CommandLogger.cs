@@ -24,7 +24,8 @@ namespace CommandLib
                 tracer = new CommandTracer();
             }
 
-            writer = new System.IO.StreamWriter(filename, false);
+            System.IO.FileStream stream = new System.IO.FileStream(filename, System.IO.FileMode.Create, System.IO.FileAccess.Write, System.IO.FileShare.Read);
+            writer = new System.IO.StreamWriter(stream);
             writer.AutoFlush = true;
         }
 

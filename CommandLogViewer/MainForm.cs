@@ -32,7 +32,9 @@ namespace CommandLogViewer
                     listData.Clear();
 
                     // Open the selected file to read.
-                    using (System.IO.StreamReader fileStream = new System.IO.StreamReader(openFileDialog.FileName))
+                    System.IO.FileStream stream = new System.IO.FileStream(openFileDialog.FileName, System.IO.FileMode.Open, System.IO.FileAccess.Read, System.IO.FileShare.ReadWrite);
+
+                    using (System.IO.StreamReader fileStream = new System.IO.StreamReader(stream))
                     {
                         for (String line = fileStream.ReadLine(); line != null; line = fileStream.ReadLine())
                         {
