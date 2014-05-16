@@ -56,6 +56,30 @@ namespace CommandLib
             PrintMessage(command, message);
         }
 
+        /// <summary>
+        /// 
+        /// </summary>
+        public void Dispose()
+        {
+            Dispose(true);
+        }
+
+        /// <summary>
+        /// The finalizer
+        /// </summary>
+        ~CommandTracer()
+        {
+            Dispose(false);
+        }
+
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="disposing"></param>
+        protected virtual void Dispose(bool disposing)
+        {
+        }
+
         static private void PrintMessage(Command command, String message)
         {
             String extendedInfo = command.ExtendedDescription();

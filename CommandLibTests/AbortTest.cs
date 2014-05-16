@@ -10,41 +10,51 @@ namespace CommandLibTests
     {
         internal static void Run(CommandLib.Command cmd, Object runtimeArg, int maxDelayTime)
         {
-            CommandLib.Command.Monitor = new TestCommandMonitor();
-            CmdListener listener = new CmdListener(CmdListener.CallbackType.Aborted, null);
+            String tempFile = System.IO.Path.GetTempFileName();
 
-            cmd.AsyncExecute(listener, runtimeArg);
-            cmd.AbortAndWait();
-            listener.Check();
-
-            listener.Reset(CmdListener.CallbackType.Aborted, null);
-            cmd.AsyncExecute(listener, runtimeArg);
-            System.Threading.Thread.Sleep(maxDelayTime);
-            cmd.AbortAndWait();
-            listener.Check();
-
-            System.Threading.Thread thread = new System.Threading.Thread(() =>
+            try
             {
-                try
-                {
-                    cmd.SyncExecute(runtimeArg);
-                    Assert.Fail("Command succeeded when it was expected to be aborted");
-                }
-                catch (CommandLib.CommandAbortedException exc)
-                {
-                    Assert.IsTrue(CommandLib.Command.GetAttachedErrorInfo(exc) == null);
-                }
-                catch (Exception exc)
-                {
-                    String msg = "Expected aborted exception, but instead got this exception: " + exc.ToString();
-                    Assert.Fail(msg);
-                }
-            });
+                CommandLib.Command.Monitor = new CommandLib.CommandLogger(tempFile, true);
+                CmdListener listener = new CmdListener(CmdListener.CallbackType.Aborted, null);
+                cmd.AsyncExecute(listener, runtimeArg);
+                cmd.AbortAndWait();
+                listener.Check();
 
-            thread.Start();
-            System.Threading.Thread.Sleep(20); // give time for the command to start executing
-            cmd.AbortAndWait();
-            thread.Join();
+                listener.Reset(CmdListener.CallbackType.Aborted, null);
+                cmd.AsyncExecute(listener, runtimeArg);
+                System.Threading.Thread.Sleep(maxDelayTime);
+                cmd.AbortAndWait();
+                listener.Check();
+
+                System.Threading.Thread thread = new System.Threading.Thread(() =>
+                {
+                    try
+                    {
+                        cmd.SyncExecute(runtimeArg);
+                        Assert.Fail("Command succeeded when it was expected to be aborted");
+                    }
+                    catch (CommandLib.CommandAbortedException exc)
+                    {
+                        Assert.IsTrue(CommandLib.Command.GetAttachedErrorInfo(exc) == null);
+                    }
+                    catch (Exception exc)
+                    {
+                        String msg = "Expected aborted exception, but instead got this exception: " + exc.ToString();
+                        Assert.Fail(msg);
+                    }
+                });
+
+                thread.Start();
+                System.Threading.Thread.Sleep(20); // give time for the command to start executing
+                cmd.AbortAndWait();
+                thread.Join();
+            }
+            finally
+            {
+                CommandLib.Command.Monitor.Dispose();
+                CommandLib.Command.Monitor = null;
+                System.IO.File.Delete(tempFile);
+            }
         }
     }
 }

@@ -9,6 +9,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "CommandLibTests", "CommandL
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "CommandLibSample", "CommandLibSample\CommandLibSample.csproj", "{07FE5F78-DD72-4610-8B98-E1269E3689B9}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "CommandLogViewer", "CommandLogViewer\CommandLogViewer.csproj", "{58CAA5A6-12B6-4B08-9414-A340C2C2509D}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -49,6 +51,16 @@ Global
 		{07FE5F78-DD72-4610-8B98-E1269E3689B9}.Release|Mixed Platforms.ActiveCfg = Release|Any CPU
 		{07FE5F78-DD72-4610-8B98-E1269E3689B9}.Release|Mixed Platforms.Build.0 = Release|Any CPU
 		{07FE5F78-DD72-4610-8B98-E1269E3689B9}.Release|x86.ActiveCfg = Release|Any CPU
+		{58CAA5A6-12B6-4B08-9414-A340C2C2509D}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{58CAA5A6-12B6-4B08-9414-A340C2C2509D}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{58CAA5A6-12B6-4B08-9414-A340C2C2509D}.Debug|Mixed Platforms.ActiveCfg = Debug|Any CPU
+		{58CAA5A6-12B6-4B08-9414-A340C2C2509D}.Debug|Mixed Platforms.Build.0 = Debug|Any CPU
+		{58CAA5A6-12B6-4B08-9414-A340C2C2509D}.Debug|x86.ActiveCfg = Debug|Any CPU
+		{58CAA5A6-12B6-4B08-9414-A340C2C2509D}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{58CAA5A6-12B6-4B08-9414-A340C2C2509D}.Release|Any CPU.Build.0 = Release|Any CPU
+		{58CAA5A6-12B6-4B08-9414-A340C2C2509D}.Release|Mixed Platforms.ActiveCfg = Release|Any CPU
+		{58CAA5A6-12B6-4B08-9414-A340C2C2509D}.Release|Mixed Platforms.Build.0 = Release|Any CPU
+		{58CAA5A6-12B6-4B08-9414-A340C2C2509D}.Release|x86.ActiveCfg = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

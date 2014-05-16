@@ -90,25 +90,15 @@ namespace CommandLib
         /// <remarks>
         /// This property is not thread-safe. Be sure not to change the monitor while any commands are executing.
         /// <para>
-        /// The default monitor is a <see cref="CommandTracer"/> instance.
+        /// There is no default monitor. <see cref="CommandTracer"/> and <see cref="CommandLogger"/> are implementations of
+        /// <see cref="ICommandMonitor"/> that can be used.
+        /// </para>
+        /// <para>
+        /// The caller is responsible for calling Dispose() on this property. Changing it will not dispose of the previously
+        /// set value.
         /// </para>
         /// </remarks>
-        public static ICommandMonitor Monitor
-        {
-            get
-            {
-                return commandMonitor;
-            }
-            set
-            {
-                if (value == null)
-                {
-                    throw new ArgumentNullException();
-                }
-
-                commandMonitor = value;
-            }
-        }
+        public static ICommandMonitor Monitor { get; set; }
 
         /// <summary>
         /// Returns Command context information related to an exception, if present
@@ -290,17 +280,25 @@ namespace CommandLib
             }
 
             PreExecute();
-            Command topLevelCmd = GetTopLevelParent(this);
 
             try
             {
-                commandMonitor.CommandStarting(this);
+                if (Monitor != null)
+                {
+                    Monitor.CommandStarting(this);
+                }
+
                 AsyncExecuteImpl(new ListenerProxy(this, listener), runtimeArg);
             }
             catch (Exception exc)
             {
                 AttachErrorInfo("AsyncExecute", exc);
-                commandMonitor.CommandFinished(this, exc);
+
+                if (Monitor != null)
+                {
+                    Monitor.CommandFinished(this, exc);
+                }
+
                 DecrementExecuting();
                 throw;
             }
@@ -360,6 +358,15 @@ namespace CommandLib
         public bool Wait(TimeSpan duration)
         {
             CheckDisposed();
+
+            // We must wait for any child commands to signal their done events as well.
+            // These get signaled after command finished callbacks, so the asynchronously
+            // executing ones might not be signaled just yet.
+            if (!WaitForChildren(this, duration))
+            {
+                return false;
+            }
+
             return doneEvent.WaitOne(duration);
         }
 
@@ -720,16 +727,22 @@ namespace CommandLib
             return null;
         }
 
-        private static Command GetTopLevelParent(Command command)
+        private static bool WaitForChildren(Command command, TimeSpan duration)
         {
-            Command cmd = command;
-            
-            while ( cmd.Parent != null)
+            foreach (Command child in command.children)
             {
-                cmd = cmd.Parent;
+                if (!WaitForChildren(child, duration))
+                {
+                    return false;
+                }
+
+                if (!child.doneEvent.WaitOne(duration))
+                {
+                    return false;
+                }
             }
 
-            return cmd;
+            return true;
         }
 
         private void SetAbortEvent(Command target)
@@ -755,24 +768,41 @@ namespace CommandLib
         {
             CheckDisposed();
             PreExecute();
-            Command topLevelCmd = GetTopLevelParent(this);
 
             try
             {
-                commandMonitor.CommandStarting(this);
+                if (Monitor != null)
+                {
+                    Monitor.CommandStarting(this);
+                }
+
                 Object result = SyncExecuteImpl(runtimeArg);
-                commandMonitor.CommandFinished(this, null);
+
+                if (Monitor != null)
+                {
+                    Monitor.CommandFinished(this, null);
+                }
+
                 return result;
             }
             catch (CommandLib.CommandAbortedException exc)
             {
-                commandMonitor.CommandFinished(this, exc);
+                if (Monitor != null)
+                {
+                    Monitor.CommandFinished(this, exc);
+                }
+
                 throw;
             }
             catch (Exception exc)
             {
                 AttachErrorInfo("BaseSyncExecute", exc);
-                commandMonitor.CommandFinished(this, exc);
+
+                if (Monitor != null)
+                {
+                    Monitor.CommandFinished(this, exc);
+                }
+
                 throw;
             }
             finally
@@ -837,8 +867,12 @@ namespace CommandLib
                 }
 
                 listener.CommandSucceeded(result);
-                Command topLevelCmd = GetTopLevelParent(command);
-                commandMonitor.CommandFinished(command, null);
+
+                if (Monitor != null)
+                {
+                    Monitor.CommandFinished(command, null);
+                }
+
                 command.DecrementExecuting();
             }
 
@@ -850,8 +884,12 @@ namespace CommandLib
                 }
 
                 listener.CommandAborted();
-                Command topLevelCmd = GetTopLevelParent(command);
-                commandMonitor.CommandFinished(command, new CommandAbortedException());
+
+                if (Monitor != null)
+                {
+                    Monitor.CommandFinished(command, new CommandAbortedException());
+                }
+
                 command.DecrementExecuting();
             }
 
@@ -864,8 +902,12 @@ namespace CommandLib
 
                 command.AttachErrorInfo("ListenerProxy.CommandFailed", exc);
                 listener.CommandFailed(exc);
-                Command topLevelCmd = GetTopLevelParent(command);
-                commandMonitor.CommandFinished(command, exc);
+
+                if (Monitor != null)
+                {
+                    Monitor.CommandFinished(command, exc);
+                }
+
                 command.DecrementExecuting();
             }
 
@@ -884,6 +926,5 @@ namespace CommandLib
         private Object childLock = new Object();
 
         static long nextId = 0;
-        static ICommandMonitor commandMonitor = new CommandTracer();
     }
 }

@@ -22,7 +22,6 @@ namespace CommandLib
     /// </remarks>
     public class TimeLimitedCommand : SyncCommand
     {
-
         /// <summary>
         /// Constructs a TimeLimitedCommand object as a top-level <see cref="Command"/>
         /// </summary>

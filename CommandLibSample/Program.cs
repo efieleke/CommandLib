@@ -13,6 +13,9 @@ namespace CommandLibSample
     {
         static void Main(string[] args)
         {
+            String tempFile = System.IO.Path.GetTempFileName();
+            CommandLib.Command.Monitor = new CommandLib.CommandLogger(tempFile, true);
+
             Robot robotOne = new Robot("George", 100, 126);
             Robot robotTwo = new Robot("Martha", 97, 80);
 
@@ -55,7 +58,7 @@ namespace CommandLibSample
             moveAndGreetCmd.Add(new EmitGreetingCommand(robotOne, null));
             moveAndGreetCmd.Add(new EmitGreetingCommand(robotTwo, null));
 
-            // Wrap the above command in a command that throw a TimeoutException if it takes longer than 15 seconds.
+            // Wrap the above command in a command that throw a TimeoutException if it takes longer than 20 seconds.
             CommandLib.TimeLimitedCommand timeLimitedCmd = new CommandLib.TimeLimitedCommand(moveAndGreetCmd, 20000);
 
             // Allow retries, because we will time out, and maybe the end user actually wants to see if there are any
@@ -70,6 +73,16 @@ namespace CommandLibSample
             catch (Exception err)
             {
                 Console.Error.WriteLine(err.Message);
+            }
+
+            CommandLib.Command.Monitor.Dispose();
+            Console.Out.Write(String.Format("Delete generated log file ({0} (y/n)? ", tempFile));
+            ConsoleKeyInfo keyInfo = Console.ReadKey(false);
+            Console.WriteLine("");
+
+            if (keyInfo.KeyChar != 'n')
+            {
+                System.IO.File.Delete(tempFile);
             }
         }
     }

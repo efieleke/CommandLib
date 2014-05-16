@@ -10,30 +10,41 @@ namespace CommandLibTests
     {
         internal static void Run<T>(CommandLib.Command cmd, Object runtimeArg) where T : Exception
         {
-            CommandLib.Command.Monitor = new TestCommandMonitor();
-            CmdListener listener = new CmdListener(CmdListener.CallbackType.Failed, null);
-            cmd.AsyncExecute(listener, runtimeArg);
-            cmd.Wait();
-            listener.Check();
+            String tempFile = System.IO.Path.GetTempFileName();
 
             try
             {
-                cmd.SyncExecute(runtimeArg);
-                Assert.Fail("Command completed successfully when it was expected to fail");
+                CommandLib.Command.Monitor = new CommandLib.CommandLogger(tempFile, true);
+                CmdListener listener = new CmdListener(CmdListener.CallbackType.Failed, null);
+                cmd.AsyncExecute(listener, runtimeArg);
+                cmd.Wait();
+                listener.Check();
+
+                try
+                {
+                    cmd.SyncExecute(runtimeArg);
+                    Assert.Fail("Command completed successfully when it was expected to fail");
+                }
+                catch (CommandLib.CommandAbortedException exc)
+                {
+                    Assert.Fail(exc.ToString());
+                }
+                catch (T exc)
+                {
+                    String cmdContext = CommandLib.Command.GetAttachedErrorInfo(exc);
+                    Assert.IsFalse(String.IsNullOrWhiteSpace(cmdContext));
+                }
+                catch (Exception exc)
+                {
+                    Assert.Fail("Caught unexpected type of exception: " + exc.ToString());
+                }
             }
-            catch (CommandLib.CommandAbortedException exc)
+            finally
             {
-                Assert.Fail(exc.ToString());
-            }
-            catch (T exc)
-            {
-                String cmdContext = CommandLib.Command.GetAttachedErrorInfo(exc);
-                Assert.IsFalse(String.IsNullOrWhiteSpace(cmdContext));
-            }
-            catch (Exception exc)
-            {
-                Assert.Fail("Caught unexpected type of exception: " + exc.ToString());
-            }
+                CommandLib.Command.Monitor.Dispose();
+                CommandLib.Command.Monitor = null;
+                System.IO.File.Delete(tempFile);
+            }   
         }
     }
 }
