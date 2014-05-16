@@ -15,17 +15,17 @@ Help File Documentation
 ----
 Documentation for CommandLib is provided in CommandLib.chm. It was generated from source code comments using Sandcastle Help File Builder (https://shfb.codeplex.com).
 
+Diagnostics
+----
+The Command class provides a static ICommandMonitor property. If set to a CommandTracer, diagnostic output is written to the debug stream. If set to a CommandLogger, diagnostic output is written to file (and optionally the debug stream as well). Using the provided CommandLogViewer app, it is possible to see the status of all command executions, including their parent/child relationships. This viewer is not polished; it is meant for developers and testers, not end users.
+
 Build
 ----
-Included is a solution file that contains three projects: CommandLib itself, a unit test project, and a project demonstrating example usage. All projects target .NET 4.0, but I suspect they would build without issue against other versions of .NET as well. The solution and project files were created using Microsoft Visual Studio 2013.
+Included is a solution file that contains four projects: CommandLib itself, a unit test project, a log file viewer (for logs generated using CommandLogger) and a project demonstrating example usage. All projects target .NET 4.0, but I suspect they would build without issue against other versions of .NET as well. The solution and project files were created using Microsoft Visual Studio 2013.
 
 Unit Tests
 ----
 Code coverage of CommandLib would be at 100%, except that some test methods were disabled in the interest of not being reliant upon a test web server. If you want to run them (and have the test coverage back to 100%) modify the URLs that the tests use and remove the comments that precede the TestMethod attribute for those tests. The disabled tests reside within DownloadFileCommandTests.cs, DownloadStringCommandTests.cs and UploadDataCommandTests.cs.
-
-Diagnostics
-----
-The Command class provides a static ICommandMonitor property. If set to a CommandTracer, diagnostic output is written to the debug stream. If set to a CommandLogger, diagnostic output is written to file (and optionally the debug stream as well). Using the provided CommandLogViewer app, it is possible to see the status of all command executions, including their parent/child relationships. This viewer is not polished; it is meant for developers and testers, not end users.
 
 Example Usage
 ----
