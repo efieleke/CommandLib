@@ -132,11 +132,15 @@ namespace CommandLib
                 message += " [" + extendedInfo + "]";
             }
 
-            writer.WriteLine(message);
+            lock (criticalSection)
+            {
+                writer.WriteLine(message);
+            }
         }
 
         private bool disposed = false;
         private System.IO.StreamWriter writer;
         private CommandTracer tracer;
+        private Object criticalSection = new Object();
     }
 }
