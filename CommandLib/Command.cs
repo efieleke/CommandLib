@@ -756,12 +756,6 @@ namespace CommandLib
                 }
 
                 Object result = SyncExecuteImpl(runtimeArg);
-
-                if (Monitor != null)
-                {
-                    Monitor.CommandFinished(this, null);
-                }
-
                 DecrementExecuting(null, null, null);
                 return result;
             }
