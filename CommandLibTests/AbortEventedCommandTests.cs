@@ -142,8 +142,14 @@ namespace CommandLibTests
                     pauseCmd.Dispose();
                 }
 
-                // Ill-advised, but should not cause problems
-                pauseCmd.Dispose();
+                try
+                {
+                    pauseCmd.Dispose();
+                    Assert.Fail("Double dispose allowed");
+                }
+                catch(ObjectDisposedException)
+                {
+                }
             }
         }
     }

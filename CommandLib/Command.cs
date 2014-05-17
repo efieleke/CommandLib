@@ -120,6 +120,7 @@ namespace CommandLib
         /// </summary>
         public void Dispose()
         {
+            CheckDisposed();
             Dispose(true);
             GC.SuppressFinalize(this);
         }
@@ -292,14 +293,7 @@ namespace CommandLib
             }
             catch (Exception exc)
             {
-                AttachErrorInfo("AsyncExecute", exc);
-
-                if (Monitor != null)
-                {
-                    Monitor.CommandFinished(this, exc);
-                }
-
-                DecrementExecuting();
+                DecrementExecuting(null, null, exc);
                 throw;
             }
         }
@@ -337,7 +331,7 @@ namespace CommandLib
             }
             catch (Exception exc)
             {
-                AttachErrorInfo("Abort", exc);
+                AttachErrorInfo(exc);
                 throw;
             }
         }
@@ -358,15 +352,6 @@ namespace CommandLib
         public bool Wait(TimeSpan duration)
         {
             CheckDisposed();
-
-            // We must wait for any child commands to signal their done events as well.
-            // These get signaled after command finished callbacks, so the asynchronously
-            // executing ones might not be signaled just yet.
-            if (!WaitForChildren(this, duration))
-            {
-                return false;
-            }
-
             return doneEvent.WaitOne(duration);
         }
 
@@ -402,6 +387,7 @@ namespace CommandLib
         /// </remarks>
         public AbortEventedCommand CreateAbortLinkedCommand(Command commandToLink)
         {
+            CheckDisposed();
             return new AbortEventedCommand(commandToLink, this);
         }
 
@@ -412,6 +398,7 @@ namespace CommandLib
         {
             get
             {
+                CheckDisposed();
                 return GetParent(this);
             }
         }
@@ -424,6 +411,7 @@ namespace CommandLib
         {
             get
             {
+                CheckDisposed();
                 int result = 0;
 
                 for (Command parent = GetParent(this); parent != null; parent = GetParent(parent))
@@ -448,6 +436,7 @@ namespace CommandLib
         {
             get
             {
+                CheckDisposed();
                 String result = GetType().Name;
 
                 for (Command parent = GetParent(this); parent != null; parent = GetParent(parent))
@@ -491,7 +480,11 @@ namespace CommandLib
         /// </summary>
         public System.Threading.WaitHandle AbortEvent
         {
-            get { return abortEvent; }
+            get
+            {
+                CheckDisposed();
+                return abortEvent;
+            }
         }
 
         /// <summary>
@@ -499,7 +492,11 @@ namespace CommandLib
         /// </summary>
         public System.Threading.WaitHandle DoneEvent
         {
-            get { return doneEvent; }
+            get
+            {
+                CheckDisposed();
+                return doneEvent;
+            }
         }
 
         /// <summary>Executes the command and does not return until it finishes.</summary>
@@ -727,24 +724,6 @@ namespace CommandLib
             return null;
         }
 
-        private static bool WaitForChildren(Command command, TimeSpan duration)
-        {
-            foreach (Command child in command.children)
-            {
-                if (!WaitForChildren(child, duration))
-                {
-                    return false;
-                }
-
-                if (!child.doneEvent.WaitOne(duration))
-                {
-                    return false;
-                }
-            }
-
-            return true;
-        }
-
         private void SetAbortEvent(Command target)
         {
             target.abortEvent = abortEvent;
@@ -783,38 +762,18 @@ namespace CommandLib
                     Monitor.CommandFinished(this, null);
                 }
 
+                DecrementExecuting(null, null, null);
                 return result;
-            }
-            catch (CommandLib.CommandAbortedException exc)
-            {
-                if (Monitor != null)
-                {
-                    Monitor.CommandFinished(this, exc);
-                }
-
-                throw;
             }
             catch (Exception exc)
             {
-                AttachErrorInfo("BaseSyncExecute", exc);
-
-                if (Monitor != null)
-                {
-                    Monitor.CommandFinished(this, exc);
-                }
-
+                DecrementExecuting(null, null, exc);
                 throw;
-            }
-            finally
-            {
-                DecrementExecuting();
             }
         }
 
-        private void AttachErrorInfo(String methodName, Exception exc)
+        private void AttachErrorInfo(Exception exc)
         {
-            String key = "Command." + methodName;
-
             if (!exc.Data.Contains("CommandContext"))
             {
                 exc.Data.Add("CommandContext", Description);
@@ -823,6 +782,12 @@ namespace CommandLib
 
         private void PreExecute()
         {
+            // Asynchronously launched commands inform their listener that they are done just before they signal the done event.
+            // Owner commands may trigger off these callbacks to help determine when it itself is done (ParallelCommands is an example).
+            // When the owner command is done, it will raise its done event, thus signaling the user that it may be relaunched or
+            // even disposed. However, the children might not have gotten around yet to signaling their own done events. Thus
+            // we take care of that wiggle room here.
+            doneEvent.WaitOne();
             doneEvent.Reset();
 
             // Don't reset the abort event for launched child commands
@@ -834,7 +799,7 @@ namespace CommandLib
             System.Threading.Interlocked.Increment(ref executing);
         }
 
-        private void DecrementExecuting()
+        private void DecrementExecuting(ICommandListener listener, Object result, Exception exc)
         {
             int refCount = System.Threading.Interlocked.Decrement(ref executing);
 
@@ -846,6 +811,34 @@ namespace CommandLib
 
             if (refCount == 0)
             {
+                bool aborted = exc != null && exc is CommandAbortedException;
+                
+                if (exc != null && !aborted)
+                {
+                    AttachErrorInfo(exc);
+                }
+
+                if (Monitor != null)
+                {
+                    Monitor.CommandFinished(this, exc);
+                }
+
+                if (listener != null)
+                {
+                    if (exc == null)
+                    {
+                        listener.CommandSucceeded(result);
+                    }
+                    else if (aborted)
+                    {
+                        listener.CommandAborted();
+                    }
+                    else
+                    {
+                        listener.CommandFailed(exc);
+                    }
+                }
+
                 doneEvent.Set();
             }
         }
@@ -866,14 +859,7 @@ namespace CommandLib
                     throw new InvalidOperationException("ICommandListener.CommandSucceeded called on same thread as AsyncExecute()");
                 }
 
-                listener.CommandSucceeded(result);
-
-                if (Monitor != null)
-                {
-                    Monitor.CommandFinished(command, null);
-                }
-
-                command.DecrementExecuting();
+                command.DecrementExecuting(listener, result, null);
             }
 
             public void CommandAborted()
@@ -883,14 +869,7 @@ namespace CommandLib
                     throw new InvalidOperationException("ICommandListener.CommandAborted called on same thread as AsyncExecute()");
                 }
 
-                listener.CommandAborted();
-
-                if (Monitor != null)
-                {
-                    Monitor.CommandFinished(command, new CommandAbortedException());
-                }
-
-                command.DecrementExecuting();
+                command.DecrementExecuting(listener, null, new CommandAbortedException());
             }
 
             public void CommandFailed(Exception exc)
@@ -900,15 +879,7 @@ namespace CommandLib
                     throw new InvalidOperationException("ICommandListener.CommandFailed called on same thread as AsyncExecute()");
                 }
 
-                command.AttachErrorInfo("ListenerProxy.CommandFailed", exc);
-                listener.CommandFailed(exc);
-
-                if (Monitor != null)
-                {
-                    Monitor.CommandFinished(command, exc);
-                }
-
-                command.DecrementExecuting();
+                command.DecrementExecuting(listener, null, exc);
             }
 
             private Command command;
