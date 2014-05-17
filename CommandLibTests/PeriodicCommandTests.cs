@@ -204,11 +204,11 @@ namespace CommandLibTests
                 Assert.AreEqual(TimeSpan.FromDays(1), periodicCmd.Interval);
                 CmdListener listener = new CmdListener(CmdListener.CallbackType.Succeeded, null);
                 periodicCmd.AsyncExecute(listener, 0);
-                System.Threading.Thread.Sleep(100); // give time for the command to start
+                System.Threading.Thread.Sleep(200); // give time for the command to start
                 periodicCmd.Interval = TimeSpan.FromMilliseconds(1);
                 Assert.IsFalse(periodicCmd.Wait(TimeSpan.FromMilliseconds(10)));
                 periodicCmd.Reset();
-                Assert.IsTrue(periodicCmd.Wait(TimeSpan.FromMilliseconds(100)));
+                Assert.IsTrue(periodicCmd.Wait(TimeSpan.FromMilliseconds(1000)));
                 listener.Check();
                 Assert.AreEqual(TimeSpan.FromMilliseconds(1), periodicCmd.Interval);
 
