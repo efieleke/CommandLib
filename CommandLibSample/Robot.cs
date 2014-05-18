@@ -6,6 +6,10 @@ using System.Threading.Tasks;
 
 namespace CommandLibSample
 {
+    /// <summary>
+    /// Robots can move along X and Y axes, wait for a different robot to occupy the same position,
+    /// and emit a greeting.
+    /// </summary>
     class Robot
     {
         internal Robot (String name, int xPos, int yPos)
@@ -15,6 +19,9 @@ namespace CommandLibSample
             this.yPos = yPos;
         }
 
+        /// <summary>
+        /// The object returned by the Robot move methods.
+        /// </summary>
         internal interface IAbortableAsyncResult : IAsyncResult, IDisposable
         {
             Object UserData { get;  }
@@ -27,6 +34,12 @@ namespace CommandLibSample
         internal event OperationCompleteEventHandler MoveYCompleteEvent;
         internal event OperationCompleteEventHandler WaitForRobotCompleteEvent;
 
+        /// <summary>
+        /// Begin moving along the X axis. Rate is four units per second. 
+        /// </summary>
+        /// <param name="destination">The target to move to</param>
+        /// <param name="userData">Caller defined data that will be passed to the completion callback</param>
+        /// <returns></returns>
         internal IAbortableAsyncResult MoveX(int destination, Object userData)
         {
             Operation moveOp = new Operation(userData);
@@ -69,9 +82,15 @@ namespace CommandLibSample
             return moveOp;
         }
 
+        /// <summary>
+        /// Begin moving along the Y axis. Rate is four units per second. 
+        /// </summary>
+        /// <param name="destination">The target to move to</param>
+        /// <param name="userData">Caller defined object that will be passed to the completion callback</param>
+        /// <returns></returns>
         internal IAbortableAsyncResult MoveY(int destination, Object userData)
         {
-            // Very similar to MoveXToZero. Consider refactoring.
+            // Very similar to MoveY. Consider refactoring.
             Operation moveOp = new Operation(userData);
 
             System.Threading.Thread thread = new System.Threading.Thread(() =>
@@ -112,6 +131,11 @@ namespace CommandLibSample
             return moveOp;
         }
 
+        /// <summary>
+        /// The current position of this Robot
+        /// </summary>
+        /// <param name="x">x coordinate</param>
+        /// <param name="y">y coordinate</param>
         internal void GetPosition(out int x, out int y)
         {
             lock (criticalSection)
@@ -121,6 +145,16 @@ namespace CommandLibSample
             }
         }
 
+        /// <summary>
+        /// Begin waiting for a different Robot to arrive at this Robot's current position.
+        /// </summary>
+        /// <param name="robot">The robot to wait for</param>
+        /// <param name="userData">Caller defined object that will be passed to the completion callback</param>
+        /// <returns></returns>
+        /// <remarks>
+        /// This robot does not have to be stationary while it waits (which means you could have two robots
+        /// randomly move about while waiting to intersect with each other).
+        /// </remarks>
         internal IAbortableAsyncResult WaitForRobot(Robot robot, Object userData)
         {
             Operation waitOp = new Operation(userData);

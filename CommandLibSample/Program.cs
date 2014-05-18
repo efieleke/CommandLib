@@ -7,12 +7,17 @@ using System.Threading.Tasks;
 // This application chronicles the story of two lovestruck robots attempting to meet each other at the origin (0,0).
 // It demonstrates how to author an AsyncCommand-derived class, and makes use of ParallelCommands, SequentialCommands,
 // PeriodicCommand, TimeLimitedCommand and RetryableCommand.
+//
+// For practice using Command objects, the program could be changed to have the two robots wander around aimlessly
+// until they bumped into each other by chance.
 namespace CommandLibSample
 {
     class Program
     {
         static void Main(string[] args)
         {
+            // Output all the command activity to a file in the temp directory. This is a simple text file, and it
+            // can be viewed using CommandLogViewer.
             String tempFile = System.IO.Path.GetTempFileName();
             CommandLib.Command.Monitor = new CommandLib.CommandLogger(tempFile, true);
 
@@ -58,7 +63,7 @@ namespace CommandLibSample
             moveAndGreetCmd.Add(new EmitGreetingCommand(robotOne, null));
             moveAndGreetCmd.Add(new EmitGreetingCommand(robotTwo, null));
 
-            // Wrap the above command in a command that throw a TimeoutException if it takes longer than 20 seconds.
+            // Wrap the above command in a command that throws a TimeoutException if it takes longer than 20 seconds.
             CommandLib.TimeLimitedCommand timeLimitedCmd = new CommandLib.TimeLimitedCommand(moveAndGreetCmd, 20000);
 
             // Allow retries, because we will time out, and maybe the end user actually wants to see if there are any
