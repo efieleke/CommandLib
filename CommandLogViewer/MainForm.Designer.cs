@@ -65,7 +65,7 @@
             // label3
             // 
             this.label3.AutoSize = true;
-            this.label3.Location = new System.Drawing.Point(13, 721);
+            this.label3.Location = new System.Drawing.Point(13, 531);
             this.label3.Name = "label3";
             this.label3.Size = new System.Drawing.Size(693, 13);
             this.label3.TabIndex = 6;
@@ -75,7 +75,7 @@
             // label4
             // 
             this.label4.AutoSize = true;
-            this.label4.Location = new System.Drawing.Point(13, 651);
+            this.label4.Location = new System.Drawing.Point(13, 461);
             this.label4.Name = "label4";
             this.label4.Size = new System.Drawing.Size(788, 13);
             this.label4.TabIndex = 4;
@@ -87,7 +87,7 @@
             // 
             this.exitBtn.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Right)));
             this.exitBtn.DialogResult = System.Windows.Forms.DialogResult.Cancel;
-            this.exitBtn.Location = new System.Drawing.Point(823, 810);
+            this.exitBtn.Location = new System.Drawing.Point(824, 633);
             this.exitBtn.Name = "exitBtn";
             this.exitBtn.Size = new System.Drawing.Size(75, 23);
             this.exitBtn.TabIndex = 9;
@@ -109,10 +109,10 @@
             this.childList.FullRowSelect = true;
             this.childList.GridLines = true;
             this.childList.HeaderStyle = System.Windows.Forms.ColumnHeaderStyle.Nonclickable;
-            this.childList.Location = new System.Drawing.Point(16, 737);
+            this.childList.Location = new System.Drawing.Point(16, 546);
             this.childList.MultiSelect = false;
             this.childList.Name = "childList";
-            this.childList.Size = new System.Drawing.Size(883, 62);
+            this.childList.Size = new System.Drawing.Size(883, 79);
             this.childList.TabIndex = 7;
             this.childList.UseCompatibleStateImageBehavior = false;
             this.childList.View = System.Windows.Forms.View.Details;
@@ -142,7 +142,7 @@
             // openBtn
             // 
             this.openBtn.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Left)));
-            this.openBtn.Location = new System.Drawing.Point(16, 809);
+            this.openBtn.Location = new System.Drawing.Point(16, 633);
             this.openBtn.Name = "openBtn";
             this.openBtn.Size = new System.Drawing.Size(102, 23);
             this.openBtn.TabIndex = 8;
@@ -167,7 +167,7 @@
             this.commandList.Location = new System.Drawing.Point(12, 34);
             this.commandList.MultiSelect = false;
             this.commandList.Name = "commandList";
-            this.commandList.Size = new System.Drawing.Size(883, 606);
+            this.commandList.Size = new System.Drawing.Size(883, 417);
             this.commandList.TabIndex = 1;
             this.commandList.UseCompatibleStateImageBehavior = false;
             this.commandList.View = System.Windows.Forms.View.Details;
@@ -210,7 +210,7 @@
             this.parentList.FullRowSelect = true;
             this.parentList.GridLines = true;
             this.parentList.HeaderStyle = System.Windows.Forms.ColumnHeaderStyle.Nonclickable;
-            this.parentList.Location = new System.Drawing.Point(16, 667);
+            this.parentList.Location = new System.Drawing.Point(16, 477);
             this.parentList.MultiSelect = false;
             this.parentList.Name = "parentList";
             this.parentList.Scrollable = false;
@@ -249,7 +249,7 @@
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
             this.CancelButton = this.exitBtn;
-            this.ClientSize = new System.Drawing.Size(911, 840);
+            this.ClientSize = new System.Drawing.Size(911, 666);
             this.Controls.Add(this.parentList);
             this.Controls.Add(this.commandList);
             this.Controls.Add(this.openBtn);
