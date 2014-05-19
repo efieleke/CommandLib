@@ -11,7 +11,7 @@ namespace CommandLib
     /// call will be on a thread different from the thread AsyncExecute was called from.
     /// </summary>
     /// <remarks>
-    /// The <see cref="Command"/> is still considered to be executing when it makes these callbacks, so do not re-execute the command from within
+    /// The <see cref="Command"/> is in the last stage of execution when making these callbacks, so do not re-execute the command from within
     /// your handler. Also, do not call the executing command's <see cref="Command.Wait()"/> from within your handler, as that will cause deadlock.
     /// </remarks>
     public interface ICommandListener
@@ -25,7 +25,7 @@ namespace CommandLib
         /// expected type.
         /// </param>
         /// <remarks>
-        /// The <see cref="Command"/> is still considered to be executing when it makes these callbacks, so do not re-execute the command from within
+        /// The <see cref="Command"/> is in the last stage of execution when making this callback, so do not re-execute the command from within
         /// your handler. Also, do not call the executing command's <see cref="Command.Wait()"/> method from within your handler, as that will cause deadlock.
         /// </remarks>
         void CommandSucceeded(Object result);
@@ -34,7 +34,7 @@ namespace CommandLib
         /// Called when a <see cref="Command"/> launched via <see cref="Command.AsyncExecute(ICommandListener)"/> was aborted.
         /// </summary>
         /// <remarks>
-        /// The <see cref="Command"/> is still considered to be executing when it makes these callbacks, so do not re-execute the command from within
+        /// The <see cref="Command"/> is in the last stage of execution when making this callback, so do not re-execute the command from within
         /// your handler. Also, do not call the executing command's <see cref="Command.Wait()"/> method from within your handler, as that will cause deadlock.
         /// </remarks>
         void CommandAborted();
@@ -44,7 +44,7 @@ namespace CommandLib
         /// </summary>
         /// <param name="exc">The reason for failure</param>
         /// <remarks>
-        /// The <see cref="Command"/> is still considered to be executing when it makes these callbacks, so do not re-execute the command from within
+        /// The <see cref="Command"/> is in the last stage of execution when making this callback, so do not re-execute the command from within
         /// your handler. Also, do not call the executing command's <see cref="Command.Wait()"/> method from within your handler, as that will cause deadlock.
         /// </remarks>
         void CommandFailed(Exception exc);
