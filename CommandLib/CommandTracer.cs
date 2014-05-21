@@ -20,40 +20,40 @@ namespace CommandLib
         /// <summary>
         /// Writes information about the command that is starting to the debug stream
         /// </summary>
-        /// <param name="command">The command that is starting</param>
-        public void CommandStarting(Command command)
+        /// <param name="commandInfo">information about the command that is starting</param>
+        public void CommandStarting(ICommandInfo commandInfo)
         {
-            String parentId = command.Parent == null ? "none" : command.Parent.Id.ToString();
-            String spaces = new String(' ', command.Depth);
-            String message = String.Format("{0}{1}({2}) started. Parent Id: {3}", spaces, command.GetType().FullName, command.Id.ToString(), parentId);
-            PrintMessage(command, message);
+            String parentId = commandInfo.ParentInfo == null ? "none" : commandInfo.ParentInfo.Id.ToString();
+            String spaces = new String(' ', commandInfo.Depth);
+            String message = String.Format("{0}{1}({2}) started. Parent Id: {3}", spaces, commandInfo.GetType().FullName, commandInfo.Id.ToString(), parentId);
+            PrintMessage(commandInfo, message);
         }
 
         /// <summary>
         /// Writes information about the command that finished to the debug stream
         /// </summary>
-        /// <param name="command">The command that finished</param>
+        /// <param name="commandInfo">information about the command is finishing</param>
         /// <param name="exc">If the command did not succeed, this indicates the reason</param>
-        public void CommandFinished(Command command, Exception exc)
+        public void CommandFinished(ICommandInfo commandInfo, Exception exc)
         {
-            String parentId = command.Parent == null ? "none" : command.Parent.Id.ToString();
-            String spaces = new String(' ', command.Depth);
+            String parentId = commandInfo.ParentInfo == null ? "none" : commandInfo.ParentInfo.Id.ToString();
+            String spaces = new String(' ', commandInfo.Depth);
             String message;
 
             if (exc == null)
             {
-                message = String.Format("{0}{1}({2}) succeeded. Parent Id: {3}", spaces, command.GetType().FullName, command.Id.ToString(), parentId);
+                message = String.Format("{0}{1}({2}) succeeded. Parent Id: {3}", spaces, commandInfo.GetType().FullName, commandInfo.Id.ToString(), parentId);
             }
             else if (exc is CommandAbortedException)
             {
-                message = String.Format("{0}{1}({2}) aborted. Parent Id: {3}", spaces, command.GetType().FullName, command.Id.ToString(), parentId);
+                message = String.Format("{0}{1}({2}) aborted. Parent Id: {3}", spaces, commandInfo.GetType().FullName, commandInfo.Id.ToString(), parentId);
             }
             else
             {
-                message = String.Format("{0}{1}({2}) failed. Parent Id: {3}. Reason: {4}", spaces, command.GetType().FullName, command.Id.ToString(), parentId, exc.Message);
+                message = String.Format("{0}{1}({2}) failed. Parent Id: {3}. Reason: {4}", spaces, commandInfo.GetType().FullName, commandInfo.Id.ToString(), parentId, exc.Message);
             }
 
-            PrintMessage(command, message);
+            PrintMessage(commandInfo, message);
         }
 
         /// <summary>
@@ -80,9 +80,9 @@ namespace CommandLib
         {
         }
 
-        static private void PrintMessage(Command command, String message)
+        static private void PrintMessage(ICommandInfo commandInfo, String message)
         {
-            String extendedInfo = command.ExtendedDescription();
+            String extendedInfo = commandInfo.ExtendedDescription();
 
             if (!String.IsNullOrWhiteSpace(extendedInfo))
             {

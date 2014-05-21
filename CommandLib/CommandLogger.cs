@@ -32,48 +32,48 @@ namespace CommandLib
         /// <summary>
         /// Logs command starting info to file
         /// </summary>
-        /// <param name="command">The command that is starting execution</param>
-        public void CommandStarting(Command command)
+        /// <param name="commandInfo">Information about the command that is starting execution</param>
+        public void CommandStarting(ICommandInfo commandInfo)
         {
             if (tracer != null)
             {
-                tracer.CommandStarting(command);
+                tracer.CommandStarting(commandInfo);
             }
 
             // Changing the format of this output will break the CommandLogViewer app.
-            String header = FormHeader(command, "Starting");
-            WriteMessage(command, header);
+            String header = FormHeader(commandInfo, "Starting");
+            WriteMessage(commandInfo, header);
         }
 
         /// <summary>
         /// Logs command finished info to file
         /// </summary>
-        /// <param name="command">The command that finished</param>
+        /// <param name="commandInfo">Information about the command that is finishing</param>
         /// <param name="exc">Will be null if the command succeeded. Otherwise a CommandAbortedException or some other Exception type</param>
-        public void CommandFinished(Command command, Exception exc)
+        public void CommandFinished(ICommandInfo commandInfo, Exception exc)
         {
             if (tracer != null)
             {
-                tracer.CommandFinished(command, exc);
+                tracer.CommandFinished(commandInfo, exc);
             }
 
             String message = null;
 
             if (exc == null)
             {
-                message = FormHeader(command, "Completed");
+                message = FormHeader(commandInfo, "Completed");
             }
             else if (exc is CommandAbortedException)
             {
-                message = FormHeader(command, "Aborted");
+                message = FormHeader(commandInfo, "Aborted");
             }
             else
             {
-                message = FormHeader(command, "Failed");
+                message = FormHeader(commandInfo, "Failed");
                 message = String.Format("{0} Reason: {1}", message, exc.Message);
             }
 
-            WriteMessage(command, message);
+            WriteMessage(commandInfo, message);
         }
 
 
@@ -115,17 +115,17 @@ namespace CommandLib
             }
         }
 
-        static private String FormHeader(Command command, String action)
+        static private String FormHeader(ICommandInfo commandInfo, String action)
         {
-            long parentId = command.Parent == null ? 0 : command.Parent.Id;
-            String spaces = new String(' ', command.Depth);
+            long parentId = commandInfo.ParentInfo == null ? 0 : commandInfo.ParentInfo.Id;
+            String spaces = new String(' ', commandInfo.Depth);
             DateTime time = DateTime.SpecifyKind(DateTime.Now, DateTimeKind.Utc);                  
-            return String.Format("{0} {1}{2}({3}) {4} {5}", time.ToString("o"), spaces, command.Id, parentId, action, command.GetType().FullName);
+            return String.Format("{0} {1}{2}({3}) {4} {5}", time.ToString("o"), spaces, commandInfo.Id, parentId, action, commandInfo.GetType().FullName);
         }
 
-        private void WriteMessage(Command command, String message)
+        private void WriteMessage(ICommandInfo commandInfo, String message)
         {
-            String extendedInfo = command.ExtendedDescription();
+            String extendedInfo = commandInfo.ExtendedDescription();
 
             if (!String.IsNullOrWhiteSpace(extendedInfo))
             {

@@ -43,6 +43,66 @@ namespace CommandLib
     {
     }
 
+    /// <summary>
+    /// Informational data that is part of a <see cref="Command"/> instance
+    /// </summary>
+    public interface ICommandInfo
+    {
+        /// <summary>
+        /// Returns the unique identifier for this command.
+        /// </summary>
+        long Id
+        {
+            get;
+        }
+
+        /// <summary>
+        /// Returns the owner, or the command that an <see cref="AbortEventedCommand"/> is linked to (if any).
+        /// </summary>
+        ICommandInfo ParentInfo
+        {
+            get;
+        }
+
+        /// <summary>
+        /// Counts the number of parents until the top level command is reached
+        /// </summary>
+        /// <remarks>A parent is considered an owner, or the command that an <see cref="AbortEventedCommand"/> is linked to (if any).</remarks>
+        int Depth
+        {
+            get;
+        }
+
+        /// <summary>A description of the Command</summary>
+        /// <remarks>
+        /// This is the name of the concrete class of this command, preceded by the names of the classes of each parent,
+        /// up to the top-level parent. This is followed with this command's unique id (for example, 'SequentialCommands=>PauseCommand(23)').
+        /// The description ends with details of about the current state of the command, if available.
+        /// <para>
+        /// A parent is considered the owner, or the command that an <see cref="AbortEventedCommand"/> is linked to (if any).
+        /// </para>
+        /// </remarks>
+        String Description
+        {
+            get;
+        }
+
+        /// <summary>
+        /// Information about the command (beyond its type and id), if available, for diagnostic purposes.
+        /// </summary>
+        /// <returns>
+        /// Implementations should return information about the current state of the Command, if available. Return an empty string
+        /// or null if there is no useful state information to report.
+        /// </returns>
+        /// <remarks>
+        /// This information is included as part of the <see cref="Description"/> property. It is meant for diagnostic purposes.
+        /// <para>
+        /// Implementations must be thread safe, and they must not not throw.
+        /// </para>
+        /// </remarks>
+        String ExtendedDescription();
+    }
+
     /// <summary>Represents an action that can be run synchronously or asynchronously.</summary>
     /// <remarks>
     /// Commands are abortable. Even a synchronously running command can be aborted from a separate thread.
@@ -82,7 +142,7 @@ namespace CommandLib
     /// objects must be more loosely coupled.
     /// </para>
     /// </remarks>
-    public abstract class Command : IDisposable
+    public abstract class Command : IDisposable, ICommandInfo
     {
         /// <summary>
         /// The object that defines command monitoring behavior. Monitoring is meant for logging and diagnostic purposes.
@@ -115,6 +175,98 @@ namespace CommandLib
             return null;
         }
 
+#region ICommandInfo
+        /// <summary>
+        /// Returns the unique identifier for this command.
+        /// </summary>
+        public long Id
+        {
+            get { return id; }
+        }
+
+        /// <summary>
+        /// Returns the owner, or the command that an <see cref="AbortEventedCommand"/> is linked to (if any).
+        /// </summary>
+        public ICommandInfo ParentInfo
+        {
+            get
+            {
+                return Parent;
+            }
+        }
+
+        /// <summary>
+        /// Counts the number of parents until the top level command is reached
+        /// </summary>
+        /// <remarks>A parent is considered an owner, or the command that an <see cref="AbortEventedCommand"/> is linked to (if any).</remarks>
+        public int Depth
+        {
+            get
+            {
+                CheckDisposed();
+                int result = 0;
+
+                for (Command parent = GetParent(this); parent != null; parent = GetParent(parent))
+                {
+                    ++result;
+                }
+
+                return result;
+            }
+        }
+
+        /// <summary>A description of the Command</summary>
+        /// <remarks>
+        /// This is the name of the concrete class of this command, preceded by the names of the classes of each parent,
+        /// up to the top-level parent. This is followed with this command's unique id (for example, 'SequentialCommands=>PauseCommand(23)').
+        /// The description ends with details of about the current state of the command, if available.
+        /// <para>
+        /// A parent is considered the owner, or the command that an <see cref="AbortEventedCommand"/> is linked to (if any).
+        /// </para>
+        /// </remarks>
+        public String Description
+        {
+            get
+            {
+                CheckDisposed();
+                String result = GetType().Name;
+
+                for (Command parent = GetParent(this); parent != null; parent = GetParent(parent))
+                {
+                    result = parent.GetType().Name + "=>" + result;
+                }
+
+                result += "(" + id.ToString() + ")";
+                String extendedDescription = ExtendedDescription();
+
+                if (!String.IsNullOrWhiteSpace(extendedDescription))
+                {
+                    result += " " + extendedDescription;
+                }
+
+                return result;
+            }
+        }
+
+        /// <summary>
+        /// Information about the command (beyond its type and id), if available, for diagnostic purposes.
+        /// </summary>
+        /// <returns>
+        /// Implementations should return information about the current state of the Command, if available. Return an empty string
+        /// or null if there is no useful state information to report.
+        /// </returns>
+        /// <remarks>
+        /// This information is included as part of the <see cref="Description"/> property. It is meant for diagnostic purposes.
+        /// <para>
+        /// Implementations must be thread safe, and they must not not throw.
+        /// </para>
+        /// </remarks>
+        public virtual String ExtendedDescription()
+        {
+            return "";
+        }
+#endregion
+
         /// <summary>
         /// Call to dispose this command and release any resources that it holds. Only call this on top-level commands (i.e. commands that have no owner)
         /// </summary>
@@ -123,14 +275,6 @@ namespace CommandLib
             CheckDisposed();
             Dispose(true);
             GC.SuppressFinalize(this);
-        }
-
-        /// <summary>
-        /// Returns the unique identifier for this command.
-        /// </summary>
-        public long Id
-        {
-            get { return id;  }
         }
 
         /// <summary>Executes the command and does not return until it finishes.</summary>
@@ -401,78 +545,6 @@ namespace CommandLib
                 CheckDisposed();
                 return GetParent(this);
             }
-        }
-
-        /// <summary>
-        /// Counts the number of parents until the top level command is reached
-        /// </summary>
-        /// <remarks>A parent is considered an owner, or the command that an <see cref="AbortEventedCommand"/> is linked to (if any).</remarks>
-        public int Depth
-        {
-            get
-            {
-                CheckDisposed();
-                int result = 0;
-
-                for (Command parent = GetParent(this); parent != null; parent = GetParent(parent))
-                {
-                    ++result;
-                }
-
-                return result;
-            }
-        }
-
-        /// <summary>A description of the Command</summary>
-        /// <remarks>
-        /// This is the name of the concrete class of this command, preceded by the names of the classes of each parent,
-        /// up to the top-level parent. This is followed with this command's unique id (for example, 'SequentialCommands=>PauseCommand(23)').
-        /// The description ends with details of about the current state of the command, if available.
-        /// <para>
-        /// A parent is considered the owner, or the command that an <see cref="AbortEventedCommand"/> is linked to (if any).
-        /// </para>
-        /// </remarks>
-        public String Description
-        {
-            get
-            {
-                CheckDisposed();
-                String result = GetType().Name;
-
-                for (Command parent = GetParent(this); parent != null; parent = GetParent(parent))
-                {
-                    result = parent.GetType().Name + "=>" + result;
-                }
-
-                result += "(" + id.ToString() + ")";
-                String extendedDescription = ExtendedDescription();
-
-                if (!String.IsNullOrWhiteSpace(extendedDescription))
-                {
-                    result += " " + extendedDescription;
-                }
-
-                return result;
-            }
-        }
-
-
-        /// <summary>
-        /// Information about the command (beyond its type and id), if available, for diagnostic purposes.
-        /// </summary>
-        /// <returns>
-        /// Implementations should return information about the current state of the Command, if available. Return an empty string
-        /// or null if there is no useful state information to report.
-        /// </returns>
-        /// <remarks>
-        /// This information is included as part of the <see cref="Description"/> property. It is meant for diagnostic purposes.
-        /// <para>
-        /// Implementations must be thread safe, and they must not not throw.
-        /// </para>
-        /// </remarks>
-        public virtual String ExtendedDescription()
-        {
-            return "";
         }
 
         /// <summary>

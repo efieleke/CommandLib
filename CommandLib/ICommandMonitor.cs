@@ -17,21 +17,19 @@ namespace CommandLib
         /// <summary>
         /// Invoked by the framework whenever a <see cref="Command"/> (including owned commands) starts execution
         /// </summary>
-        /// <param name="command">
-        /// The command that is starting execution. Implementations should treat this as a non-modifiable object, in the last stage of execution (notifying listeners).
-        /// Also, do not call the command's <see cref="Command.Wait()"/> method from within your handler, as that will cause deadlock.
+        /// <param name="commandInfo">
+        /// Information about the command that is starting execution.
         /// </param>
         /// <remarks>
         /// Implementations of this method must not throw.
         /// </remarks>
-        void CommandStarting(Command command);
+        void CommandStarting(ICommandInfo commandInfo);
 
         /// <summary>
         /// Invoked by the framework whenever a <see cref="Command"/> (including owned commands) is finishing execution, for whatever reason (success, fail, or abort).
         /// </summary>
-        /// <param name="command">
-        /// The command that is finishing execution. Implementations should treat this as a non-modifiable object, in the last stage of execution (notifying listeners).
-        /// Also, do not call the command's <see cref="Command.Wait()"/> method from within your handler, as that will cause deadlock.
+        /// <param name="commandInfo">
+        /// Information about the command that is finishing execution.
         /// </param>
         /// <param name="exc">
         /// Will be null if the command succeeded. Otherwise will be a <see cref="CommandAbortedException"/> if the command was aborted, or some other
@@ -40,6 +38,6 @@ namespace CommandLib
         /// <remarks>
         /// Implementations of this method must not throw.
         /// </remarks>
-        void CommandFinished(Command command, Exception exc);
+        void CommandFinished(ICommandInfo commandInfo, Exception exc);
     }
 }
