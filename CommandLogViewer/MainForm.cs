@@ -117,11 +117,13 @@ namespace CommandLogViewer
             listView.AutoResizeColumns(listView.Items.Count > 0 ? ColumnHeaderAutoResizeStyle.ColumnContent : ColumnHeaderAutoResizeStyle.HeaderSize);
         }
 
-        private ListData FindListDataEncompassing(long commandId, DateTime start, DateTime finish)
+        private ListData FindListDataEncompassing(int upperBound, long commandId, DateTime start, DateTime finish)
         {
-            foreach (ListData data in listData)
+            for (int i = 0; i < upperBound; ++i )
             {
-                if (data.id == commandId && data.startTime <= start && data.finishTime >= finish)
+                ListData data = listData[i];
+
+                if (data.id == commandId && data.finishTime >= finish)
                 {
                     return data;
                 }
@@ -130,14 +132,21 @@ namespace CommandLogViewer
             return null;
         }
 
-        private List<ListData> FindListDataWithin(long commandId, DateTime start, DateTime finish)
+        private List<ListData> FindListDataWithin(int lowerBound, long commandId, DateTime start, DateTime finish)
         {
             List<ListData> result = new List<ListData>();
 
-            foreach(ListData data in listData)
+            for (int i = lowerBound + 1; i < listData.Count; ++i)
             {
-                if (data.id == commandId && data.startTime >= start && data.finishTime <= finish)
+                ListData data = listData[i];
+
+                if (data.id == commandId)
                 {
+                    if (data.finishTime > finish)
+                    {
+                        break;
+                    }
+
                     result.Add(data);
                 }
             }
@@ -152,8 +161,9 @@ namespace CommandLogViewer
 
             if (commandList.SelectedItems.Count == 1)
             {
+                int selectedIndex = commandList.SelectedItems[0].Index;
                 ListData listData = (ListData)commandList.SelectedItems[0].Tag;
-                ListData parentData = FindListDataEncompassing(listData.parentId, listData.startTime, listData.finishTime);
+                ListData parentData = FindListDataEncompassing(selectedIndex, listData.parentId, listData.startTime, listData.finishTime);
 
                 if (parentData != null)
                 {
@@ -162,7 +172,7 @@ namespace CommandLogViewer
 
                 foreach (long childId in listData.childIds)
                 {
-                    List<ListData> childData = FindListDataWithin(childId, listData.startTime, listData.finishTime);
+                    List<ListData> childData = FindListDataWithin(selectedIndex, childId, listData.startTime, listData.finishTime);
 
                     foreach (ListData child in childData)
                     {
