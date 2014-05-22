@@ -55,12 +55,14 @@ namespace CommandLogViewer
 
                             if (action == "Starting")
                             {
-                                listData.Add(new ListData(type, time, DateTime.MaxValue, action, details, id, parentId, new List<long>()));
+                                listData.Add(new ListData(type, time, DateTime.MaxValue, action, details, id, parentId));
                             }
                             else
                             {
-                                foreach(ListData data in listData)
+                                for (int i = listData.Count - 1; i >= 0; --i)
                                 {
+                                    ListData data = listData[i];
+
                                     if (data.id == id && data.status == "Starting") // Commands can be executed more than once
                                     {
                                         data.status = action;
@@ -77,15 +79,15 @@ namespace CommandLogViewer
                     {
                         if (data.parentId != 0)
                         {
-                            foreach(ListData data2 in listData)
+                            if (!childMap.ContainsKey(data.parentId))
                             {
-                                if (data2.id == data.parentId)
-                                {
-                                    if (!data2.childIds.Contains(data.id))
-                                    {
-                                        data2.childIds.Add(data.id);
-                                    }
-                                }
+                                HashSet<long> children = new HashSet<long>();
+                                children.Add(data.id);
+                                childMap.Add(data.parentId, children);
+                            }
+                            else
+                            {
+                                childMap[data.parentId].Add(data.id);
                             }
                         }
 
@@ -170,13 +172,16 @@ namespace CommandLogViewer
                     AddListItem(parentList, parentData);
                 }
 
-                foreach (long childId in listData.childIds)
+                if (childMap.ContainsKey(listData.id))
                 {
-                    List<ListData> childData = FindListDataWithin(selectedIndex, childId, listData.startTime, listData.finishTime);
-
-                    foreach (ListData child in childData)
+                    foreach (long childId in childMap[listData.id])
                     {
-                        AddListItem(childList, child);
+                        List<ListData> childData = FindListDataWithin(selectedIndex, childId, listData.startTime, listData.finishTime);
+
+                        foreach (ListData child in childData)
+                        {
+                            AddListItem(childList, child);
+                        }
                     }
                 }
 
@@ -229,7 +234,7 @@ namespace CommandLogViewer
 
         private class ListData
         {
-            internal ListData(String commandType, DateTime startTime, DateTime finishTime, String status, String details, long id, long parentId, List<long> childIds)
+            internal ListData(String commandType, DateTime startTime, DateTime finishTime, String status, String details, long id, long parentId)
             {
                 this.commandType = commandType;
                 this.startTime = startTime;
@@ -238,7 +243,6 @@ namespace CommandLogViewer
                 this.details = details;
                 this.id = id;
                 this.parentId = parentId;
-                this.childIds = childIds;
             }
 
             internal String commandType;
@@ -248,9 +252,9 @@ namespace CommandLogViewer
             internal String details;
             internal long id;
             internal long parentId;
-            internal List<long> childIds;
         }
 
         private List<ListData> listData = new List<ListData>();
+        private Dictionary<long, HashSet<long>> childMap = new Dictionary<long, HashSet<long>>();
     }
 }
