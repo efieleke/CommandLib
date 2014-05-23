@@ -19,13 +19,14 @@ namespace CommandLogViewer
 
         private void openBtn_Click(object sender, EventArgs e)
         {
-            try
-            {
-                OpenFileDialog openFileDialog = new OpenFileDialog();
-                openFileDialog.Multiselect = false;
+            OpenFileDialog openFileDialog = new OpenFileDialog();
+            openFileDialog.Multiselect = false;
 
-                if (openFileDialog.ShowDialog(this) == DialogResult.OK)
+            if (openFileDialog.ShowDialog(this) == DialogResult.OK)
+            {
+                try
                 {
+                    Cursor.Current = Cursors.WaitCursor;
                     childList.Items.Clear();
                     parentList.Items.Clear();
                     commandList.Items.Clear();
@@ -38,7 +39,7 @@ namespace CommandLogViewer
                     {
                         for (String line = fileStream.ReadLine(); line != null; line = fileStream.ReadLine())
                         {
-                            String[] fields = line.Split(new char[]{' '}, int.MaxValue, StringSplitOptions.RemoveEmptyEntries);
+                            String[] fields = line.Split(new char[] { ' ' }, int.MaxValue, StringSplitOptions.RemoveEmptyEntries);
                             DateTime time = DateTime.Parse(fields[0], null, System.Globalization.DateTimeStyles.RoundtripKind);
                             String idText = fields[1];
                             String[] ids = fields[1].Split(new char[] { '(', ')' });
@@ -75,7 +76,7 @@ namespace CommandLogViewer
                         }
                     }
 
-                    foreach(ListData data in listData)
+                    foreach (ListData data in listData)
                     {
                         if (data.parentId != 0)
                         {
@@ -96,10 +97,15 @@ namespace CommandLogViewer
 
                     ResizeColumns(commandList);
                 }
-            }
-            catch (Exception exc)
-            {
-                MessageBox.Show(this, exc.Message, Text, MessageBoxButtons.OK, MessageBoxIcon.Error);
+                catch (Exception exc)
+                {
+                    commandList.Items.Clear();
+                    MessageBox.Show(this, exc.Message, Text, MessageBoxButtons.OK, MessageBoxIcon.Error);
+                }
+                finally
+                {
+                    Cursor.Current = Cursors.Default;
+                }
             }
         }
 
