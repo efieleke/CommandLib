@@ -3,7 +3,6 @@ using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
 
 [assembly: AssemblyCompany("")]
-[assembly: AssemblyProduct("CommandLogViewer")]
 [assembly: AssemblyCopyright("Copyright © 2014 Sophos Ltd.")]
 [assembly: AssemblyTrademark("")]
 [assembly: AssemblyCulture("")]
