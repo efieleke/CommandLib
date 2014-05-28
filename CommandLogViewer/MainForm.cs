@@ -24,88 +24,102 @@ namespace CommandLogViewer
 
             if (openFileDialog.ShowDialog(this) == DialogResult.OK)
             {
-                try
+                logFileName = openFileDialog.FileName;
+                LoadLogFile();
+                reloadBtn.Enabled = true;
+            }
+        }
+
+
+        private void reloadBtn_Click(object sender, EventArgs e)
+        {
+            LoadLogFile();
+        }
+
+        private void LoadLogFile()
+        {
+            try
+            {
+                Cursor.Current = Cursors.WaitCursor;
+                childList.Items.Clear();
+                parentList.Items.Clear();
+                commandList.Items.Clear();
+                listData.Clear();
+
+                // Open the selected file to read.
+                System.IO.FileStream stream = new System.IO.FileStream(logFileName, System.IO.FileMode.Open, System.IO.FileAccess.Read, System.IO.FileShare.ReadWrite);
+
+                using (System.IO.StreamReader fileStream = new System.IO.StreamReader(stream))
                 {
-                    Cursor.Current = Cursors.WaitCursor;
-                    childList.Items.Clear();
-                    parentList.Items.Clear();
-                    commandList.Items.Clear();
-                    listData.Clear();
-
-                    // Open the selected file to read.
-                    System.IO.FileStream stream = new System.IO.FileStream(openFileDialog.FileName, System.IO.FileMode.Open, System.IO.FileAccess.Read, System.IO.FileShare.ReadWrite);
-
-                    using (System.IO.StreamReader fileStream = new System.IO.StreamReader(stream))
+                    for (String line = fileStream.ReadLine(); line != null; line = fileStream.ReadLine())
                     {
-                        for (String line = fileStream.ReadLine(); line != null; line = fileStream.ReadLine())
+                        String[] fields = line.Split(new char[] { ' ' }, int.MaxValue, StringSplitOptions.RemoveEmptyEntries);
+                        DateTime time = DateTime.Parse(fields[0], null, System.Globalization.DateTimeStyles.RoundtripKind);
+                        String idText = fields[1];
+                        String[] ids = fields[1].Split(new char[] { '(', ')' });
+                        long id = int.Parse(ids[0]);
+                        long parentId = int.Parse(ids[1]);
+                        String action = fields[2];
+                        String type = fields[3];
+                        String details = "";
+
+                        for (int i = 4; i < fields.Count(); ++i)
                         {
-                            String[] fields = line.Split(new char[] { ' ' }, int.MaxValue, StringSplitOptions.RemoveEmptyEntries);
-                            DateTime time = DateTime.Parse(fields[0], null, System.Globalization.DateTimeStyles.RoundtripKind);
-                            String idText = fields[1];
-                            String[] ids = fields[1].Split(new char[] { '(', ')' });
-                            long id = int.Parse(ids[0]);
-                            long parentId = int.Parse(ids[1]);
-                            String action = fields[2];
-                            String type = fields[3];
-                            String details = "";
+                            details += (fields[i] + " ");
+                        }
 
-                            for (int i = 4; i < fields.Count(); ++i)
+                        if (action == "Starting")
+                        {
+                            listData.Add(new ListData(type, time, DateTime.MaxValue, action, details, id, parentId));
+                        }
+                        else
+                        {
+                            for (int i = listData.Count - 1; i >= 0; --i)
                             {
-                                details += (fields[i] + " ");
-                            }
+                                ListData data = listData[i];
 
-                            if (action == "Starting")
-                            {
-                                listData.Add(new ListData(type, time, DateTime.MaxValue, action, details, id, parentId));
-                            }
-                            else
-                            {
-                                for (int i = listData.Count - 1; i >= 0; --i)
+                                if (data.id == id && data.status == "Starting") // Commands can be executed more than once
                                 {
-                                    ListData data = listData[i];
-
-                                    if (data.id == id && data.status == "Starting") // Commands can be executed more than once
-                                    {
-                                        data.status = action;
-                                        data.finishTime = time;
-                                        data.details = details;
-                                        break;
-                                    }
+                                    data.status = action;
+                                    data.finishTime = time;
+                                    data.details = details;
+                                    break;
                                 }
                             }
                         }
                     }
+                }
 
-                    foreach (ListData data in listData)
+                foreach (ListData data in listData)
+                {
+                    if (data.parentId != 0)
                     {
-                        if (data.parentId != 0)
+                        if (!childMap.ContainsKey(data.parentId))
                         {
-                            if (!childMap.ContainsKey(data.parentId))
-                            {
-                                HashSet<long> children = new HashSet<long>();
-                                children.Add(data.id);
-                                childMap.Add(data.parentId, children);
-                            }
-                            else
-                            {
-                                childMap[data.parentId].Add(data.id);
-                            }
+                            HashSet<long> children = new HashSet<long>();
+                            children.Add(data.id);
+                            childMap.Add(data.parentId, children);
                         }
-
-                        AddListItem(commandList, data);
+                        else
+                        {
+                            childMap[data.parentId].Add(data.id);
+                        }
                     }
 
-                    ResizeColumns(commandList);
+                    AddListItem(commandList, data);
                 }
-                catch (Exception exc)
-                {
-                    commandList.Items.Clear();
-                    MessageBox.Show(this, exc.Message, Text, MessageBoxButtons.OK, MessageBoxIcon.Error);
-                }
-                finally
-                {
-                    Cursor.Current = Cursors.Default;
-                }
+
+                ResizeColumns(commandList);
+            }
+            catch (Exception exc)
+            {
+                reloadBtn.Enabled = false;
+                commandList.Items.Clear();
+                MessageBox.Show(this, exc.Message, Text, MessageBoxButtons.OK, MessageBoxIcon.Error);
+            }
+            finally
+            {
+                Cursor.Current = Cursors.Default;
             }
         }
 
@@ -262,5 +276,6 @@ namespace CommandLogViewer
 
         private List<ListData> listData = new List<ListData>();
         private Dictionary<long, HashSet<long>> childMap = new Dictionary<long, HashSet<long>>();
+        private String logFileName = null;
     }
 }

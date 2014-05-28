@@ -51,6 +51,7 @@
             this.columnHeader6 = ((System.Windows.Forms.ColumnHeader)(new System.Windows.Forms.ColumnHeader()));
             this.columnHeader7 = ((System.Windows.Forms.ColumnHeader)(new System.Windows.Forms.ColumnHeader()));
             this.columnHeader8 = ((System.Windows.Forms.ColumnHeader)(new System.Windows.Forms.ColumnHeader()));
+            this.reloadBtn = new System.Windows.Forms.Button();
             this.SuspendLayout();
             // 
             // label1
@@ -68,7 +69,7 @@
             this.label3.Location = new System.Drawing.Point(13, 531);
             this.label3.Name = "label3";
             this.label3.Size = new System.Drawing.Size(693, 13);
-            this.label3.TabIndex = 6;
+            this.label3.TabIndex = 4;
             this.label3.Text = "Commands initiated by the selected command execution (which is not necessarily th" +
     "e same as all children). Double-click an item to select it above.";
             // 
@@ -78,7 +79,7 @@
             this.label4.Location = new System.Drawing.Point(13, 461);
             this.label4.Name = "label4";
             this.label4.Size = new System.Drawing.Size(788, 13);
-            this.label4.TabIndex = 4;
+            this.label4.TabIndex = 2;
             this.label4.Text = "Initiator of the selected command execution. Double-click this item to select it " +
     "above. If no initiator is listed here, the selected execution was from a top-lev" +
     "el command.";
@@ -90,7 +91,7 @@
             this.exitBtn.Location = new System.Drawing.Point(824, 633);
             this.exitBtn.Name = "exitBtn";
             this.exitBtn.Size = new System.Drawing.Size(75, 23);
-            this.exitBtn.TabIndex = 9;
+            this.exitBtn.TabIndex = 8;
             this.exitBtn.Text = "Exit";
             this.exitBtn.UseVisualStyleBackColor = true;
             this.exitBtn.Click += new System.EventHandler(this.exitBtn_Click);
@@ -113,7 +114,7 @@
             this.childList.MultiSelect = false;
             this.childList.Name = "childList";
             this.childList.Size = new System.Drawing.Size(883, 79);
-            this.childList.TabIndex = 7;
+            this.childList.TabIndex = 5;
             this.childList.UseCompatibleStateImageBehavior = false;
             this.childList.View = System.Windows.Forms.View.Details;
             this.childList.ItemActivate += new System.EventHandler(this.childList_ItemActivate);
@@ -145,7 +146,7 @@
             this.openBtn.Location = new System.Drawing.Point(16, 633);
             this.openBtn.Name = "openBtn";
             this.openBtn.Size = new System.Drawing.Size(102, 23);
-            this.openBtn.TabIndex = 8;
+            this.openBtn.TabIndex = 6;
             this.openBtn.Text = "Open Log File...";
             this.openBtn.UseVisualStyleBackColor = true;
             this.openBtn.Click += new System.EventHandler(this.openBtn_Click);
@@ -215,7 +216,7 @@
             this.parentList.Name = "parentList";
             this.parentList.Scrollable = false;
             this.parentList.Size = new System.Drawing.Size(883, 45);
-            this.parentList.TabIndex = 5;
+            this.parentList.TabIndex = 3;
             this.parentList.UseCompatibleStateImageBehavior = false;
             this.parentList.View = System.Windows.Forms.View.Details;
             this.parentList.ItemActivate += new System.EventHandler(this.parentList_ItemActivate);
@@ -244,12 +245,25 @@
             this.columnHeader8.Text = "Details";
             this.columnHeader8.Width = 50;
             // 
+            // reloadBtn
+            // 
+            this.reloadBtn.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Left)));
+            this.reloadBtn.Enabled = false;
+            this.reloadBtn.Location = new System.Drawing.Point(124, 633);
+            this.reloadBtn.Name = "reloadBtn";
+            this.reloadBtn.Size = new System.Drawing.Size(75, 23);
+            this.reloadBtn.TabIndex = 7;
+            this.reloadBtn.Text = "Reload";
+            this.reloadBtn.UseVisualStyleBackColor = true;
+            this.reloadBtn.Click += new System.EventHandler(this.reloadBtn_Click);
+            // 
             // MainForm
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
             this.CancelButton = this.exitBtn;
             this.ClientSize = new System.Drawing.Size(911, 666);
+            this.Controls.Add(this.reloadBtn);
             this.Controls.Add(this.parentList);
             this.Controls.Add(this.commandList);
             this.Controls.Add(this.openBtn);
@@ -292,6 +306,7 @@
         private System.Windows.Forms.ColumnHeader columnHeader9;
         private System.Windows.Forms.ColumnHeader idColumn;
         private System.Windows.Forms.ColumnHeader idCol;
+        private System.Windows.Forms.Button reloadBtn;
     }
 }
 
