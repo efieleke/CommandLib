@@ -1,9 +1,5 @@
-
 bin/
-
 obj/
-
 TestResults/
-
 *.suo
-
+*.psess
