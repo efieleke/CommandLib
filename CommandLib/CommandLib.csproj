@@ -49,6 +49,7 @@
     </Compile>
     <Compile Include="AbortEventedCommand.cs" />
     <Compile Include="AsyncCommand.cs" />
+    <Compile Include="CommandDispatcher.cs" />
     <Compile Include="CommandLogger.cs" />
     <Compile Include="CommandTracer.cs" />
     <Compile Include="ICommandMonitor.cs" />

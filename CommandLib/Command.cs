@@ -33,6 +33,9 @@ namespace CommandLib
     /// <see cref="Command"/>-derived classes.
     /// </para>
     /// <para>
+    /// <see cref="CommandDispatcher"/> provides the capability to set up a Command handling pool.
+    /// </para>
+    /// <para>
     /// Documentation for <see cref="Command"/>, <see cref="AsyncCommand"/> and <see cref="SyncCommand"/> should be read before
     /// developing a <see cref="Command"/>-derived class. <see cref="VariableCommand"/> and <see cref="AbortEventedCommand"/> might also
     /// serve as aids in the development of a <see cref="Command"/>.

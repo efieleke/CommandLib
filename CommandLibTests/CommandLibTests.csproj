@@ -78,6 +78,7 @@
     <Compile Include="RetryableCommandTests.cs" />
     <Compile Include="BadAbortTests.cs" />
     <Compile Include="DownloadStringCommandTests.cs" />
+    <Compile Include="CommandDispatcherTests.cs" />
     <Compile Include="UploadDataCommandTests.cs" />
     <Compile Include="VariableCommandTest.cs" />
   </ItemGroup>
