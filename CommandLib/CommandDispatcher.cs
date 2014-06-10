@@ -6,10 +6,10 @@ using System.Text;
 namespace CommandLib
 {
     /// <summary>
-    /// Dispatches <see cref="Command"/> objects to a pool.
+    /// Dispatches <see cref="Command"/> objects to a pool for execution.
     /// </summary>
     /// <remarks>
-    /// This class might be useful when Commands are dynamically generated at runtime, and must be dynamically executed upon generation.
+    /// This class can be useful when commands are dynamically generated at runtime, and must be dynamically executed upon generation.
     /// (for example, asynchronous handling of requests sent over a data stream).
     /// </remarks>
     public class CommandDispatcher : IDisposable
@@ -20,7 +20,7 @@ namespace CommandLib
         /// <param name="command">The command that finished execution.</param>
         /// <param name="result">The result of the execution, if successful. Otherwise this will always be null. The actual content of this value is defined by the concrete <see cref="Command"/>.</param>
         /// <param name="exc">
-        /// This will be null if the command completed successfully. If the command was aborted, this will be a <see cref="CommandAbortedExeption"/>.
+        /// This will be null if the command completed successfully. If the command was aborted, this will be a <see cref="CommandAbortedException"/>.
         /// Otherwise, this will indicate the reason for failure.
         /// </param>
         public delegate void DispatchedCommandFinished(Command command, Object result, Exception exc);
@@ -126,17 +126,27 @@ namespace CommandLib
             Wait();
         }
 
+        /// <summary>
+        /// Implementation of IDisposable.Dispose()
+        /// </summary>
         public void Dispose()
         {
             Dispose(true);
             GC.SuppressFinalize(this);
         }
 
+        /// <summary>
+        /// The finalizer
+        /// </summary>
         ~CommandDispatcher()
         {
             Dispose(false);
         }
 
+        /// <summary>
+        /// Derived implemenations should override if they have work to do when disposing
+        /// </summary>
+        /// <param name="disposing">True if this was called as a result of a call to Dispose()</param>
         protected void Dispose(bool disposing)
         {
             if (!disposed)
