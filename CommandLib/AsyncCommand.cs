@@ -47,7 +47,6 @@ namespace CommandLib
         /// <returns>Not applicable</returns>
         protected sealed override Object SyncExecuteImpl(Object runtimeArg)
         {
-            callingThreadId = System.Threading.Thread.CurrentThread.ManagedThreadId;
             doneEvent.Reset();
             AsyncExecuteImpl(new Listener(this), runtimeArg);
             doneEvent.WaitOne();
@@ -92,6 +91,5 @@ namespace CommandLib
         private System.Threading.ManualResetEvent doneEvent = new System.Threading.ManualResetEvent(false);
         private Exception lastException = null;
         private Object result = null;
-        int callingThreadId;
     }
 }
