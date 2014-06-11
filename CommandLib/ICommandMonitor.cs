@@ -10,7 +10,7 @@ namespace CommandLib
     /// </summary>
     /// <remarks>
     /// <see cref="CommandTracer"/> and <see cref="CommandLogger"/> are available implementations.
-    /// You may set a monitor via the static <see cref="Command.Monitor"/> property of <see cref="Command"/>.
+    /// You may add a monitor via the static <see cref="Command.Monitors"/> property of <see cref="Command"/>.
     /// </remarks>
     public interface ICommandMonitor : IDisposable
     {

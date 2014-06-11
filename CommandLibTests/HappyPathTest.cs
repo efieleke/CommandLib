@@ -10,12 +10,14 @@ namespace CommandLibTests
     {
         internal static void Run(CommandLib.Command cmd, Object runtimeArg, Object expectedResult, Comparison<Object> compare = null)
         {
-            Assert.IsTrue(CommandLib.Command.Monitor == null);
+            Assert.IsTrue(CommandLib.Command.Monitors == null);
             String tempFile = System.IO.Path.GetTempFileName();
 
             try
             {
-                CommandLib.Command.Monitor = new CommandLib.CommandLogger(tempFile, true);
+                CommandLib.Command.Monitors = new LinkedList<CommandLib.ICommandMonitor>();
+                CommandLib.Command.Monitors.AddLast(new CommandLib.CommandTracer());
+                CommandLib.Command.Monitors.AddLast(new CommandLib.CommandLogger(tempFile));
                 CmdListener listener = new CmdListener(CmdListener.CallbackType.Succeeded, expectedResult, compare);
                 cmd.Abort(); // should be a no-op
                 cmd.AsyncExecute(listener, runtimeArg);
@@ -48,8 +50,12 @@ namespace CommandLibTests
             }
             finally
             {
-                CommandLib.Command.Monitor.Dispose();
-                CommandLib.Command.Monitor = null;
+                foreach (CommandLib.ICommandMonitor monitor in CommandLib.Command.Monitors)
+                {
+                    monitor.Dispose();
+                }
+
+                CommandLib.Command.Monitors = null;
                 System.IO.File.Delete(tempFile);
             }
         }

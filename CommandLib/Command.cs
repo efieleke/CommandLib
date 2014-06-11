@@ -148,20 +148,20 @@ namespace CommandLib
     public abstract class Command : IDisposable, ICommandInfo
     {
         /// <summary>
-        /// The object that defines command monitoring behavior. Monitoring is meant for logging and diagnostic purposes.
+        /// The objects that define command monitoring behavior. Monitoring is meant for logging and diagnostic purposes.
         /// </summary>
         /// <remarks>
-        /// This property is not thread-safe. Be sure not to change the monitor while any commands are executing.
+        /// This property is not thread-safe. Be sure not to change it while any commands are executing.
         /// <para>
-        /// There is no default monitor. <see cref="CommandTracer"/> and <see cref="CommandLogger"/> are implementations of
+        /// There are no default monitors. <see cref="CommandTracer"/> and <see cref="CommandLogger"/> are implementations of
         /// <see cref="ICommandMonitor"/> that can be used.
         /// </para>
         /// <para>
-        /// The caller is responsible for calling Dispose() on this property. Changing it will not dispose of the previously
-        /// set value.
+        /// The caller is responsible for calling Dispose() on any monitors added to this collection. Changing it will not dispose of the previously
+        /// set values.
         /// </para>
         /// </remarks>
-        public static ICommandMonitor Monitor { get; set; }
+        public static LinkedList<ICommandMonitor> Monitors { get; set; }
 
         /// <summary>
         /// Returns Command context information related to an exception, if present
@@ -431,9 +431,12 @@ namespace CommandLib
 
             try
             {
-                if (Monitor != null)
+                if (Monitors != null)
                 {
-                    Monitor.CommandStarting(this);
+                    foreach (ICommandMonitor monitor in Monitors)
+                    {
+                        monitor.CommandStarting(this);
+                    }
                 }
 
                 AsyncExecuteImpl(new ListenerProxy(this, listener), runtimeArg);
@@ -825,9 +828,12 @@ namespace CommandLib
 
             try
             {
-                if (Monitor != null)
+                if (Monitors != null)
                 {
-                    Monitor.CommandStarting(this);
+                    foreach (ICommandMonitor monitor in Monitors)
+                    {
+                        monitor.CommandStarting(this);
+                    }
                 }
 
                 Object result = SyncExecuteImpl(runtimeArg);
@@ -887,9 +893,12 @@ namespace CommandLib
                     AttachErrorInfo(exc);
                 }
 
-                if (Monitor != null)
+                if (Monitors != null)
                 {
-                    Monitor.CommandFinished(this, exc);
+                    foreach (ICommandMonitor monitor in Monitors)
+                    {
+                        monitor.CommandFinished(this, exc);
+                    }
                 }
 
                 if (listener != null)

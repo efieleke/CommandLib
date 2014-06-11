@@ -7,8 +7,7 @@ namespace CommandLib
 {
     /// <summary>
     /// Implements <see cref="ICommandMonitor"/> by writing diagnostic information to a log file that can be parsed
-    /// and dynamically displayed by the included CommandLogViewer application. Optionally writes to the debug stream
-    /// as well.
+    /// and dynamically displayed by the included CommandLogViewer application.
     /// </summary>
     public class CommandLogger : ICommandMonitor
     {
@@ -16,14 +15,8 @@ namespace CommandLib
         /// Constructs a CommandLogger object
         /// </summary>
         /// <param name="filename">Name of log file. Will be overwritten if it exists</param>
-        /// <param name="logToDebugStream">if true, this will also log to the debug stream just like <see cref="CommandTracer"/></param>
-        public CommandLogger(String filename, bool logToDebugStream)
+        public CommandLogger(String filename)
         {
-            if (logToDebugStream)
-            {
-                tracer = new CommandTracer();
-            }
-
             System.IO.FileStream stream = new System.IO.FileStream(filename, System.IO.FileMode.Create, System.IO.FileAccess.Write, System.IO.FileShare.Read);
             writer = new System.IO.StreamWriter(stream);
             writer.AutoFlush = true;
@@ -35,11 +28,6 @@ namespace CommandLib
         /// <param name="commandInfo">Information about the command that is starting execution</param>
         public void CommandStarting(ICommandInfo commandInfo)
         {
-            if (tracer != null)
-            {
-                tracer.CommandStarting(commandInfo);
-            }
-
             // Changing the format of this output will break the CommandLogViewer app.
             String header = FormHeader(commandInfo, "Starting");
             WriteMessage(commandInfo, header);
@@ -52,11 +40,7 @@ namespace CommandLib
         /// <param name="exc">Will be null if the command succeeded. Otherwise a CommandAbortedException or some other Exception type</param>
         public void CommandFinished(ICommandInfo commandInfo, Exception exc)
         {
-            if (tracer != null)
-            {
-                tracer.CommandFinished(commandInfo, exc);
-            }
-
+            // Changing the format of this output will break the CommandLogViewer app.
             String message = null;
 
             if (exc == null)
@@ -103,11 +87,6 @@ namespace CommandLib
             {
                 if (disposing)
                 {
-                    if (tracer != null)
-                    {
-                        tracer.Dispose();
-                    }
-
                     writer.Dispose();
                 }
 
@@ -140,7 +119,6 @@ namespace CommandLib
 
         private bool disposed = false;
         private System.IO.StreamWriter writer;
-        private CommandTracer tracer;
         private Object criticalSection = new Object();
     }
 }

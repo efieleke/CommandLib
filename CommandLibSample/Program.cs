@@ -19,7 +19,9 @@ namespace CommandLibSample
             // Output all the command activity to a file in the temp directory. This is a simple text file, and it
             // can be viewed using CommandLogViewer.
             String tempFile = System.IO.Path.GetTempFileName();
-            CommandLib.Command.Monitor = new CommandLib.CommandLogger(tempFile, true);
+            CommandLib.Command.Monitors = new LinkedList<CommandLib.ICommandMonitor>();
+            CommandLib.Command.Monitors.AddLast(new CommandLib.CommandTracer());
+            CommandLib.Command.Monitors.AddLast(new CommandLib.CommandLogger(tempFile));
 
             Robot robotOne = new Robot("George", 100, 126);
             Robot robotTwo = new Robot("Martha", 97, 80);
@@ -79,8 +81,12 @@ namespace CommandLibSample
             {
                 Console.Error.WriteLine(err.Message);
             }
+            
+            foreach(CommandLib.ICommandMonitor monitor in CommandLib.Command.Monitors)
+            {
+                monitor.Dispose();
+            }
 
-            CommandLib.Command.Monitor.Dispose();
             Console.Out.Write(String.Format("Delete generated log file ({0} (y/n)? ", tempFile));
             ConsoleKeyInfo keyInfo = Console.ReadKey(false);
             Console.WriteLine("");

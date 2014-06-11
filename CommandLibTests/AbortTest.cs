@@ -14,7 +14,9 @@ namespace CommandLibTests
 
             try
             {
-                CommandLib.Command.Monitor = new CommandLib.CommandLogger(tempFile, true);
+                CommandLib.Command.Monitors = new LinkedList<CommandLib.ICommandMonitor>();
+                CommandLib.Command.Monitors.AddLast(new CommandLib.CommandLogger(tempFile));
+                CommandLib.Command.Monitors.AddLast(new CommandLib.CommandTracer());
                 CmdListener listener = new CmdListener(CmdListener.CallbackType.Aborted, null);
                 cmd.AsyncExecute(listener, runtimeArg);
                 cmd.AbortAndWait();
@@ -51,8 +53,12 @@ namespace CommandLibTests
             }
             finally
             {
-                CommandLib.Command.Monitor.Dispose();
-                CommandLib.Command.Monitor = null;
+                foreach (CommandLib.ICommandMonitor monitor in CommandLib.Command.Monitors)
+                {
+                    monitor.Dispose();
+                }
+
+                CommandLib.Command.Monitors = null;
                 System.IO.File.Delete(tempFile);
             }
         }
