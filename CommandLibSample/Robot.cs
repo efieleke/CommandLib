@@ -32,7 +32,6 @@ namespace CommandLibSample
         internal delegate void OperationCompleteEventHandler(object sender, IAbortableAsyncResult result);
         internal event OperationCompleteEventHandler MoveXCompleteEvent;
         internal event OperationCompleteEventHandler MoveYCompleteEvent;
-        internal event OperationCompleteEventHandler WaitForRobotCompleteEvent;
 
         /// <summary>
         /// Begin moving along the X axis. Rate is four units per second. 
@@ -143,53 +142,6 @@ namespace CommandLibSample
                 x = xPos;
                 y = yPos;
             }
-        }
-
-        /// <summary>
-        /// Begin waiting for a different Robot to arrive at this Robot's current position.
-        /// </summary>
-        /// <param name="robot">The robot to wait for</param>
-        /// <param name="userData">Caller defined object that will be passed to the completion callback</param>
-        /// <returns></returns>
-        /// <remarks>
-        /// This robot does not have to be stationary while it waits (which means you could have two robots
-        /// randomly move about while waiting to intersect with each other).
-        /// </remarks>
-        internal IAbortableAsyncResult WaitForRobot(Robot robot, Object userData)
-        {
-            Operation waitOp = new Operation(userData);
-
-            System.Threading.Thread thread = new System.Threading.Thread(() =>
-            {
-                bool aborted = false;
-
-                while (!aborted)
-                {
-                    int x, y;
-                    robot.GetPosition(out x, out y);
-
-                    lock (criticalSection)
-                    {
-                        if (x == xPos && y == yPos)
-                        {
-                            break;
-                        }
-                    }
-
-                    aborted = waitOp.abortEvent.WaitOne(100);
-                }
-
-                waitOp.aborted = aborted;
-                waitOp.doneEvent.Set();
-
-                if (WaitForRobotCompleteEvent != null)
-                {
-                    WaitForRobotCompleteEvent(this, waitOp);
-                }
-            });
-
-            thread.Start();
-            return waitOp;
         }
 
         internal String Name
