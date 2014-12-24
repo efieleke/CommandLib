@@ -49,7 +49,6 @@ namespace CommandLibTests
             {
                 using (CommandLib.Command test = GenerateComplexCommand(abortEvent, 1, false))
                 {
-
                     CmdListener listener = new CmdListener(CmdListener.CallbackType.Aborted, null);
                     test.AsyncExecute(listener, null);
                     abortEvent.Set();
@@ -169,5 +168,4 @@ namespace CommandLibTests
             return null;
         }
     }
-
 }

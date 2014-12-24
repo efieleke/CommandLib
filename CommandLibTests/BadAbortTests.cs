@@ -17,7 +17,7 @@ namespace CommandLibTests
                 try
                 {
                     addCmd.Abort();
-                    Assert.Fail("AbortEventedCommand was given an owner");
+                    Assert.Fail("Aborted command was given an owner");
                 }
                 catch (InvalidOperationException)
                 {

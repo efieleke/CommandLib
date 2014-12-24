@@ -95,22 +95,6 @@ namespace CommandLibTests
                     Assert.Fail("Invalid interval type was allowed");
                 }
             }
-
-            catch (ArgumentException)
-            {
-            }
-            try
-            {
-                using (CommandLib.PeriodicCommand periodicCmd = new CommandLib.PeriodicCommand(
-                    new AddCommand(1),
-                    0,
-                    TimeSpan.FromDays(1),
-                    (CommandLib.PeriodicCommand.IntervalType)27,
-                    false))
-                {
-                    Assert.Fail("Invalid interval type was allowed");
-                }
-            }
             catch (ArgumentException)
             {
             }

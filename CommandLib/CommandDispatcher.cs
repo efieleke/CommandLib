@@ -190,7 +190,15 @@ namespace CommandLib
                 {
                     Command nextInLine = commandBacklog.Dequeue();
                     runningCommands.Add(nextInLine);
-                    nextInLine.AsyncExecute(new Listener(this, nextInLine));
+
+                    try
+                    {
+                        nextInLine.AsyncExecute(new Listener(this, nextInLine));
+                    }
+                    catch (Exception e)
+                    {
+                        OnCommandFinished(nextInLine, null, e);
+                    }
                 }
             }
         }

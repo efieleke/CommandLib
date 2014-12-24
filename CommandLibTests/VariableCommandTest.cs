@@ -9,7 +9,7 @@ namespace CommandLibTests
         [TestMethod]
         public void TestHappyPath()
         {
-            using (TestAdd2Command test = new TestAdd2Command(1, null))
+            using (TestAdd2Command test = new TestAdd2Command(null))
             {
                 HappyPathTest.Run(test, 1, 3);
             }
@@ -18,7 +18,7 @@ namespace CommandLibTests
         [TestMethod]
         public void TestFailPath()
         {
-            using (TestFailCommand test = new TestFailCommand(null, null))
+            using (TestFailCommand test = new TestFailCommand(null))
             {
                 FailTest.Run<FailingCommand.FailException>(test, null);
             }
@@ -35,7 +35,7 @@ namespace CommandLibTests
         [TestMethod]
         public void TestAbortPath()
         {
-            using (TestNeverEndCommand test = new TestNeverEndCommand(null, null))
+            using (TestNeverEndCommand test = new TestNeverEndCommand(null))
             {
                 AbortTest.Run(test, null, 10);
             }
@@ -43,7 +43,7 @@ namespace CommandLibTests
 
         abstract private class TestCommand : CommandLib.Command
         {
-            internal TestCommand(Object runtimeArg, CommandLib.Command owner) : base(owner)
+            internal TestCommand(CommandLib.Command owner) : base(owner)
             {
                 variableCommand = new CommandLib.VariableCommand(this);
                 Assert.AreEqual(variableCommand.CommandToRun, null);
@@ -77,7 +77,7 @@ namespace CommandLibTests
 
         private class TestAdd2Command : TestCommand
         {
-            internal TestAdd2Command(Object runtimeArg, CommandLib.Command owner) : base(runtimeArg, owner)
+            internal TestAdd2Command(CommandLib.Command owner) : base(owner)
             {
             }
 
@@ -89,8 +89,8 @@ namespace CommandLibTests
 
         private class TestFailCommand : TestCommand
         {
-            internal TestFailCommand(Object runtimeArg, CommandLib.Command owner)
-                : base(runtimeArg, owner)
+            internal TestFailCommand(CommandLib.Command owner)
+                : base(owner)
             {
             }
 
@@ -102,8 +102,8 @@ namespace CommandLibTests
 
         private class TestNeverEndCommand : TestCommand
         {
-            internal TestNeverEndCommand(Object runtimeArg, CommandLib.Command owner)
-                : base(runtimeArg, owner)
+            internal TestNeverEndCommand(CommandLib.Command owner)
+                : base(owner)
             {
             }
 

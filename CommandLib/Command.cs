@@ -812,7 +812,7 @@ namespace CommandLib
             }
         }
 
-        private void AbortImplAllDescendents(Command command)
+        private static void AbortImplAllDescendents(Command command)
         {
             foreach (Command child in command.children)
             {
