@@ -29,16 +29,12 @@ Code coverage of CommandLib would be at 100%, except that some test methods were
 
 Example Usage
 ----
-A sample project is included that chronicles the story of two lovestruck robots attempting to meet each other at a location. Besides ethos, it demonstrates how to author a naturally asynchronous Command, and makes use of ParallelCommands, SequentialCommands, PeriodicCommand, TimeLimitedCommand and RetryableCommand.
+A sample project is included that moves two simulated robots. It demonstrates how to author a naturally asynchronous Command, and makes use of ParallelCommands, SequentialCommands, PeriodicCommand, TimeLimitedCommand and RetryableCommand.
 
-Contributions
+Future plans
 ----
-Bug reports, requests and comments are always welcome. If you would like to make a code contribution, please make sure that public and protected methods are well-documented, in similar fashion to existing comments, so that I can auto-generate an updated help file. Also, code must compile without warnings, and unit test coverage must remain at 100%.
+Ports to C++ and Java are forthcoming.
 
 Author
 ----
 Eric Fieleke
-
-Future plans
-----
-I intend to eventually port this over to C++ and/or Java. When I will get around to doing so, I don't know; that depends in part upon interest.

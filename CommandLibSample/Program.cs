@@ -4,12 +4,8 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-// This application chronicles the story of two lovestruck robots attempting to meet each other at the origin (0,0).
-// It demonstrates how to author an AsyncCommand-derived class, and makes use of ParallelCommands, SequentialCommands,
-// PeriodicCommand, TimeLimitedCommand and RetryableCommand.
-//
-// For practice using Command objects, the program could be changed to have the two robots wander around aimlessly
-// until they bumped into each other by chance.
+// This application moves two simulated robots to the origin (0,0). It demonstrates how to author an AsyncCommand-derived class,
+// and makes use of ParallelCommands, SequentialCommands, PeriodicCommand, TimeLimitedCommand and RetryableCommand.
 namespace CommandLibSample
 {
     class Program

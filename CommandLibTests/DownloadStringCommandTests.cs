@@ -32,7 +32,7 @@ namespace CommandLibTests
         {
             using (CommandLib.DownloadStringCommand cmd = new CommandLib.DownloadStringCommand())
             {
-                FailTest.Run<System.Net.WebException>(cmd, new Uri("http://www.adslgkggkuytjgdlkhfbjf.com"));
+                FailTest.Run<System.Net.WebException>(cmd, new Uri("htt://www.adslgkggkuytjgdlkhfbjf.com"));
             }
         }
 
