@@ -36,7 +36,7 @@ namespace CommandLib
         }
 
         /// <summary>
-        /// Constructs a RetryableCommands object as a top-level <see cref="Command"/>
+        /// Constructs a RetryableCommand object as a top-level <see cref="Command"/>
         /// </summary>
         /// <param name="command">
         /// The command to run. This object takes ownership of the command, so the passed command must not already have

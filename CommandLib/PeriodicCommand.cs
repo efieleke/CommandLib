@@ -47,8 +47,8 @@ namespace CommandLib
         /// <param name="interval">The interval of time between repetitions</param>
         /// <param name="intervalType">Specifies whether the pause interval occurs before or after the command executes</param>
         /// <param name="intervalIsInclusive">
-        /// If false, the interval means the time between when the command finishes and when it starts next.
-        /// If true, the interval means the time between the start of successive command executions (in this case, if the
+        /// If false, the interval represents the time between when the command finishes and when it starts next.
+        /// If true, the interval represents the time between the start of successive command executions (in this case, if the
         /// command execution takes longer than the interval, the next command will start immediately).
         /// </param>
         public PeriodicCommand(
