@@ -7,20 +7,18 @@ using System.Threading.Tasks;
 namespace CommandLibSample
 {
     /// <summary>
-    /// Robots can move along X and Y axes, wait for a different robot to occupy the same position,
-    /// and emit a greeting.
+    /// A robot arm can move along X and Y axes, and return its current position
     /// </summary>
-    class Robot
+    class RobotArm
     {
-        internal Robot (String name, int xPos, int yPos)
+        internal RobotArm (int xPos, int yPos)
         {
-            this.name = name;
             this.xPos = xPos;
             this.yPos = yPos;
         }
 
         /// <summary>
-        /// The object returned by the Robot move methods.
+        /// The object returned by the RobotArm move methods.
         /// </summary>
         internal interface IAbortableAsyncResult : IAsyncResult, IDisposable
         {
@@ -131,7 +129,7 @@ namespace CommandLibSample
         }
 
         /// <summary>
-        /// The current position of this Robot
+        /// The current position of this RobotArm
         /// </summary>
         /// <param name="x">x coordinate</param>
         /// <param name="y">y coordinate</param>
@@ -142,16 +140,6 @@ namespace CommandLibSample
                 x = xPos;
                 y = yPos;
             }
-        }
-
-        internal String Name
-        {
-            get { return name;  }
-        }
-
-        internal String Greeting
-        {
-            get {  return "Hello. My name is " + Name + "."; }
         }
 
         private class Operation : IAbortableAsyncResult
@@ -227,7 +215,6 @@ namespace CommandLibSample
             private bool disposed = false;
         }
 
-        private String name;
         private int xPos;
         private int yPos;
         private Object criticalSection = new Object();

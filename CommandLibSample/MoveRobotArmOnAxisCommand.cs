@@ -6,21 +6,22 @@ using System.Threading.Tasks;
 
 namespace CommandLibSample
 {
-    class MoveRobotOnAxisCommand : CommandLib.AsyncCommand
+    class MoveRobotArmOnAxisCommand : CommandLib.AsyncCommand
     {
-        internal MoveRobotOnAxisCommand(Robot robot, int destination, bool xAxis, CommandLib.Command owner) : base(owner)
+        internal MoveRobotArmOnAxisCommand(RobotArm robotArm, int destination, bool xAxis, CommandLib.Command owner)
+            : base(owner)
         {
-            this.robot = robot;
+            this.robotArm = robotArm;
             this.destination = destination;
             this.xAxis = xAxis;
 
             if (xAxis)
             {
-                robot.MoveXCompleteEvent += MoveCompleted;
+                robotArm.MoveXCompleteEvent += MoveCompleted;
             }
             else
             {
-                robot.MoveYCompleteEvent += MoveCompleted;
+                robotArm.MoveYCompleteEvent += MoveCompleted;
             }
         }
 
@@ -30,11 +31,11 @@ namespace CommandLibSample
             {
                 if (xAxis)
                 {
-                    robot.MoveXCompleteEvent -= MoveCompleted;
+                    robotArm.MoveXCompleteEvent -= MoveCompleted;
                 }
                 else
                 {
-                    robot.MoveYCompleteEvent -= MoveCompleted;
+                    robotArm.MoveYCompleteEvent -= MoveCompleted;
                 }
 
                 if (asyncResult != null)
@@ -49,15 +50,15 @@ namespace CommandLibSample
         protected override void AsyncExecuteImpl(CommandLib.ICommandListener listener, object runtimeArg)
         {
             this.listener = listener;
-            Robot.IAbortableAsyncResult result;
+            RobotArm.IAbortableAsyncResult result;
 
             if (xAxis)
             {
-                result = robot.MoveX(destination, this);
+                result = robotArm.MoveX(destination, this);
             }
             else
             {
-                result = robot.MoveY(destination, this);
+                result = robotArm.MoveY(destination, this);
             }
 
             lock (criticalSection)
@@ -82,7 +83,7 @@ namespace CommandLibSample
             }
         }
 
-        private void MoveCompleted(Object sender, Robot.IAbortableAsyncResult e)
+        private void MoveCompleted(Object sender, RobotArm.IAbortableAsyncResult e)
         {
             if (e.UserData == this)
             {
@@ -97,10 +98,10 @@ namespace CommandLibSample
             }
         }
 
-        private readonly Robot robot;
+        private readonly RobotArm robotArm;
         private readonly int destination;
         private readonly bool xAxis;
-        private Robot.IAbortableAsyncResult asyncResult;
+        private RobotArm.IAbortableAsyncResult asyncResult;
         private CommandLib.ICommandListener listener;
         private Object criticalSection = new Object();
     }

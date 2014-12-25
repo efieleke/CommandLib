@@ -29,11 +29,11 @@ Code coverage of CommandLib would be at 100%, except that some test methods were
 
 Example Usage
 ----
-A sample project is included that moves two simulated robots. It demonstrates how to author a naturally asynchronous Command, and makes use of ParallelCommands, SequentialCommands, PeriodicCommand, TimeLimitedCommand and RetryableCommand.
+A sample project is included that moves a simulated robot arm. It demonstrates how to author a naturally asynchronous Command, and makes use of ParallelCommands, SequentialCommands, PeriodicCommand, TimeLimitedCommand and RetryableCommand.
 
-Future plans
+Other Languages
 ----
-Ports to C++ and Java are forthcoming.
+A port to C++ exists, available here: https://github.com/efieleke/CommandLibForCPP.git. A Java version is forthcoming.
 
 Author
 ----

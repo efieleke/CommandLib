@@ -8,19 +8,19 @@ namespace CommandLibSample
 {
     class ReportPositionCommand : CommandLib.SyncCommand
     {
-        internal ReportPositionCommand(Robot robot, CommandLib.Command owner) : base(owner)
+        internal ReportPositionCommand(RobotArm robotArm) : base(null)
         {
-            this.robot = robot;
+            this.robotArm = robotArm;
         }
 
         protected override object SyncExeImpl(object runtimeArg)
         {
             int x, y;
-            robot.GetPosition(out x, out y);
-            Console.Out.WriteLine(String.Format("{0} is at position {1},{2}", robot.Name, x, y));
+            robotArm.GetPosition(out x, out y);
+            Console.Out.WriteLine(String.Format("Robot arm is at position {0},{1}", x, y));
             return null;
         }
 
-        private Robot robot;
+        private RobotArm robotArm;
     }
 }
