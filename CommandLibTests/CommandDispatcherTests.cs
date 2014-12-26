@@ -10,13 +10,13 @@ namespace CommandLibTests
         private int aborted;
         private int failed;
 
-        internal void dispatcher_CommandFinishedEvent(CommandLib.Command command, object result, Exception exc)
+        internal void dispatcher_CommandFinishedEvent(Object sender, CommandLib.CommandDispatcher.CommandFinishedEventArgs e)
         {
-            if (exc == null)
+            if (e.Error == null)
             {
                 System.Threading.Interlocked.Increment(ref completed);
             }
-            else if (exc is CommandLib.CommandAbortedException)
+            else if (e.Error is CommandLib.CommandAbortedException)
             {
                 System.Threading.Interlocked.Increment(ref aborted);
             }

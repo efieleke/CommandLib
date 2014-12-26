@@ -273,9 +273,14 @@ namespace CommandLib
         /// <summary>
         /// Call to dispose this command and release any resources that it holds. Only call this on top-level commands (i.e. commands that have no owner)
         /// </summary>
+        [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Design", "CA1063:ImplementIDisposableCorrectly")]
         public void Dispose()
         {
+            // This is the line that generated CA1063. But I like having this because I want to know if I'm doubly disposing objects.
+            // I'm open to being convinced that this is a bad idea, however. Perhaps most objects should be allowed to be
+            // doubly disposed, and they would just do the right thing. (I find it simpler to guard against that up front.)
             CheckDisposed();
+
             Dispose(true);
             GC.SuppressFinalize(this);
         }

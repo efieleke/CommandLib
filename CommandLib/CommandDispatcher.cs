@@ -15,15 +15,53 @@ namespace CommandLib
     public class CommandDispatcher : IDisposable
     {
         /// <summary>
+        /// Defines the event callback parameter for dispatched commands that finish execution.
+        /// </summary>
+        public class CommandFinishedEventArgs : EventArgs
+        {
+            /// <summary>
+            ///  Constructor for the event args
+            /// </summary>
+            /// <param name="command">The command that finished execution</param>
+            /// <param name="result">The result of the execution, if successful. Otherwise this will always be null. The actual content of this value is defined by the concrete <see cref="Command"/>.</param>
+            /// <param name="exc">
+            /// This will be null if the command completed successfully. If the command was aborted, this will be a <see cref="CommandAbortedException"/>.
+            /// Otherwise, this will indicate the reason for failure.
+            /// </param>
+            public CommandFinishedEventArgs(Command command, Object result, Exception exc)
+            {
+                this.command = command;
+                this.result = result;
+                this.exc = exc;
+            }
+
+            /// <summary>
+            /// The command that finished execution.
+            /// </summary>
+            public Command Cmd { get { return command; } }
+
+            /// <summary>
+            /// The result of the execution, if successful. Otherwise this will always be null. The actual content of this value is defined by the concrete <see cref="Command"/>.
+            /// </summary>
+            public Object Result { get { return result; } }
+
+            /// <summary>
+            /// This will be null if the command completed successfully. If the command was aborted, this will be a <see cref="CommandAbortedException"/>.
+            /// Otherwise, this will indicate the reason for failure.
+            /// </summary>
+            public Exception Error { get { return exc; } }
+
+            private Command command;
+            private Object result;
+            private Exception exc;
+        }
+
+        /// <summary>
         /// Defines the event callback interface for dispatched commands that finish execution.
         /// </summary>
-        /// <param name="command">The command that finished execution.</param>
-        /// <param name="result">The result of the execution, if successful. Otherwise this will always be null. The actual content of this value is defined by the concrete <see cref="Command"/>.</param>
-        /// <param name="exc">
-        /// This will be null if the command completed successfully. If the command was aborted, this will be a <see cref="CommandAbortedException"/>.
-        /// Otherwise, this will indicate the reason for failure.
-        /// </param>
-        public delegate void DispatchedCommandFinished(Command command, Object result, Exception exc);
+        /// <param name="sender">The object that raised this event</param>
+        /// <param name="e">Information about the finished command</param>
+        public delegate void DispatchedCommandFinished(Object sender, CommandFinishedEventArgs e);
 
         /// <summary>
         /// Event router for command finished events.
@@ -147,7 +185,7 @@ namespace CommandLib
         /// Derived implemenations should override if they have work to do when disposing
         /// </summary>
         /// <param name="disposing">True if this was called as a result of a call to Dispose()</param>
-        protected void Dispose(bool disposing)
+        protected virtual void Dispose(bool disposing)
         {
             if (!disposed)
             {
@@ -159,6 +197,8 @@ namespace CommandLib
                     {
                         cmd.Dispose();
                     }
+
+                    nothingToDoEvent.Dispose();
                 }
 
                 disposed = true;
@@ -169,7 +209,7 @@ namespace CommandLib
         {
             if (CommandFinishedEvent != null)
             {
-                CommandFinishedEvent(command, result, exc);
+                CommandFinishedEvent(this, new CommandFinishedEventArgs(command, result, exc));
             }
 
             lock (criticalSection)
