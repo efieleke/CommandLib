@@ -1,7 +1,7 @@
 CommandLib
 =========
 
-CommandLib is a C# library that simplifies coordination of synchronous and asynchronous activities. The library is built upon class Command, which represents an action. A Command may be run synchronously or asynchronously, and may be aborted.
+CommandLib is a C# library that simplifies coordination of synchronous and asynchronous activities. Verions for C++ and Java exist at https://github.com/efieleke/CommandLibForCPP.git and https://github.com/efieleke/CommandLibForJava.git. The library is built upon class Command, which represents an action. A Command may be run synchronously or asynchronously, and may be aborted.
 
 ParallelCommands, itself a Command, executes a collection of commands concurrently, and SequentialCommands executes its commands in sequence. Using these classes, it's possible to create a deep nesting of coordinated actions. For example, SequentialCommands can hold instances of ParallelCommands, SequentialCommands, and any other Command-derived object.
 
@@ -23,17 +23,9 @@ Build
 ----
 Included is a solution file that contains four projects: CommandLib itself, a unit test project, a log file viewer (for logs generated using CommandLogger) and a project demonstrating example usage. All projects target .NET 4.0, but I suspect they would build without issue against other versions of .NET as well. The solution and project files were created using Microsoft Visual Studio 2013.
 
-Unit Tests
-----
-Code coverage of CommandLib would be at 100%, except that some test methods were disabled in the interest of not being reliant upon a test web server. If you want to run them (and have the test coverage back to 100%) modify the URLs that the tests use and remove the comments that precede the TestMethod attribute for those tests. The disabled tests reside within DownloadFileCommandTests.cs, DownloadStringCommandTests.cs and UploadDataCommandTests.cs.
-
 Example Usage
 ----
 A sample project is included that moves a simulated robot arm. It demonstrates how to author a naturally asynchronous Command, and makes use of ParallelCommands, SequentialCommands, PeriodicCommand, TimeLimitedCommand and RetryableCommand.
-
-Other Languages
-----
-A port to C++ exists, available here: https://github.com/efieleke/CommandLibForCPP.git. A Java version is forthcoming.
 
 Author
 ----
