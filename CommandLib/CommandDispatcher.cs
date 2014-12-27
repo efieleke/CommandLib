@@ -6,11 +6,16 @@ using System.Text;
 namespace CommandLib
 {
     /// <summary>
-    /// Dispatches <see cref="Command"/> objects to a pool for execution.
+    /// Dispatches <see cref="Command"/> objects to a pool for asynchronous execution.
     /// </summary>
     /// <remarks>
     /// This class can be useful when commands are dynamically generated at runtime, and must be dynamically executed upon generation.
     /// (for example, asynchronous handling of requests sent over a data stream).
+    /// <para>
+    /// Users of the class should remember to call Dispose() when they are done with this object. That will wait until all dispatched
+    /// commands finish execution, and also clean up the <see cref="Command"/> objects. For a faster shutdown, you may wish to call
+    /// <see cref="CommandDispatcher.Abort()"/> before disposing the dispatcher.
+    /// </para>
     /// </remarks>
     public class CommandDispatcher : IDisposable
     {
@@ -84,17 +89,21 @@ namespace CommandLib
         }
 
         /// <summary>
-        /// If there is room in the pool, asynchronously executes the command immediately. Otherwise, places the command in a queue for processing when room in the pool becomes available.
+        /// If there is room in the pool, asynchronously executes the command immediately. Otherwise, places the command in a
+        /// queue for processing when room in the pool becomes available.
         /// </summary>
         /// <param name="command">
-        /// The command to execute as soon as there is room in the pool. This object will assume responsibility for disposing of this command. The command must be top-level
+        /// The command to execute as soon as there is room in the pool. This object will assume responsibility for disposing of
+        /// this command. The command must be top-level
         /// (that is, it must have no parent).
         /// <para>
-        /// Note that it will cause undefined behavior to dispatch a <see cref="Command"/> object that is currently executing, or that has already been dispatched but has not yet executed.
+        /// Note that it will cause undefined behavior to dispatch a <see cref="Command"/> object that is currently executing,
+        /// or that has already been dispatched but has not yet executed.
         /// </para>
         /// </param>
         /// <remarks>
-        /// When the command evenutally finishes execution, the <see cref="CommandFinishedEvent"/> subscribers will be notified on a different thread.
+        /// When the command evenutally finishes execution, the <see cref="CommandFinishedEvent"/> subscribers will be notified on
+        /// a different thread.
         /// </remarks>
         public void Dispatch(Command command)
         {
