@@ -17,7 +17,7 @@ Documentation for CommandLib is provided in CommandLib.chm. It was generated fro
 
 Diagnostics
 ----
-The Command class provides a static ICommandMonitor property. If set to a CommandTracer, diagnostic output is written to the debug stream. If set to a CommandLogger, diagnostic output is written to file (and optionally the debug stream as well). Using the provided CommandLogViewer app, it is possible to see the status of all command executions, including their parent/child relationships. This viewer is not polished; it is meant for developers and testers, not end users.
+The Command class allows registration of ICommandMonitor objects. CommandTracer will write diagnostic output to the debug stream, and CommandLogger will write diagnostic output to file. Using the provided CommandLogViewer app, it is possible to see the status of all command executions, including their parent/child relationships.
 
 Build
 ----

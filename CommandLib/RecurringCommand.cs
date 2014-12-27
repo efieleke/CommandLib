@@ -27,7 +27,7 @@ namespace CommandLib
             /// Called when a RecurringCommand needs to know the first time to execute its underlying command to run.
             /// </summary>
             /// <param name="time">
-            /// Implementations should set this to the next time to execute. If a time in the past is specified, the command to run
+            /// Implementations should set this to the first time to execute. If a time in the past is specified, the command to run
             /// will execute immediately. However, if this method returns false, the value set here will be ignored.
             /// </param>
             /// <returns>
@@ -99,7 +99,6 @@ namespace CommandLib
         /// </param>
         /// <remarks>
         /// This is a no-op if this ScheduledCommand object is not currently executing.
-        /// command is executing.
         /// </remarks>
         public void SetNextExecutionTime(DateTime time)
         {

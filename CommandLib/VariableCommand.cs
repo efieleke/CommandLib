@@ -31,7 +31,7 @@ namespace CommandLib
         /// Constructs a VariableCommand object
         /// </summary>
         /// <param name="owner">
-        /// Specify null to indicate a top-level command. Otherwise, this command will be owned by 'owner'. Owned commands respond to
+        /// This command will be owned by 'owner'. Owned commands respond to
         /// abort requests made of their owner. Also, owned commands are disposed of when the owner is disposed.
         /// </param>
         public VariableCommand(CommandLib.Command owner)
