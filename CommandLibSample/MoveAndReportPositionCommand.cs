@@ -25,7 +25,7 @@ namespace CommandLibSample
             moveAndReportCmd.Add(moveCmd);
             moveAndReportCmd.Add(reportPositionCmd);
 
-            // Create a command that will first report the starting position, then perform the simulataneous move
+            // Create a command that will first report the starting position, then perform the simultaneous move
             // and position reporting, then report the final position.
             //
             // Notice that 'this' is passed as the owning command to this child command.

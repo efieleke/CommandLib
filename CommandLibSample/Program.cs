@@ -23,17 +23,19 @@ namespace CommandLibSample
             CommandLib.Command.Monitors.AddLast(new CommandLib.CommandLogger(tempFile));
 
             RobotArm robotArm = new RobotArm();
-            GetToyCommand getToyCmd = new GetToyCommand(robotArm);
 
-            // Execute our top-level command. Every command created by this app is ultimately owned by this command.
-            try
+            using (GetToyCommand getToyCmd = new GetToyCommand(robotArm))
             {
-                getToyCmd.SyncExecute();
-                Console.WriteLine("Operation complete.");
-            }
-            catch (Exception err)
-            {
-                Console.Error.WriteLine(err.Message);
+                // Execute our top-level command. Every command created by this app is ultimately owned by this command.
+                try
+                {
+                    getToyCmd.SyncExecute();
+                    Console.WriteLine("Operation complete.");
+                }
+                catch (Exception err)
+                {
+                    Console.Error.WriteLine(err.Message);
+                }
             }
             
             foreach(CommandLib.ICommandMonitor monitor in CommandLib.Command.Monitors)
