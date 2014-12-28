@@ -132,17 +132,23 @@ namespace CommandLib
     /// <see cref="SequentialCommands"/> is an example of this behavior.
     /// </para>
     /// <para>
-    /// If you find that you need to create a Command object within the execution method of its parent command
+    /// If you find that you need to create a Command object within the execution method of its owning command
     /// (perhaps because which type of Command to create depends upon runtime conditions), there are some things to
-    /// consider. Owned commands are not disposed until the parent is disposed, so if this parent is executed many times
-    /// before it is disposed, it's possible for resource usage to grow unbounded. The better approach is to assign this
-    /// locally created command to a <see cref="VariableCommand"/> object, which would be a member variable of the
-    /// parent. The assignment will take care of disposing any previously assigned command.
+    /// consider. Owned commands are not destroyed until the owner is destroyed. If the owner is executed many times
+    /// before it is disposed, and you create a new child command upon every execution, resource usage will grow unbounded.
+    /// The better approach is to assign this locally created command to a <see cref="VariableCommand"/> object,
+    /// which would be a member variable of the owner. The assignment will take care of disposing any previously assigned
+    /// command.
     /// </para>
     /// <para>
     /// If you would like to create a top level command that responds to abort requests to a different command,
     /// call <see cref="CreateAbortLinkedCommand"/>. The use cases of this would be rare, but it can help when command
     /// objects must be more loosely coupled.
+    /// </para>
+    /// <para>
+    /// Generally speaking, when authoring Commands, it's best to make them as granular as possible. That makes it much easier
+    /// to reuse them while composing command structures. Also, ensure that your commands are responsive to abort requests if
+    /// they take a noticeable amount of time to complete.
     /// </para>
     /// </remarks>
     public abstract class Command : IDisposable, ICommandInfo
