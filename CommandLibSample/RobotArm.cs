@@ -12,6 +12,15 @@ namespace CommandLibSample
     /// </summary>
     class RobotArm
     {
+        [SerializableAttribute]
+        public class OverheatedException : Exception
+        {
+            public OverheatedException(String message)
+                : base(message)
+            {
+            }
+        }
+
         internal enum Axis
         {
             X,
@@ -125,7 +134,7 @@ namespace CommandLibSample
         {
             if (random.Next() % 100 == 0)
             {
-                throw new Exception(String.Format("Error: robot arm {0} axis motor has overheated.", axis));
+                throw new OverheatedException(String.Format("Error: {0} axis motor has overheated.", axis));
             }
 
             lock (criticalSection)

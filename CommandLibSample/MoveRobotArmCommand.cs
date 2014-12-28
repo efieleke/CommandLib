@@ -32,10 +32,17 @@ namespace CommandLibSample
 
         public bool OnCommandFailed(int failNumber, Exception reason, out TimeSpan waitTime)
         {
-            waitTime = TimeSpan.FromSeconds(5);
             Console.Out.WriteLine(reason.Message);
-            Console.WriteLine("Will retry moving that axis after waiting 5 seconds...");
-            return true;
+
+            if (reason is RobotArm.OverheatedException)
+            {
+                waitTime = TimeSpan.FromSeconds(5);
+                Console.WriteLine("Will retry moving that axis after waiting 5 seconds...");
+                return true;
+            }
+
+            waitTime = TimeSpan.FromTicks(0);
+            return false;
         }
     }
 }
