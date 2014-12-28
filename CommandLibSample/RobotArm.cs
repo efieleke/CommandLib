@@ -39,44 +39,7 @@ namespace CommandLibSample
         /// <returns></returns>
         internal IAbortableAsyncResult MoveX(int destination, Object userData)
         {
-            Operation moveOp = new Operation(userData);
-
-            System.Threading.Thread thread = new System.Threading.Thread(() =>
-            {
-                bool aborted = false;
-
-                while (!aborted)
-                {
-                    lock (criticalSection)
-                    {
-                        if (xPos > destination)
-                        {
-                            --xPos;
-                        }
-                        else if (xPos < destination)
-                        {
-                            ++xPos;
-                        }
-                        else
-                        {
-                            break;
-                        }
-                    }
-
-                    aborted = moveOp.abortEvent.WaitOne(250);
-                }
-
-                moveOp.aborted = aborted;
-                moveOp.doneEvent.Set();
-
-                if (MoveXCompleteEvent != null)
-                {
-                    MoveXCompleteEvent(this, moveOp);
-                }
-            });
-
-            thread.Start();
-            return moveOp;
+            return Move(destination, userData, true);
         }
 
         /// <summary>
@@ -87,45 +50,7 @@ namespace CommandLibSample
         /// <returns></returns>
         internal IAbortableAsyncResult MoveY(int destination, Object userData)
         {
-            // Very similar to MoveY. Consider refactoring.
-            Operation moveOp = new Operation(userData);
-
-            System.Threading.Thread thread = new System.Threading.Thread(() =>
-            {
-                bool aborted = false;
-
-                while (!aborted)
-                {
-                    lock (criticalSection)
-                    {
-                        if (yPos > destination)
-                        {
-                            --yPos;
-                        }
-                        else if (yPos < destination)
-                        {
-                            ++yPos;
-                        }
-                        else
-                        {
-                            break;
-                        }
-                    }
-
-                    aborted = moveOp.abortEvent.WaitOne(250);
-                }
-
-                moveOp.aborted = aborted;
-                moveOp.doneEvent.Set();
-
-                if (MoveYCompleteEvent != null)
-                {
-                    MoveYCompleteEvent(this, moveOp);
-                }
-            });
-
-            thread.Start();
-            return moveOp;
+            return Move(destination, userData, false);
         }
 
         /// <summary>
@@ -139,6 +64,77 @@ namespace CommandLibSample
             {
                 x = xPos;
                 y = yPos;
+            }
+        }
+
+        private IAbortableAsyncResult Move(int destination, Object userData, bool xAxis)
+        {
+            Operation moveOp = new Operation(userData);
+
+            System.Threading.Thread thread = new System.Threading.Thread(() =>
+            {
+                bool aborted = false;
+
+                while (!aborted)
+                {
+                    if (!AdjustPosition(destination, xAxis))
+                    {
+                        break;
+                    }
+
+                    aborted = moveOp.abortEvent.WaitOne(125);
+                }
+
+                moveOp.aborted = aborted;
+                moveOp.doneEvent.Set();
+                OperationCompleteEventHandler handler = xAxis ? MoveXCompleteEvent : MoveYCompleteEvent;
+
+                if (handler != null)
+                {
+                    handler(this, moveOp);
+                }
+            });
+
+            thread.Start();
+            return moveOp;
+        }
+
+        private bool AdjustPosition(int destination, bool xAxis)
+        {
+            lock (criticalSection)
+            {
+                if (xAxis)
+                {
+                    if (xPos < destination)
+                    {
+                        ++xPos;
+                    }
+                    else if (xPos > destination)
+                    {
+                        --xPos;
+                    }
+                    else
+                    {
+                        return false;
+                    }
+                }
+                else
+                {
+                    if (yPos < destination)
+                    {
+                        ++yPos;
+                    }
+                    else if (yPos > destination)
+                    {
+                        --yPos;
+                    }
+                    else
+                    {
+                        return false;
+                    }
+                }
+
+                return true;
             }
         }
 

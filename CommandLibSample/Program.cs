@@ -28,7 +28,7 @@ namespace CommandLibSample
             CommandLib.PeriodicCommand reportPositionCmd = new CommandLib.PeriodicCommand(
                 new ReportPositionCommand(robotArm), // the command to execute
                 long.MaxValue, // no fixed upper limit on repetitions
-                TimeSpan.FromSeconds(1), // execute the command every second
+                TimeSpan.FromMilliseconds(500), // execute the command twice a second
                 CommandLib.PeriodicCommand.IntervalType.PauseBefore, // wait a second before executing the command the first time
                 true, // the second to wait is inclusive of the time it actually takes to report the position
                 moveCmd.DoneEvent); // stop when this event is signaled (in other words, when the arm reaches 0,0)
@@ -46,7 +46,7 @@ namespace CommandLibSample
             framedMoveAndReportCmd.Add(new ReportPositionCommand(robotArm));
 
             // Wrap the above command in a command that throws a TimeoutException if it takes longer than 20 seconds.
-            CommandLib.TimeLimitedCommand timeLimitedCmd = new CommandLib.TimeLimitedCommand(framedMoveAndReportCmd, 20000);
+            CommandLib.TimeLimitedCommand timeLimitedCmd = new CommandLib.TimeLimitedCommand(framedMoveAndReportCmd, 10000);
 
             // Allow retries, because we will time out
             CommandLib.RetryableCommand retryableCmd = new CommandLib.RetryableCommand(timeLimitedCmd, new RetryHandler());
