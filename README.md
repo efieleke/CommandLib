@@ -25,7 +25,7 @@ Included is a solution file that contains four projects: CommandLib itself, a un
 
 Example Usage
 ----
-A sample project is included that moves a simulated robot arm. It demonstrates how to author a naturally asynchronous Command, and makes use of ParallelCommands, SequentialCommands, PeriodicCommand, TimeLimitedCommand and RetryableCommand.
+A sample project is included that moves a simulated robot arm that tries to pick up a toy and drop it down the chute. It demonstrates how to author a naturally asynchronous Command, and makes use of ParallelCommands, SequentialCommands, PeriodicCommand and RetryableCommand.
 
 Author
 ----

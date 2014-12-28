@@ -132,12 +132,12 @@ namespace CommandLib
     /// <see cref="SequentialCommands"/> is an example of this behavior.
     /// </para>
     /// <para>
-    /// If you find that you are generating a Command object local to the execution method of a parent
-    /// command, it's best to not specify the parent as the owner of this local command. Owned commands are
-    /// not disposed until the parent is disposed, so if this parent is executed many times before it is disposed,
-    /// it's possible for resource usage to grow unbounded. The better approach is to assign this local command
-    /// to a <see cref="VariableCommand"/> object, which would be a member variable of the parent. The assignment will take
-    /// care of disposing any previously assigned command.
+    /// If you find that you need to create a Command object within the execution method of its parent command
+    /// (perhaps because which type of Command to create depends upon runtime conditions), there are some things to
+    /// consider. Owned commands are not disposed until the parent is disposed, so if this parent is executed many times
+    /// before it is disposed, it's possible for resource usage to grow unbounded. The better approach is to assign this
+    /// locally created command to a <see cref="VariableCommand"/> object, which would be a member variable of the
+    /// parent. The assignment will take care of disposing any previously assigned command.
     /// </para>
     /// <para>
     /// If you would like to create a top level command that responds to abort requests to a different command,
