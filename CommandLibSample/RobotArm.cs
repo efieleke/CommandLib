@@ -7,14 +7,16 @@ using System.Threading.Tasks;
 namespace CommandLibSample
 {
     /// <summary>
-    /// A robot arm can move along X and Y axes, and return its current position
+    /// A robot arm can move along X and Y axes, report its current position, open and close its clamp,
+    /// and report whether it has successfully grabbed something.
     /// </summary>
     class RobotArm
     {
-        internal RobotArm (int xPos, int yPos)
+        internal enum Axis
         {
-            this.xPos = xPos;
-            this.yPos = yPos;
+            X,
+            Y,
+            Z
         }
 
         /// <summary>
@@ -23,75 +25,58 @@ namespace CommandLibSample
         internal interface IAbortableAsyncResult : IAsyncResult, IDisposable
         {
             Object UserData { get;  }
+            Axis MoveAxis { get; }
             bool Aborted { get; }
+            Exception Failure { get; }
             void Abort();
         }
 
         internal delegate void OperationCompleteEventHandler(object sender, IAbortableAsyncResult result);
-        internal event OperationCompleteEventHandler MoveXCompleteEvent;
-        internal event OperationCompleteEventHandler MoveYCompleteEvent;
+        internal event OperationCompleteEventHandler MoveCompleteEvent;
+
+        internal RobotArm()
+        {
+            random = new Random();
+        }
 
         /// <summary>
-        /// Begin moving along the X axis. Rate is four units per second. 
+        /// Begin moving along an axis.
         /// </summary>
         /// <param name="destination">The target to move to</param>
         /// <param name="userData">Caller defined data that will be passed to the completion callback</param>
         /// <returns></returns>
-        internal IAbortableAsyncResult MoveX(int destination, Object userData)
+        internal IAbortableAsyncResult Move(Axis axis, int destination, Object userData)
         {
-            return Move(destination, userData, true);
-        }
-
-        /// <summary>
-        /// Begin moving along the Y axis. Rate is four units per second. 
-        /// </summary>
-        /// <param name="destination">The target to move to</param>
-        /// <param name="userData">Caller defined object that will be passed to the completion callback</param>
-        /// <returns></returns>
-        internal IAbortableAsyncResult MoveY(int destination, Object userData)
-        {
-            return Move(destination, userData, false);
-        }
-
-        /// <summary>
-        /// The current position of this RobotArm
-        /// </summary>
-        /// <param name="x">x coordinate</param>
-        /// <param name="y">y coordinate</param>
-        internal void GetPosition(out int x, out int y)
-        {
-            lock (criticalSection)
-            {
-                x = xPos;
-                y = yPos;
-            }
-        }
-
-        private IAbortableAsyncResult Move(int destination, Object userData, bool xAxis)
-        {
-            Operation moveOp = new Operation(userData);
+            Operation moveOp = new Operation(axis, userData);
 
             System.Threading.Thread thread = new System.Threading.Thread(() =>
             {
-                bool aborted = false;
-
-                while (!aborted)
+                try
                 {
-                    if (!AdjustPosition(destination, xAxis))
+                    bool aborted = false;
+
+                    while (!aborted)
                     {
-                        break;
+                        if (!AdjustPosition(axis, destination))
+                        {
+                            break;
+                        }
+
+                        aborted = moveOp.abortEvent.WaitOne(125);
                     }
 
-                    aborted = moveOp.abortEvent.WaitOne(125);
+                    moveOp.aborted = aborted;
+                }
+                catch (Exception e)
+                {
+                    moveOp.error = e;
                 }
 
-                moveOp.aborted = aborted;
                 moveOp.doneEvent.Set();
-                OperationCompleteEventHandler handler = xAxis ? MoveXCompleteEvent : MoveYCompleteEvent;
 
-                if (handler != null)
+                if (MoveCompleteEvent != null)
                 {
-                    handler(this, moveOp);
+                    MoveCompleteEvent(this, moveOp);
                 }
             });
 
@@ -99,39 +84,116 @@ namespace CommandLibSample
             return moveOp;
         }
 
-        private bool AdjustPosition(int destination, bool xAxis)
+        /// <summary>
+        /// The current position of this RobotArm
+        /// </summary>
+        /// <param name="x">x coordinate</param>
+        /// <param name="y">y coordinate</param>
+        internal void GetPosition(out int x, out int y, out int z)
         {
             lock (criticalSection)
             {
-                if (xAxis)
+                x = xPos;
+                y = yPos;
+                z = zPos;
+            }
+        }
+
+        /// <summary>
+        /// Opens the robot clamp
+        /// </summary>
+        internal void OpenClamp()
+        {
+            if (!clampIsOpen)
+            {
+                if (random.Next() % 5 == 0)
                 {
-                    if (xPos < destination)
-                    {
-                        ++xPos;
-                    }
-                    else if (xPos > destination)
-                    {
-                        --xPos;
-                    }
-                    else
-                    {
-                        return false;
-                    }
+                    throw new Exception("Mechanical failure opening clamp");
                 }
-                else
+
+                clampIsOpen = true;
+            }
+        }
+
+        /// <summary>
+        /// Closes the clamp
+        /// </summary>
+        /// <returns>true, if the clamp actually grabbed something</returns>
+        internal bool CloseClamp()
+        {
+            if (clampIsOpen)
+            {
+                if (random.Next() % 5 == 0)
                 {
-                    if (yPos < destination)
-                    {
-                        ++yPos;
-                    }
-                    else if (yPos > destination)
-                    {
-                        --yPos;
-                    }
-                    else
-                    {
-                        return false;
-                    }
+                    throw new Exception("Mechanical failure closing clamp");
+                }
+
+                return random.Next() % 5 == 0;
+            }
+
+            return false;
+        }
+
+        private bool AdjustPosition(Axis axis, int destination)
+        {
+            if (random.Next() % 300 == 0)
+            {
+                throw new Exception(String.Format("Mechanical failure moving robot along {0} axis", axis));
+            }
+
+            lock (criticalSection)
+            {
+                // Yuck! Wish I could pass an int by reference to this method.
+                switch(axis)
+                {
+                    case Axis.X:
+                        if (xPos == destination)
+                        {
+                            return false;
+                        }
+
+                        if (xPos < destination)
+                        {
+                            ++xPos;
+                        }
+                        else
+                        {
+                            --xPos;
+                        }
+
+                        break;
+                    case Axis.Y:
+                        if (yPos == destination)
+                        {
+                            return false;
+                        }
+
+                        if (yPos < destination)
+                        {
+                            ++yPos;
+                        }
+                        else
+                        {
+                            --yPos;
+                        }
+
+                        break;
+                    default:
+                        if (zPos == destination)
+                        {
+                            return false;
+                        }
+
+                        if (zPos < destination)
+                        {
+                            ++zPos;
+                        }
+                        else
+                        {
+                            --zPos;
+                        }
+
+                        break;
                 }
 
                 return true;
@@ -140,8 +202,9 @@ namespace CommandLibSample
 
         private class Operation : IAbortableAsyncResult
         {
-            internal Operation (Object userData)
+            internal Operation (Axis axis, Object userData)
             {
+                this.axis = axis;
                 this.userData = userData;
             }
 
@@ -175,6 +238,11 @@ namespace CommandLibSample
                 get { return doneEvent.WaitOne(0); }
             }
 
+            public Axis MoveAxis
+            {
+                get { return axis; }
+            }
+
             public Object UserData
             {
                 get { return userData;  }
@@ -183,6 +251,11 @@ namespace CommandLibSample
             public bool Aborted
             {
                 get { return aborted;  }
+            }
+
+            public Exception Failure
+            {
+                get { return error;  }
             }
 
             public void Abort()
@@ -205,14 +278,19 @@ namespace CommandLibSample
             }
 
             internal bool aborted = false;
+            internal Exception error;
             internal System.Threading.ManualResetEvent doneEvent = new System.Threading.ManualResetEvent(false);
             internal System.Threading.ManualResetEvent abortEvent = new System.Threading.ManualResetEvent(false);
+            internal Axis axis;
             internal Object userData;
             private bool disposed = false;
         }
 
-        private int xPos;
-        private int yPos;
+        private Random random;
+        private int xPos = 0;
+        private int yPos = 0;
+        private int zPos = 0;
+        private bool clampIsOpen = false;
         private Object criticalSection = new Object();
     }
 }

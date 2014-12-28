@@ -15,9 +15,9 @@ namespace CommandLibSample
 
         protected override object SyncExeImpl(object runtimeArg)
         {
-            int x, y;
-            robotArm.GetPosition(out x, out y);
-            Console.Out.WriteLine(String.Format("Robot arm is at position {0},{1}", x, y));
+            int x, y, z;
+            robotArm.GetPosition(out x, out y, out z);
+            Console.Out.WriteLine(String.Format("Robot arm is at position {0},{1},{2}", x, y, z));
             return null;
         }
 

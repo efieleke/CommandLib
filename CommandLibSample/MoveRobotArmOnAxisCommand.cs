@@ -8,35 +8,21 @@ namespace CommandLibSample
 {
     class MoveRobotArmOnAxisCommand : CommandLib.AsyncCommand
     {
-        internal MoveRobotArmOnAxisCommand(RobotArm robotArm, int destination, bool xAxis, CommandLib.Command owner)
+        internal MoveRobotArmOnAxisCommand(RobotArm robotArm, int destination, RobotArm.Axis axis, CommandLib.Command owner)
             : base(owner)
         {
             this.robotArm = robotArm;
             this.destination = destination;
-            this.xAxis = xAxis;
+            this.axis = axis;
 
-            if (xAxis)
-            {
-                robotArm.MoveXCompleteEvent += MoveCompleted;
-            }
-            else
-            {
-                robotArm.MoveYCompleteEvent += MoveCompleted;
-            }
+            robotArm.MoveCompleteEvent += MoveCompleted;
         }
 
         protected override void Dispose(bool disposing)
         {
             if (disposing)
             {
-                if (xAxis)
-                {
-                    robotArm.MoveXCompleteEvent -= MoveCompleted;
-                }
-                else
-                {
-                    robotArm.MoveYCompleteEvent -= MoveCompleted;
-                }
+                robotArm.MoveCompleteEvent -= MoveCompleted;
 
                 if (asyncResult != null)
                 {
@@ -50,16 +36,7 @@ namespace CommandLibSample
         protected override void AsyncExecuteImpl(CommandLib.ICommandListener listener, object runtimeArg)
         {
             this.listener = listener;
-            RobotArm.IAbortableAsyncResult result;
-
-            if (xAxis)
-            {
-                result = robotArm.MoveX(destination, this);
-            }
-            else
-            {
-                result = robotArm.MoveY(destination, this);
-            }
+            RobotArm.IAbortableAsyncResult result = robotArm.Move(axis, destination, this);
 
             lock (criticalSection)
             {
@@ -91,6 +68,10 @@ namespace CommandLibSample
                 {
                     listener.CommandAborted();
                 }
+                else if (e.Failure != null)
+                {
+                    listener.CommandFailed(e.Failure);
+                }
                 else
                 {
                     listener.CommandSucceeded(null);
@@ -100,7 +81,7 @@ namespace CommandLibSample
 
         private readonly RobotArm robotArm;
         private readonly int destination;
-        private readonly bool xAxis;
+        private readonly RobotArm.Axis axis;
         private RobotArm.IAbortableAsyncResult asyncResult;
         private CommandLib.ICommandListener listener;
         private Object criticalSection = new Object();

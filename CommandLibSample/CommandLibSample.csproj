@@ -46,6 +46,8 @@
     <Compile Include="..\SharedAssemblyInfo.cs">
       <Link>Properties\SharedAssemblyInfo.cs</Link>
     </Compile>
+    <Compile Include="GetToyCommand.cs" />
+    <Compile Include="MoveAndReportPositionCommand.cs" />
     <Compile Include="MoveRobotArmCommand.cs" />
     <Compile Include="MoveRobotArmOnAxisCommand.cs" />
     <Compile Include="Program.cs" />

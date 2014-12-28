@@ -10,10 +10,10 @@ namespace CommandLib
     /// many temporary <see cref="Command"/> objects from collecting in memory during the lifetime of their owner.
     /// </summary>
     /// <remarks>
-    /// If you find that you are generating a temporary <see cref="Command"/> object within the execution method of an owning
-    /// <see cref="Command"/>, it's best to not specify the creator as the owner of this temporary command. Owned commands are
+    /// If you find that you are generating a <see cref="Command"/> object local to the execution method of an owning
+    /// <see cref="Command"/>, it's best to not specify the creator as the owner of this local command. Owned commands are
     /// not disposed until the owner is disposed, so if the owner is executed many times before it is disposed,
-    /// it's possible for resource usage to grow unbounded. The better approach is to pass this temporary command
+    /// it's possible for resource usage to grow unbounded. The better approach is to assign this local command
     /// to a VariableCommand object, which would be a member variable of the owner. Assigning to the <see cref="CommandToRun"/>
     /// property will take care of disposing any previously assigned command.
     /// <para>
