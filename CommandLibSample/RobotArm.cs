@@ -104,30 +104,17 @@ namespace CommandLibSample
         /// </summary>
         internal void OpenClamp()
         {
-            if (!clampIsOpen)
-            {
-                if (random.Next() % 5 == 0)
-                {
-                    throw new Exception("Mechanical failure opening clamp");
-                }
-
-                clampIsOpen = true;
-            }
+            clampIsOpen = true;
         }
 
         /// <summary>
         /// Closes the clamp
         /// </summary>
-        /// <returns>true, if the clamp actually grabbed something</returns>
+        /// <returns>true, if the clamp actually grabbed something with this close operation</returns>
         internal bool CloseClamp()
         {
             if (clampIsOpen)
             {
-                if (random.Next() % 5 == 0)
-                {
-                    throw new Exception("Mechanical failure closing clamp");
-                }
-
                 return random.Next() % 5 == 0;
             }
 
@@ -136,9 +123,9 @@ namespace CommandLibSample
 
         private bool AdjustPosition(Axis axis, int destination)
         {
-            if (random.Next() % 300 == 0)
+            if (random.Next() % 100 == 0)
             {
-                throw new Exception(String.Format("Mechanical failure moving robot along {0} axis", axis));
+                throw new Exception(String.Format("Error: robot arm {0} axis motor has overheated.", axis));
             }
 
             lock (criticalSection)

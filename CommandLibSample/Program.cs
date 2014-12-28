@@ -25,13 +25,10 @@ namespace CommandLibSample
             RobotArm robotArm = new RobotArm();
             GetToyCommand getToyCmd = new GetToyCommand(robotArm);
 
-            // Allow retries, because there's the chance of a recoverable mechanical error.
-            CommandLib.RetryableCommand retryableCmd = new CommandLib.RetryableCommand(getToyCmd, new RetryHandler());
-
             // Execute our top-level command. Every command created by this app is ultimately owned by this command.
             try
             {
-                retryableCmd.SyncExecute();
+                getToyCmd.SyncExecute();
                 Console.WriteLine("Operation complete.");
             }
             catch (Exception err)
@@ -52,19 +49,6 @@ namespace CommandLibSample
             {
                 System.IO.File.Delete(tempFile);
             }
-        }
-    }
-
-    class RetryHandler : CommandLib.RetryableCommand.IRetryCallback
-    {
-        public bool OnCommandFailed(int failNumber, Exception reason, out TimeSpan waitTime)
-        {
-            waitTime = TimeSpan.FromTicks(0);
-            Console.Out.WriteLine(reason.Message);
-            Console.Out.Write("Would you like to deposit another dollar and try again (y/n)? ");
-            ConsoleKeyInfo keyInfo = Console.ReadKey(false);
-            Console.WriteLine("");
-            return keyInfo.KeyChar == 'y';
         }
     }
 }
