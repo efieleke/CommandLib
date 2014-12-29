@@ -29,7 +29,8 @@ namespace CommandLibSample
             // and position reporting, then report the final position.
             //
             // Notice that 'this' is passed as the owning command to this child command.
-            // If we didn't do that, abort requests would not be honored (and we'd
+            // If we didn't do that, abort requests would not be honored (and we'd have a
+            // resource leak).
             // also have a resource leak because we never dispose this object).
             framedMoveAndReportCmd = new CommandLib.SequentialCommands(this);
             framedMoveAndReportCmd.Add(new ReportPositionCommand(robotArm));

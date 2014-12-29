@@ -138,12 +138,10 @@ namespace CommandLib
     /// before it is disposed, and you create a new child command upon every execution, resource usage will grow unbounded.
     /// The better approach is to assign this locally created command to a <see cref="VariableCommand"/> object,
     /// which would be a member variable of the owner. The assignment will take care of disposing any previously assigned
-    /// command.
-    /// </para>
-    /// <para>
-    /// If you would like to create a top level command that responds to abort requests to a different command,
-    /// call <see cref="CreateAbortLinkedCommand"/>. The use cases of this would be rare, but it can help when command
-    /// objects must be more loosely coupled.
+    /// command. If declaring a <see cref="VariableCommand"/> member variable is not an appealing option, you could opt to instead
+    /// make use of <see cref="CreateAbortLinkedCommand"/>. This will return a top level command that responds to abort
+    /// requests to the command that created it. The only disadvantage to this approach is that it may end up spawning
+    /// an additional thread.
     /// </para>
     /// <para>
     /// Generally speaking, when authoring Commands, it's best to make them as granular as possible. That makes it much easier

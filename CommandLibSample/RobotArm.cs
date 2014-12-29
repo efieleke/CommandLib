@@ -124,6 +124,7 @@ namespace CommandLibSample
         {
             if (clampIsOpen)
             {
+                clampIsOpen = false;
                 return random.Next() % 5 == 0;
             }
 

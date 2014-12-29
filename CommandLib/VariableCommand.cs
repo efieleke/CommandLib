@@ -14,11 +14,17 @@ namespace CommandLib
     /// (perhaps because which type of Command to create depends upon runtime conditions), there are some things to
     /// consider. Owned commands are not destroyed until the owner is destroyed. If the owner is executed many times
     /// before it is disposed, and you create a new child command upon every execution, resource usage will grow unbounded.
-    /// The better approach is to assign this locally created command to a VariableCommand object,
-    /// which would be a member variable of the owner. The assignment will take care of disposing any previously assigned
+    /// The better approach is to assign this locally created command to a VariableCommand object, which would
+    /// be a member variable of the owner. The assignment will take care of disposing any previously assigned
     /// command.
     /// <para>
-    /// The 'runtimeArg' value to pass to <see cref="Command.SyncExecute(object)"/> and <see cref="Command.AsyncExecute(ICommandListener, object)"/>
+    /// If declaring a VariableCommand member variable is not an appealing option, you could opt to instead make use of
+    /// <see cref="Command.CreateAbortLinkedCommand"/>. This will return a top level command that responds to abort
+    /// requests to the command that created it. The only disadvantage to this approach is that it may end up spawning
+    /// an additional thread.
+    /// <para>
+    /// The 'runtimeArg' value to pass to <see cref="Command.SyncExecute(object)"/> and
+    /// <see cref="Command.AsyncExecute(ICommandListener, object)"/>
     /// should be of the same type required as the underlying command to run.
     /// </para>
     /// <para>

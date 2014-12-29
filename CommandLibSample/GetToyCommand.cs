@@ -45,7 +45,7 @@ namespace CommandLibSample
             }
             else
             {
-                Console.Out.WriteLine("Too bad. Failed to grab a toy.");
+                Console.Out.WriteLine("Too bad. Failed to grasp a toy.");
             }
 
             Console.Out.WriteLine("Now returning to the home position.");
