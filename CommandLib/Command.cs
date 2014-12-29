@@ -535,9 +535,9 @@ namespace CommandLib
 
         /// <summary>Creates a top-level command that nevertheless responds to abort requests made of this command.</summary>
         /// <param name="commandToLink">
-        /// The command to run. The returned <see cref="AbortEventedCommand"/> object takes ownership of this argument, so the passed
-        /// command must not already have an owner. The passed command will be disposed when the <see cref="AbortEventedCommand"/> is
-        /// disposed.
+        /// The command to link with regard to abort requests. The returned <see cref="AbortEventedCommand"/> object takes ownership
+        /// of this argument, so the passed command must not already have an owner. The passed command will be disposed when the
+        /// <see cref="AbortEventedCommand"/> is disposed.
         /// </param>
         /// <returns>An AbortEventedCommand.</returns>
         /// <remarks>
@@ -630,6 +630,7 @@ namespace CommandLib
         /// <param name="owner">
         /// Specify null to indicate a top-level command. Otherwise, this command will be owned by 'owner'. Owned commands respond to
         /// abort requests made of their owner. Also, owned commands are disposed of when the owner is disposed.
+        /// <para>Note that it is also possible to set the owner at a later time via <see cref="Command.TakeOwnership"/></para>
         /// </param>
         protected Command(Command owner)
         {

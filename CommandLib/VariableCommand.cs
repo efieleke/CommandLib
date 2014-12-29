@@ -22,6 +22,7 @@ namespace CommandLib
     /// <see cref="Command.CreateAbortLinkedCommand"/>. This will return a top level command that responds to abort
     /// requests to the command that created it. The only disadvantage to this approach is that it may end up spawning
     /// an additional thread.
+    /// </para>
     /// <para>
     /// The 'runtimeArg' value to pass to <see cref="Command.SyncExecute(object)"/> and
     /// <see cref="Command.AsyncExecute(ICommandListener, object)"/>

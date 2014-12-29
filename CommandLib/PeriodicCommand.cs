@@ -49,7 +49,7 @@ namespace CommandLib
         /// <param name="intervalIsInclusive">
         /// If false, the interval represents the time between when the command finishes and when it starts next.
         /// If true, the interval represents the time between the start of successive command executions (in this case, if the
-        /// command execution takes longer than the interval, the next command will start immediately).
+        /// command execution takes longer than the interval, the next repetition will start immediately).
         /// </param>
         public PeriodicCommand(
             Command command,
@@ -74,7 +74,7 @@ namespace CommandLib
         /// <param name="intervalIsInclusive">
         /// If false, the interval means the time between when the command finishes and when it starts next.
         /// If true, the interval means the time between the start of successive command executions (in this case, if the
-        /// command execution takes longer than the interval, the next command will start immediately).
+        /// command execution takes longer than the interval, the next repetition will start immediately).
         /// </param>
         /// <param name="stopEvent">
         /// Optional event to indicate that the perdiodic command should stop. Raising this event is equivalent to calling <see cref="Stop"/>
@@ -106,7 +106,7 @@ namespace CommandLib
         /// <param name="intervalIsInclusive">
         /// If false, the interval means the time between when the command finishes and when it starts next.
         /// If true, the interval means the time between the start of successive command executions (in this case, if the
-        /// command execution takes longer than the interval, the next command will start immediately).
+        /// command execution takes longer than the interval, the next repetition will start immediately).
         /// </param>
         /// <param name="stopEvent">
         /// Optional event to indicate that the perdiodic command should stop. Raising this event is equivalent to calling <see cref="Stop"/>

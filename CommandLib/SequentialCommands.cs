@@ -7,7 +7,7 @@ using System.Text;
 namespace CommandLib
 {
     /// <summary>
-    /// Represents a collection of <see cref="Command"/> objects that execute in sequence, wrapped in a <see cref="Command"/> object.
+    /// SequentialCommands is a <see cref="Command"/> object which contains a collection of commands which are run in sequence
     /// </summary>
     /// <remarks>
     /// The 'runtimeArg' parameter passed to <see cref="Command.SyncExecute(object)"/> and <see cref="Command.AsyncExecute(ICommandListener, object)"/>
