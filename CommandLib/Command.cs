@@ -37,8 +37,8 @@ namespace CommandLib
     /// </para>
     /// <para>
     /// Documentation for <see cref="Command"/>, <see cref="AsyncCommand"/> and <see cref="SyncCommand"/> should be read before
-    /// developing a <see cref="Command"/>-derived class. <see cref="VariableCommand"/> and <see cref="AbortEventedCommand"/> might also
-    /// serve as aids in the development of a <see cref="Command"/>.
+    /// developing a <see cref="Command"/>-derived class. <see cref="AbortEventedCommand"/> might also serve as an aid in the
+    /// development of a <see cref="Command"/>.
     /// </para>
     /// </summary>
     [System.Runtime.CompilerServices.CompilerGeneratedAttribute()]
@@ -135,13 +135,12 @@ namespace CommandLib
     /// If you find that you need to create a Command object within the execution method of its owning command
     /// (perhaps because which type of Command to create depends upon runtime conditions), there are some things to
     /// consider. Owned commands are not destroyed until the owner is destroyed. If the owner is executed many times
-    /// before it is disposed, and you create a new child command upon every execution, resource usage will grow unbounded.
-    /// The better approach is to assign this locally created command to a <see cref="VariableCommand"/> object,
-    /// which would be a member variable of the owner. The assignment will take care of disposing any previously assigned
-    /// command. If declaring a <see cref="VariableCommand"/> member variable is not an appealing option, you could opt to instead
-    /// make use of <see cref="CreateAbortLinkedCommand"/>. This will return a top level command that responds to abort
-    /// requests to the command that created it. The only disadvantage to this approach is that it may end up spawning
-    /// an additional thread.
+    /// before it is disposed, and you create a new child command with the same owner upon every execution, resource usage
+    /// will grow unbounded. The better approach is not assign an owner to the locally created command, but instead
+    /// have it run within the context of the launching command using <see cref="Command.SyncExecute(object,Command)"/>.
+    /// Alternatively, you could opt to make use of <see cref="CreateAbortLinkedCommand"/>. This will return a top-level
+    /// command that responds to abort requests to the command that created it. The former is more efficient for
+    /// <see cref="SyncCommand"/>-derived objects, and the latter is more efficient for <see cref="AsyncCommand"/>-derived objects.
     /// </para>
     /// <para>
     /// Generally speaking, when authoring Commands, it's best to make them as granular as possible. That makes it much easier
@@ -310,7 +309,7 @@ namespace CommandLib
         /// </remarks>
         public Object SyncExecute()
         {
-            return BaseSyncExecute(null);
+            return BaseSyncExecute(null, null);
         }
 
         /// <summary>Executes the command and does not return until it finishes.</summary>
@@ -334,7 +333,38 @@ namespace CommandLib
         /// </remarks>
         public Object SyncExecute(Object runtimeArg)
         {
-            return BaseSyncExecute(runtimeArg);
+            return BaseSyncExecute(runtimeArg, null);
+        }
+
+
+        /// <summary>Executes the command and does not return until it finishes.</summary>
+        /// <param name="runtimeArg">
+        /// Some commands may expect some sort of argument at the time of execution, and some commands may ignore this parameter.
+        /// See the concrete command class of interest for details.
+        /// </param>
+        /// <param name="owner">
+        /// If you want this command to pay attention to abort requests of a different command, set this value to that command.
+        /// Note that if this Command is already assigned an owner, passing a non-null value will raise an exception. Also note
+        /// that the owner assignment is only in effect during the scope of this call. Upon return, this command will not
+        /// have an owner, and it is the caller's responsibility to properly dispose it.
+        /// </param>
+        /// <returns>
+        /// Concrete commands may return a value of interest. See the concrete command class for details.
+        /// Generic methods are also provided to automatically cast the return value to the expected type.
+        /// </returns>
+        /// <exception cref="CommandLib.CommandAbortedException">Thrown when execution is aborted</exception>
+        /// <exception cref="System.ObjectDisposedException">Thrown if called after this object has been disposed</exception>
+        /// <exception cref="System.Exception">
+        /// Thrown if execution does not complete successfully. Call <see cref="GetAttachedErrorInfo"/> to retrieve context information
+        /// about the command that was running at the time the exception was thrown.
+        /// </exception>
+        /// <remarks>
+        /// It is safe to call this any number of times, but it will cause undefined behavior to re-execute a
+        /// command that is already executing.
+        /// </remarks>
+        public Object SyncExecute(Object runtimeArg, Command owner)
+        {
+            return BaseSyncExecute(runtimeArg, owner);
         }
 
         /// <summary>Executes the command and does not return until it finishes.</summary>
@@ -358,7 +388,7 @@ namespace CommandLib
         /// </remarks>
         public R SyncExecute<R>()
         {
-            return (R)BaseSyncExecute(null);
+            return (R)BaseSyncExecute(null, null);
         }
 
         /// <summary>Executes the command and does not return until it finishes.</summary>
@@ -382,7 +412,37 @@ namespace CommandLib
         /// </remarks>
         public R SyncExecute<R>(Object runtimeArg)
         {
-            return (R)BaseSyncExecute(runtimeArg);
+            return (R)BaseSyncExecute(runtimeArg, null);
+        }
+
+        /// <summary>Executes the command and does not return until it finishes.</summary>
+        /// <typeparam name="R">The expected return type. An exception will be thrown if the actual return type cannot be cast to this type.</typeparam>
+        /// <param name="runtimeArg">
+        /// Some commands may expect some sort of argument at the time of execution, and some commands may ignore this parameter.
+        /// See the concrete command class of interest for details.
+        /// </param>
+        /// <param name="owner">
+        /// If you want this command to pay attention to abort requests of a different command, set this value to that command.
+        /// Note that if this Command is already assigned an owner, passing a non-null value will raise an exception. Also note
+        /// that the owner assignment is only in effect during the scope of this call. Upon return, this command will not
+        /// have an owner, and it is the caller's responsibility to properly dispose it.
+        /// </param>
+        /// <returns>
+        /// Concrete commands may return a value of interest. See the concrete command class for details.
+        /// </returns>
+        /// <exception cref="CommandLib.CommandAbortedException">Thrown when execution is aborted</exception>
+        /// <exception cref="System.ObjectDisposedException">Thrown if called after this object has been disposed</exception>
+        /// <exception cref="System.Exception">
+        /// Thrown if execution does not complete successfully. Call <see cref="GetAttachedErrorInfo"/> to retrieve context information
+        /// about the command that was running at the time the exception was thrown.
+        /// </exception>
+        /// <remarks>
+        /// It is safe to call this any number of times, but it will cause undefined behavior to re-execute a
+        /// command that is already executing.
+        /// </remarks>
+        public R SyncExecute<R>(Object runtimeArg, Command owner)
+        {
+            return (R)BaseSyncExecute(runtimeArg, owner);
         }
 
         /// <summary>
@@ -831,29 +891,44 @@ namespace CommandLib
             }
         }
 
-        private Object BaseSyncExecute(Object runtimeArg)
+        private Object BaseSyncExecute(Object runtimeArg, Command owner)
         {
-            CheckDisposed();
-            PreExecute();
+            if (owner != null)
+            {
+                owner.TakeOwnership(this);
+            }
 
             try
             {
-                if (Monitors != null)
-                {
-                    foreach (ICommandMonitor monitor in Monitors)
-                    {
-                        monitor.CommandStarting(this);
-                    }
-                }
+                CheckDisposed();
+                PreExecute();
 
-                Object result = SyncExecuteImpl(runtimeArg);
-                DecrementExecuting(null, null, null);
-                return result;
+                try
+                {
+                    if (Monitors != null)
+                    {
+                        foreach (ICommandMonitor monitor in Monitors)
+                        {
+                            monitor.CommandStarting(this);
+                        }
+                    }
+
+                    Object result = SyncExecuteImpl(runtimeArg);
+                    DecrementExecuting(null, null, null);
+                    return result;
+                }
+                catch (Exception exc)
+                {
+                    DecrementExecuting(null, null, exc);
+                    throw;
+                }
             }
-            catch (Exception exc)
+            finally
             {
-                DecrementExecuting(null, null, exc);
-                throw;
+                if (owner != null)
+                {
+                    owner.RelinquishOwnership(this);
+                }
             }
         }
 
