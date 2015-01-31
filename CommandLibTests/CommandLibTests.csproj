@@ -80,7 +80,6 @@
     <Compile Include="DownloadStringCommandTests.cs" />
     <Compile Include="CommandDispatcherTests.cs" />
     <Compile Include="UploadDataCommandTests.cs" />
-    <Compile Include="VariableCommandTest.cs" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\CommandLib\CommandLib.csproj">

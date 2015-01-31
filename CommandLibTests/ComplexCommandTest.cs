@@ -73,12 +73,10 @@ namespace CommandLibTests
             return new CommandLib.AbortEventedCommand(new ComplexCommand(maxPauseMS, insertFailure), abortEvent);
         }
 
-
         private class ComplexCommand : CommandLib.SyncCommand
         {
             internal ComplexCommand(int maxPauseMS, bool insertFailure) : base(null)
             {
-                container = new CommandLib.VariableCommand(this);
                 CommandLib.ParallelCommands parallel = GenerateParallelCommands(maxPauseMS, insertFailure);
                 CommandLib.SequentialCommands seq = GenerateSequentialCommands(maxPauseMS, insertFailure);
                 parallel.Add(GenerateSequentialCommands(maxPauseMS, insertFailure));
@@ -88,25 +86,44 @@ namespace CommandLibTests
                 CommandLib.ParallelCommands combined = new CommandLib.ParallelCommands(false);
                 combined.Add(seq);
                 combined.Add(parallel);
+                cmd = new CommandLib.PeriodicCommand(
+                    combined, 3, TimeSpan.FromMilliseconds(maxPauseMS), CommandLib.PeriodicCommand.IntervalType.PauseAfter, true, null, this);
 
-                container.CommandToRun = new CommandLib.PeriodicCommand(
-                    combined, 3, TimeSpan.FromMilliseconds(maxPauseMS), CommandLib.PeriodicCommand.IntervalType.PauseAfter, true);
+                // For code coverage. Also, gives us an opportunity to try the third overload of SyncExecute.
+                RelinquishOwnership(cmd);
+            }
+
+            protected override void Dispose(bool disposing)
+            {
+                if (disposing)
+                {
+                    cmd.Dispose();
+                }
+
+                base.Dispose(disposing);
             }
 
             protected sealed override object SyncExeImpl(object runtimeArg)
             {
-                RelinquishOwnership(container);
-
                 try
                 {
-                    RelinquishOwnership(container);
+                    RelinquishOwnership(cmd);
                 }
                 catch (InvalidOperationException)
                 {
                 }
 
-                TakeOwnership(container);
-                return container.SyncExecute(runtimeArg);
+                using (CommandLib.PauseCommand pauseCmd = new CommandLib.PauseCommand(TimeSpan.FromTicks(0)))
+                {
+                    String dontCare = "test";
+                    
+                    if (pauseCmd.SyncExecute<String>(dontCare, this) != dontCare)
+                    {
+                        throw new Exception("Unexpected return value from pause command execution");
+                    }
+                }
+
+                return cmd.SyncExecute(runtimeArg, this);
             }
 
             private static CommandLib.ParallelCommands GenerateParallelCommands(int maxPauseMS, bool insertFailure)
@@ -147,7 +164,7 @@ namespace CommandLibTests
                 };
             }
 
-            private CommandLib.VariableCommand container;
+            private CommandLib.Command cmd;
         }
     }
 
