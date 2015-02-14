@@ -110,7 +110,7 @@ namespace CommandLib
     /// <remarks>
     /// Commands are abortable. Even a synchronously running command can be aborted from a separate thread.
     /// <para>
-    /// Commands all inherit from IDisposable, but Dispose() should only be called on top level commands. A top-level
+    /// Commands all inherit from IDisposable, but Dispose() need only be called on top level commands. A top-level
     /// command is a Command that is not owned by another Command. Some Command-derived classes will take ownership
     /// of Command objects passed as arguments to certain methods. Such behavior is documented.
     /// </para>
@@ -275,16 +275,13 @@ namespace CommandLib
         /// <summary>
         /// Call to dispose this command and release any resources that it holds. Only call this on top-level commands (i.e. commands that have no owner)
         /// </summary>
-        [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Design", "CA1063:ImplementIDisposableCorrectly")]
         public void Dispose()
         {
-            // This is the line that generated CA1063. But I like having this because I want to know if I'm doubly disposing objects.
-            // I'm open to being convinced that this is a bad idea, however. Perhaps most objects should be allowed to be
-            // doubly disposed, and they would just do the right thing. (I find it simpler to guard against that up front.)
-            CheckDisposed();
-
-            Dispose(true);
-            GC.SuppressFinalize(this);
+            if (!disposed)
+            {
+                Dispose(true);
+                GC.SuppressFinalize(this);
+            }
         }
 
         /// <summary>Executes the command and does not return until it finishes.</summary>
@@ -795,7 +792,7 @@ namespace CommandLib
                 {
                     if (owner != null)
                     {
-                        System.Diagnostics.Debug.Print("Dispose() called for an un-owned Command. Dispose() should only be called for top-level commands. " +
+                        System.Diagnostics.Debug.Print("Dispose() called for an owned Command. Dispose() should only be called for top-level commands. " +
                             "If you need a temporary Command that responds to abort requests of a different Command, consider using an AbortEventedCommand.");
 
                         return;
