@@ -31,9 +31,9 @@ namespace CommandLib
     /// <para>
     /// All of the above <see cref="Command"/> classes are simply containers for <see cref="Command"/> objects that presumably do
     /// something of interest. CommandLib includes a few <see cref="Command"/> classes that might be commonly useful, including
-    /// <see cref="PauseCommand"/>, <see cref="DownloadFileCommand"/>, <see cref="DownloadStringCommand"/> and
-    /// <see cref="UploadDataCommand"/>, but it is expected that users of this library will create their own
-    /// <see cref="Command"/>-derived classes.
+    /// <see cref="PauseCommand"/>, <see cref="DownloadFileCommand"/>, <see cref="DownloadStringCommand"/>,
+    /// <see cref="UploadDataCommand"/> and <see cref="UploadStringCommand"/>, but it is expected that users of this library will
+    /// create their own <see cref="Command"/>-derived classes.
     /// </para>
     /// <para>
     /// Documentation for <see cref="Command"/>, <see cref="AsyncCommand"/> and <see cref="SyncCommand"/> should be read before

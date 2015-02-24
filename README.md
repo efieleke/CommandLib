@@ -9,7 +9,7 @@ PeriodicCommand repeats its action at a given interval, ScheduledCommand runs on
 
 RetryableCommand provides the option to keep retrying a failed command until the caller decides enough is enough, and TimeLimitedCommand fails with a timeout exception if a given duration elapses before the command finishes execution.
 
-All of the above Command classes are simply containers for other Command objects that presumably do something of interest. CommandLib includes a few Command classes that might be commonly useful, including PauseCommand, DownloadFileCommand, DownloadStringCommand and UploadDataCommand, but it is expected that users of this library will create their own Command-derived classes.
+All of the above Command classes are simply containers for other Command objects that presumably do something of interest. CommandLib includes a few Command classes that might be commonly useful, including PauseCommand, DownloadFileCommand, DownloadStringCommand, UploadDataCommand and UploadStringCommand, but it is expected that users of this library will create their own Command-derived classes.
 
 Help File Documentation
 ----
