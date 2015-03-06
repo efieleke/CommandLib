@@ -70,6 +70,17 @@ namespace CommandLib
         }
 
         /// <summary>
+        /// The commands that have been added to this collection
+        /// </summary>
+        public IEnumerable<Command> Commands
+        {
+            get
+            {
+                return commands;
+            }
+        }
+
+        /// <summary>
         /// Returns diagnostic information about this object's state
         /// </summary>
         /// <returns>

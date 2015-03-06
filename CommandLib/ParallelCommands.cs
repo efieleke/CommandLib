@@ -100,6 +100,22 @@ namespace CommandLib
         }
 
         /// <summary>
+        /// The commands that have been added to this collection
+        /// </summary>
+        public IEnumerable<Command> Commands
+        {
+            get
+            {
+                if (commands.Count > 1)
+                {
+                    return commands.GetRange(1, commands.Count - 1);
+                }
+
+                return new List<Command>(0);
+            }
+        }
+
+        /// <summary>
         /// Returns diagnostic information about this object's state
         /// </summary>
         /// <returns>
