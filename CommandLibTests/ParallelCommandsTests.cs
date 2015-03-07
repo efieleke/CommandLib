@@ -16,6 +16,7 @@ namespace CommandLibTests
         private void TestHappyPath(bool abortUponFailure)
         {
             CommandLib.ParallelCommands parallelCmds = new CommandLib.ParallelCommands(abortUponFailure);
+            Assert.IsFalse(parallelCmds.Commands.GetEnumerator().MoveNext());
             HappyPathTest.Run(parallelCmds, null, null);
             parallelCmds.Dispose();
             parallelCmds = new CommandLib.ParallelCommands(abortUponFailure);
@@ -26,6 +27,15 @@ namespace CommandLibTests
                 parallelCmds.Add(new AddCommand(1));
             }
 
+            int addedCount = 0;
+
+            foreach(CommandLib.Command cmd in parallelCmds.Commands)
+            {
+                Assert.IsTrue(cmd is AddCommand);
+                ++addedCount;
+            }
+
+            Assert.AreEqual(addedCount, count);
             HappyPathTest.Run(parallelCmds, 0, null);
             parallelCmds.Clear();
             HappyPathTest.Run(parallelCmds, 0, null);

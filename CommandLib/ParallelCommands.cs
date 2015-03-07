@@ -108,6 +108,19 @@ namespace CommandLib
             {
                 if (commands.Count > 1)
                 {
+                    if (abortUponFailure)
+                    {
+                        List<Command> result = new List<Command>(commands.Count - 1);
+
+                        for (int i = 1; i < commands.Count; ++i )
+                        {
+                            AbortEventedCommand abortEventedCmd = (AbortEventedCommand)commands[i];
+                            result.Add(abortEventedCmd.CommandToRun);
+                        }
+
+                        return result;
+                    }
+
                     return commands.GetRange(1, commands.Count - 1);
                 }
 

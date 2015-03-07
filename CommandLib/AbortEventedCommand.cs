@@ -74,6 +74,18 @@ namespace CommandLib
         }
 
         /// <summary>
+        /// Gets the underlying command to run.
+        /// </summary>
+        public Command CommandToRun
+        {
+            get
+            {
+                CheckDisposed();
+                return commandToRun;
+            }
+        }
+
+        /// <summary>
         /// Do not call this method from a derived class. It is called by the framework.
         /// </summary>
         /// <param name="runtimeArg">Not applicable</param>

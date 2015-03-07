@@ -12,6 +12,7 @@ namespace CommandLibTests
             using (CommandLib.SequentialCommands seqCmds = new CommandLib.SequentialCommands())
             {
                 HappyPathTest.Run(seqCmds, null, null);
+                Assert.IsFalse(seqCmds.Commands.GetEnumerator().MoveNext());
                 const int count = 10;
 
                 for (int i = 0; i < count; ++i)
@@ -19,6 +20,15 @@ namespace CommandLibTests
                     seqCmds.Add(new AddCommand(1));
                 }
 
+                int addedCount = 0;
+
+                foreach (CommandLib.Command cmd in seqCmds.Commands)
+                {
+                    Assert.IsTrue(cmd is AddCommand);
+                    ++addedCount;
+                }
+
+                Assert.AreEqual(addedCount, count);
                 HappyPathTest.Run(seqCmds, 0, count);
                 seqCmds.Clear();
                 HappyPathTest.Run(seqCmds, 1, 1);
