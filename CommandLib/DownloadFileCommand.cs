@@ -101,6 +101,14 @@ namespace CommandLib
         }
 
         /// <summary>
+        /// Returns the underlying WebClient instance used to download the file
+        /// </summary>
+        public System.Net.WebClient WebClient
+        {
+            get { return webClient; }
+        }
+
+        /// <summary>
         /// Do not call this method from a derived class. It is called by the framework.
         /// </summary>
         /// <param name="listener">Not applicable</param>

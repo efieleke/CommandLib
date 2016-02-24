@@ -107,6 +107,14 @@ namespace CommandLib
         }
 
         /// <summary>
+        /// Returns the underlying WebClient instance used to upload the data
+        /// </summary>
+        public System.Net.WebClient WebClient
+        {
+            get { return webClient; }
+        }
+
+        /// <summary>
         /// Implementations should override only if they contain members that must be disposed. Remember to invoke the base class implementation from within any override.
         /// </summary>
         /// <param name="disposing">Will be true if this was called as a direct result of the object being explicitly disposed.</param>
