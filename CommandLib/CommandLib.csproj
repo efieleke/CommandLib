@@ -9,7 +9,7 @@
     <AppDesignerFolder>Properties</AppDesignerFolder>
     <RootNamespace>CommandLib</RootNamespace>
     <AssemblyName>CommandLib</AssemblyName>
-    <TargetFrameworkVersion>v4.0</TargetFrameworkVersion>
+    <TargetFrameworkVersion>v4.5</TargetFrameworkVersion>
     <FileAlignment>512</FileAlignment>
     <TargetFrameworkProfile />
   </PropertyGroup>
@@ -23,6 +23,7 @@
     <WarningLevel>4</WarningLevel>
     <TreatWarningsAsErrors>true</TreatWarningsAsErrors>
     <DocumentationFile>bin\Debug\CommandLib.XML</DocumentationFile>
+    <Prefer32Bit>false</Prefer32Bit>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
     <DebugType>pdbonly</DebugType>
@@ -33,10 +34,12 @@
     <WarningLevel>4</WarningLevel>
     <TreatWarningsAsErrors>true</TreatWarningsAsErrors>
     <DocumentationFile>bin\Release\CommandLib.XML</DocumentationFile>
+    <Prefer32Bit>false</Prefer32Bit>
   </PropertyGroup>
   <ItemGroup>
     <Reference Include="System" />
     <Reference Include="System.Core" />
+    <Reference Include="System.Net.Http" />
     <Reference Include="System.Xml.Linq" />
     <Reference Include="System.Data.DataSetExtensions" />
     <Reference Include="Microsoft.CSharp" />
@@ -53,6 +56,7 @@
     <Compile Include="CommandDispatcher.cs" />
     <Compile Include="CommandLogger.cs" />
     <Compile Include="CommandTracer.cs" />
+    <Compile Include="HttpGetCommand.cs" />
     <Compile Include="ICommandMonitor.cs" />
     <Compile Include="RecurringCommand.cs" />
     <Compile Include="RetryableCommand.cs" />
@@ -60,8 +64,6 @@
     <Compile Include="SequentialCommands.cs" />
     <Compile Include="Command.cs" />
     <Compile Include="CommandAbortedException.cs" />
-    <Compile Include="DownloadFileCommand.cs" />
-    <Compile Include="DownloadStringCommand.cs" />
     <Compile Include="ICommandListener.cs" />
     <Compile Include="ParallelCommands.cs" />
     <Compile Include="PauseCommand.cs" />
