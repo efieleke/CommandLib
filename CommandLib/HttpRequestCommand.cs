@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.ServiceModel.Channels;
+using System.Security.Permissions;
 
 namespace CommandLib
 {
@@ -15,7 +16,8 @@ namespace CommandLib
     /// IHttpRequestGenerator passed to the constructor.
     /// <para>
     /// This command returns from synchronous execution a System.Net.Http.HttpResponseMessage that represents the server response from  the HTTP
-    /// operation. The 'result' parameter of <see cref="ICommandListener.CommandSucceeded"/> will be set in similar fashion.
+    /// operation. The 'result' parameter of <see cref="ICommandListener.CommandSucceeded"/> will be set in similar fashion. It is the caller's
+    /// responsibility to dispose of this response object.
     /// </para>
     /// </remarks>
     public class HttpRequestCommand : SyncCommand
@@ -23,13 +25,123 @@ namespace CommandLib
         /// <summary>
         /// Users of HttpRequestCommand must implement this interface and pass an instance to either the contructor or SyncExecute.
         /// </summary>
-        public interface IHttpRequestGenerator
+        public interface IRequestGenerator
         {
             /// <summary>
             /// Every time this is called, it should return a new object, because requests cannot be reused.
             /// </summary>
             /// <returns>the request to send</returns>
             System.Net.Http.HttpRequestMessage GenerateRequest();
+        }
+
+        /// <summary>
+        /// Implement this interface if you wish to force command execution to fail depending upon the response (e.g. error status codes)
+        /// </summary>
+        public interface IResponseChecker
+        {
+            /// <summary>
+            /// Throw an exception from this method if the response is deemed to be a failure that should cause the command to fail.
+            /// </summary>
+            /// <param name="response">The response to evalulate. Note that implementors must *not* dispose this parameter.</param>
+            void CheckResponse(System.Net.Http.HttpResponseMessage response);
+        }
+
+        /// <summary>
+        /// This is used as the inner exception for the exception thrown by EnsureSuccessStatusCodeResponseChecker
+        /// </summary>
+        [SerializableAttribute]
+        public class HttpStatusException : Exception
+        {
+            /// <summary>
+            /// Constructs a HttpStatusException object
+            /// </summary>
+            public HttpStatusException()
+            {
+            }
+
+            /// <summary>
+            /// Constructs a HttpStatusException object
+            /// </summary>
+            /// <param name="message">See <see cref="Exception"/> documentation</param>
+            public HttpStatusException(String message) : base(message)
+            {
+            }
+
+            /// <summary>
+            /// Constructs a HttpStatusException object
+            /// </summary>
+            /// <param name="message">See <see cref="Exception"/> documentation</param>
+            /// <param name="innerException">>See <see cref="Exception"/> documentation</param>
+            public HttpStatusException(String message, Exception innerException)
+                : base(message, innerException)
+            {
+            }
+
+            /// <summary>
+            /// Constructs a HttpStatusException object
+            /// </summary>
+            /// <param name="info">>See <see cref="Exception"/> documentation</param>
+            /// <param name="context">>See <see cref="Exception"/> documentation</param>
+            protected HttpStatusException(System.Runtime.Serialization.SerializationInfo info, System.Runtime.Serialization.StreamingContext context)
+                : base(info, context)
+            {
+            }
+
+            /// <summary>
+            /// The status code returned by the server
+            /// </summary>
+            public System.Net.HttpStatusCode StatusCode { get; set; }
+
+            /// <summary>
+            /// The body of the response returned by the server
+            /// </summary>
+            public String ResponseBody { get; set; }
+
+            /// <summary>
+            /// Exists to support serialization
+            /// </summary>
+            /// <param name="info"></param>
+            /// <param name="context"></param>
+            [SecurityPermissionAttribute(SecurityAction.Demand, SerializationFormatter = true)]
+            public override void GetObjectData(System.Runtime.Serialization.SerializationInfo info, System.Runtime.Serialization.StreamingContext context)
+            {
+                if (info == null)
+                {
+                    throw new ArgumentNullException("info");
+                }
+
+                info.AddValue("StatusCode", this.StatusCode);
+                info.AddValue("ResponseBody", this.ResponseBody);
+                base.GetObjectData(info, context);
+            }
+        }
+
+        /// <summary>
+        /// Implementation of IResposeChecker that throws an HttpRequestException if the status code represents an error, with an inner exception with more detail.
+        /// </summary>
+        public class EnsureSuccessStatusCodeResponseChecker : IResponseChecker
+        {
+            /// <summary>
+            /// Throws an HttpRequestException if the status code represents an error
+            /// </summary>
+            /// <param name="response">The response that is evaluated</param>
+            public void CheckResponse(System.Net.Http.HttpResponseMessage response)
+            {
+                if (!response.IsSuccessStatusCode)
+                {
+                    HttpStatusException reason = new HttpStatusException() { StatusCode = response.StatusCode };
+
+                    // Disposing the content should help users: the behavior is similar to a failed request (e.g.
+                    // connection failure). Users don't expect to dispose the content in this case: If an exception is 
+                    // thrown, the object is responsible fore cleaning up its state.
+                    if (response.Content != null)
+                    {
+                        reason.ResponseBody = HttpRequestCommand.ContentAsString(response.Content);
+                    }
+
+                    throw new System.Net.Http.HttpRequestException(response.ReasonPhrase, reason);
+                }
+            }
         }
 
         /// <summary>
@@ -68,19 +180,30 @@ namespace CommandLib
         /// <summary>
         /// Constructs a HttpRequestCommand object as a top-level <see cref="Command"/>
         /// </summary>
-        /// <param name="ensureSuccessStatusCode">If true, and the status code indicates failure, this command will fail with an HttpRequestException</param>
-        public HttpRequestCommand(bool ensureSuccessStatusCode)
-            : this(ensureSuccessStatusCode, null)
+        public HttpRequestCommand()
+            : this(null)
         {
         }
 
         /// <summary>
         /// Constructs a HttpGetCommand object as a top-level <see cref="Command"/>
         /// </summary>
-        /// <param name="ensureSuccessStatusCode">If true, and the status code indicates failure, this command will fail with an HttpRequestException</param>
         /// <param name="requestGenerator">If null, be certain to pass a non-null value to the execution routine.</param>
-        public HttpRequestCommand(bool ensureSuccessStatusCode, IHttpRequestGenerator requestGenerator)
-            : this(ensureSuccessStatusCode, requestGenerator, new System.Net.Http.HttpClient())
+        public HttpRequestCommand(IRequestGenerator requestGenerator)
+            : this(requestGenerator, null)
+        {
+        }
+
+        /// <summary>
+        /// Constructs a HttpGetCommand object as a top-level <see cref="Command"/>
+        /// </summary>
+        /// <param name="requestGenerator">If null, be certain to pass a non-null value to the execution routine.</param>
+        /// <param name="responseChecker">If not null, responses will be checked for failure using this object. If
+        /// null, error status codes are not treated as a failure to execute the command. EnsureSuccessStatusCodeResponseChecker
+        /// is provided as an implementation.
+        /// </param>
+        public HttpRequestCommand(IRequestGenerator requestGenerator, IResponseChecker responseChecker)
+            : this(requestGenerator, responseChecker, new System.Net.Http.HttpClient())
         {
             disposeHttpClient = true;
         }
@@ -88,22 +211,28 @@ namespace CommandLib
         /// <summary>
         /// Constructs a HttpGetCommand object as a top-level <see cref="Command"/>
         /// </summary>
-        /// <param name="ensureSuccessStatusCode">If true, and the status code indicates failure, this command will fail with an HttpRequestException</param>
         /// <param name="requestGenerator">If null, be certain to pass a non-null value to the execution routine.</param>
+        /// <param name="responseChecker">If not null, responses will be checked for failure using this object. If
+        /// null, error status codes are not treated as a failure to execute the command. EnsureSuccessStatusCodeResponseChecker
+        /// is provided as an implementation.
+        /// </param>
         /// <param name="httpClient">
         /// The HttpClient instance to use for the operation. Be careful how that object is shared with other code (including
         /// passing it to multiple instances of this class, or other Command objects that accept a HttpClient object).
         /// </param>
-        public HttpRequestCommand(bool ensureSuccessStatusCode, IHttpRequestGenerator requestGenerator, System.Net.Http.HttpClient httpClient)
-            : this(ensureSuccessStatusCode, requestGenerator, httpClient, null)
+        public HttpRequestCommand(IRequestGenerator requestGenerator, IResponseChecker responseChecker, System.Net.Http.HttpClient httpClient)
+            : this(requestGenerator, responseChecker, httpClient, null)
         {
         }
 
         /// <summary>
         /// Constructs a HttpGetCommand object
         /// </summary>
-        /// <param name="ensureSuccessStatusCode">If true, and the status code indicates failure, this command will fail with an HttpRequestException</param>
         /// <param name="requestGenerator">If null, be certain to pass a non-null value to the execution routine.</param>
+        /// <param name="responseChecker">If not null, responses will be checked for failure using this object. If
+        /// null, error status codes are not treated as a failure to execute the command. EnsureSuccessStatusCodeResponseChecker
+        /// is provided as an implementation.
+        /// </param>
         /// <param name="httpClient">
         /// The HttpClient instance to use for the operation. Be careful how that object is shared with other code (including
         /// passing it to multiple instances of this class, or other Command objects that accept a HttpClient object).
@@ -112,11 +241,11 @@ namespace CommandLib
         /// Specify null to indicate a top-level command. Otherwise, this command will be owned by 'owner'. Owned commands respond to
         /// abort requests made of their owner. Also, owned commands are disposed of when the owner is disposed.
         /// </param>
-        public HttpRequestCommand(bool ensureSuccessStatusCode, IHttpRequestGenerator requestGenerator, System.Net.Http.HttpClient httpClient, Command owner)
+        public HttpRequestCommand(IRequestGenerator requestGenerator, IResponseChecker responseChecker, System.Net.Http.HttpClient httpClient, Command owner)
             : base(owner)
         {
-            this.ensureSuccessStatusCode = ensureSuccessStatusCode;
             this.requestGenerator = requestGenerator;
+            this.responseChecker = responseChecker;
             this.httpClient = httpClient;
         }
 
@@ -167,7 +296,7 @@ namespace CommandLib
         /// <returns>The System.Net.Http.HttpResponseMessage</returns>
         protected sealed override Object SyncExeImpl(Object runtimeArg)
         {
-            IHttpRequestGenerator generator = runtimeArg == null ? requestGenerator : (IHttpRequestGenerator)runtimeArg;
+            IRequestGenerator generator = runtimeArg == null ? requestGenerator : (IRequestGenerator)runtimeArg;
 
             using (System.Net.Http.HttpRequestMessage request = generator.GenerateRequest())
             {
@@ -179,9 +308,17 @@ namespace CommandLib
                     {
                         task.Wait();
 
-                        if (ensureSuccessStatusCode)
+                        if (responseChecker != null)
                         {
-                            task.Result.EnsureSuccessStatusCode();
+                            try
+                            {
+                                responseChecker.CheckResponse(task.Result);
+                            }
+                            catch(Exception)
+                            {
+                                task.Result.Dispose();
+                                throw;
+                            }
                         }
 
                         return task.Result;
@@ -211,8 +348,8 @@ namespace CommandLib
             cancelTokenSource.Cancel();
         }
 
-        private bool ensureSuccessStatusCode;
-        private IHttpRequestGenerator requestGenerator = null;
+        private IRequestGenerator requestGenerator = null;
+        private IResponseChecker responseChecker = null;
         private System.Net.Http.HttpClient httpClient = null;
         private bool disposeHttpClient = false;
         private System.Threading.CancellationTokenSource cancelTokenSource = new System.Threading.CancellationTokenSource();
