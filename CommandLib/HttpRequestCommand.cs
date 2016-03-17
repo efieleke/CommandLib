@@ -2,22 +2,36 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
+using System.ServiceModel.Channels;
 
 namespace CommandLib
 {
     /// <summary>
-    /// A <see cref="Command"/> wrapper for <see cref="System.Net.Http.HttpClient.GetAsync(System.Uri)"/>
+    /// A <see cref="Command"/> wrapper for <see cref="System.Net.Http.HttpClient.SendAsync(System.Net.Http.HttpRequestMessage)"/>
     /// </summary>
     /// <remarks>
     /// <see cref="Command.SyncExecute(object)"/> and <see cref="Command.AsyncExecute(ICommandListener, object)"/> will accept 
-    /// an object of type System.Uri for the'runtimeArg', If not null, that will be used instead of the System.Uri passed to the constructor.
+    /// an object of type IHttpRequestGenerator for the'runtimeArg', If not null, that will be used instead of the
+    /// IHttpRequestGenerator passed to the constructor.
     /// <para>
     /// This command returns from synchronous execution a System.Net.Http.HttpResponseMessage that represents the server response from  the HTTP
     /// operation. The 'result' parameter of <see cref="ICommandListener.CommandSucceeded"/> will be set in similar fashion.
     /// </para>
     /// </remarks>
-    public class HttpGetCommand : SyncCommand
+    public class HttpRequestCommand : SyncCommand
     {
+        /// <summary>
+        /// Users of HttpRequestCommand must implement this interface and pass an instance to either the contructor or SyncExecute.
+        /// </summary>
+        public interface IHttpRequestGenerator
+        {
+            /// <summary>
+            /// Every time this is called, it should return a new object, because requests cannot be reused.
+            /// </summary>
+            /// <returns>the request to send</returns>
+            System.Net.Http.HttpRequestMessage GenerateRequest();
+        }
+
         /// <summary>
         /// Helper method to convert an HttpContent object to a String. This can be used on the Content
         /// property of the HttpResponseMessage object that is returned from the HttpGetCommand's execution.
@@ -52,19 +66,21 @@ namespace CommandLib
         }
 
         /// <summary>
-        /// Constructs a HttpGetCommand object as a top-level <see cref="Command"/>
+        /// Constructs a HttpRequestCommand object as a top-level <see cref="Command"/>
         /// </summary>
-        public HttpGetCommand()
-            : this(null)
+        /// <param name="ensureSuccessStatusCode">If true, and the status code indicates failure, this command will fail with an HttpRequestException</param>
+        public HttpRequestCommand(bool ensureSuccessStatusCode)
+            : this(ensureSuccessStatusCode, null)
         {
         }
 
         /// <summary>
         /// Constructs a HttpGetCommand object as a top-level <see cref="Command"/>
         /// </summary>
-        /// <param name="address">The location of the data to download. If null, be certain to pass a non-null value to the execution routine.</param>
-        public HttpGetCommand(System.Uri address)
-            : this(address, new System.Net.Http.HttpClient())
+        /// <param name="ensureSuccessStatusCode">If true, and the status code indicates failure, this command will fail with an HttpRequestException</param>
+        /// <param name="requestGenerator">If null, be certain to pass a non-null value to the execution routine.</param>
+        public HttpRequestCommand(bool ensureSuccessStatusCode, IHttpRequestGenerator requestGenerator)
+            : this(ensureSuccessStatusCode, requestGenerator, new System.Net.Http.HttpClient())
         {
             disposeHttpClient = true;
         }
@@ -72,20 +88,22 @@ namespace CommandLib
         /// <summary>
         /// Constructs a HttpGetCommand object as a top-level <see cref="Command"/>
         /// </summary>
-        /// <param name="address">The location of the data to download. If null, be certain to pass a non-null value to the execution routine.</param>
+        /// <param name="ensureSuccessStatusCode">If true, and the status code indicates failure, this command will fail with an HttpRequestException</param>
+        /// <param name="requestGenerator">If null, be certain to pass a non-null value to the execution routine.</param>
         /// <param name="httpClient">
         /// The HttpClient instance to use for the operation. Be careful how that object is shared with other code (including
         /// passing it to multiple instances of this class, or other Command objects that accept a HttpClient object).
         /// </param>
-        public HttpGetCommand(System.Uri address, System.Net.Http.HttpClient httpClient)
-            : this(address, httpClient, null)
+        public HttpRequestCommand(bool ensureSuccessStatusCode, IHttpRequestGenerator requestGenerator, System.Net.Http.HttpClient httpClient)
+            : this(ensureSuccessStatusCode, requestGenerator, httpClient, null)
         {
         }
 
         /// <summary>
         /// Constructs a HttpGetCommand object
         /// </summary>
-        /// <param name="address">The location of the data to download. If null, be certain to pass a non-null value to the execution routine.</param>
+        /// <param name="ensureSuccessStatusCode">If true, and the status code indicates failure, this command will fail with an HttpRequestException</param>
+        /// <param name="requestGenerator">If null, be certain to pass a non-null value to the execution routine.</param>
         /// <param name="httpClient">
         /// The HttpClient instance to use for the operation. Be careful how that object is shared with other code (including
         /// passing it to multiple instances of this class, or other Command objects that accept a HttpClient object).
@@ -94,10 +112,11 @@ namespace CommandLib
         /// Specify null to indicate a top-level command. Otherwise, this command will be owned by 'owner'. Owned commands respond to
         /// abort requests made of their owner. Also, owned commands are disposed of when the owner is disposed.
         /// </param>
-        public HttpGetCommand(System.Uri address, System.Net.Http.HttpClient httpClient, Command owner)
+        public HttpRequestCommand(bool ensureSuccessStatusCode, IHttpRequestGenerator requestGenerator, System.Net.Http.HttpClient httpClient, Command owner)
             : base(owner)
         {
-            this.address = address;
+            this.ensureSuccessStatusCode = ensureSuccessStatusCode;
+            this.requestGenerator = requestGenerator;
             this.httpClient = httpClient;
         }
 
@@ -134,6 +153,7 @@ namespace CommandLib
         /// <summary>
         /// Do not call this method from a derived class. It is called by the framework.
         /// </summary>
+        /// <param name="runtimeArg">see base class documentation</param>
         protected override void PrepareExecute(Object runtimeArg)
         {
             cancelTokenSource.Dispose();
@@ -147,12 +167,22 @@ namespace CommandLib
         /// <returns>The System.Net.Http.HttpResponseMessage</returns>
         protected sealed override Object SyncExeImpl(Object runtimeArg)
         {
+            IHttpRequestGenerator generator = runtimeArg == null ? requestGenerator : (IHttpRequestGenerator)runtimeArg;
+
+            // The same request message cannot be sent more than once, so we have to contruct a new one every time.
             using (System.Threading.Tasks.Task<System.Net.Http.HttpResponseMessage> task =
-                httpClient.GetAsync(runtimeArg == null ? address : (System.Uri)runtimeArg, cancelTokenSource.Token))
+                httpClient.SendAsync(
+                    generator.GenerateRequest(), System.Net.Http.HttpCompletionOption.ResponseContentRead, cancelTokenSource.Token))
             {
                 try
                 {
                     task.Wait();
+
+                    if (ensureSuccessStatusCode)
+                    {
+                        task.Result.EnsureSuccessStatusCode();
+                    }
+
                     return task.Result;
                 }
                 catch (System.AggregateException e)
@@ -179,7 +209,8 @@ namespace CommandLib
             cancelTokenSource.Cancel();
         }
 
-        private System.Uri address = null;
+        private bool ensureSuccessStatusCode;
+        private IHttpRequestGenerator requestGenerator = null;
         private System.Net.Http.HttpClient httpClient = null;
         private bool disposeHttpClient = false;
         private System.Threading.CancellationTokenSource cancelTokenSource = new System.Threading.CancellationTokenSource();

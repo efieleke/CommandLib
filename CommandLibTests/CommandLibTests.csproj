@@ -65,12 +65,11 @@
     <Compile Include="FailingCommand.cs" />
     <Compile Include="FailTest.cs" />
     <Compile Include="HappyPathTest.cs" />
-    <Compile Include="HttpGetCommandTests.cs" />
+    <Compile Include="HttpRequestCommandTests.cs" />
     <Compile Include="NeverEndingAsyncCommand.cs" />
     <Compile Include="PauseCommandTests.cs" />
     <Compile Include="PeriodicCommandTests.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
-    <Compile Include="DownloadFileCommandTests.cs" />
     <Compile Include="AbortEventedCommandTests.cs" />
     <Compile Include="AbortTest.cs" />
     <Compile Include="RecurringCommandTests.cs" />
@@ -82,7 +81,6 @@
     <Compile Include="RetryableCommandTests.cs" />
     <Compile Include="BadAbortTests.cs" />
     <Compile Include="CommandDispatcherTests.cs" />
-    <Compile Include="UploadDataCommandTests.cs" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\CommandLib\CommandLib.csproj">
