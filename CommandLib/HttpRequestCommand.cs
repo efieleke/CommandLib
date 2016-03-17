@@ -169,34 +169,36 @@ namespace CommandLib
         {
             IHttpRequestGenerator generator = runtimeArg == null ? requestGenerator : (IHttpRequestGenerator)runtimeArg;
 
-            // The same request message cannot be sent more than once, so we have to contruct a new one every time.
-            using (System.Threading.Tasks.Task<System.Net.Http.HttpResponseMessage> task =
-                httpClient.SendAsync(
-                    generator.GenerateRequest(), System.Net.Http.HttpCompletionOption.ResponseContentRead, cancelTokenSource.Token))
+            using (System.Net.Http.HttpRequestMessage request = generator.GenerateRequest())
             {
-                try
+                // The same request message cannot be sent more than once, so we have to contruct a new one every time.
+                using (System.Threading.Tasks.Task<System.Net.Http.HttpResponseMessage> task =
+                    httpClient.SendAsync(request, System.Net.Http.HttpCompletionOption.ResponseContentRead, cancelTokenSource.Token))
                 {
-                    task.Wait();
-
-                    if (ensureSuccessStatusCode)
+                    try
                     {
-                        task.Result.EnsureSuccessStatusCode();
-                    }
+                        task.Wait();
 
-                    return task.Result;
-                }
-                catch (System.AggregateException e)
-                {
-                    if (e.GetBaseException() is System.OperationCanceledException)
+                        if (ensureSuccessStatusCode)
+                        {
+                            task.Result.EnsureSuccessStatusCode();
+                        }
+
+                        return task.Result;
+                    }
+                    catch (System.AggregateException e)
+                    {
+                        if (e.GetBaseException() is System.OperationCanceledException)
+                        {
+                            throw new CommandAbortedException();
+                        }
+
+                        throw e.GetBaseException();
+                    }
+                    catch (System.OperationCanceledException)
                     {
                         throw new CommandAbortedException();
                     }
-
-                    throw e.GetBaseException();
-                }
-                catch (System.OperationCanceledException)
-                {
-                    throw new CommandAbortedException();
                 }
             }
         }
