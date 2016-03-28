@@ -131,12 +131,18 @@ namespace CommandLib
                 {
                     HttpStatusException reason = new HttpStatusException() { StatusCode = response.StatusCode };
 
-                    // Disposing the content should help users: the behavior is similar to a failed request (e.g.
-                    // connection failure). Users don't expect to dispose the content in this case: If an exception is 
-                    // thrown, the object is responsible fore cleaning up its state.
                     if (response.Content != null)
                     {
-                        reason.ResponseBody = HttpRequestCommand.ContentAsString(response.Content);
+                        try
+                        {
+                            reason.ResponseBody = HttpRequestCommand.ContentAsString(response.Content);
+                        }
+                        catch(Exception)
+                        {
+                            // We have no guarantee that the server will give us a response body that can be
+                            // serialized as a string. So just eat any failure here and instead propogate
+                            // the real error.
+                        }
                     }
 
                     throw new System.Net.Http.HttpRequestException(response.ReasonPhrase, reason);
