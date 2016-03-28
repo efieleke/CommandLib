@@ -293,6 +293,7 @@ namespace CommandLib
         {
             cancelTokenSource.Dispose();
             cancelTokenSource = new System.Threading.CancellationTokenSource();
+            _aborted = false;
         }
 
         /// <summary>
@@ -333,14 +334,28 @@ namespace CommandLib
                     {
                         if (e.GetBaseException() is System.OperationCanceledException)
                         {
-                            throw new CommandAbortedException();
+                            if (_aborted)
+                            {
+                                // We got here because Abort() was called
+                                throw new CommandAbortedException();
+                            }
+
+                            // We got here because the request timed out
+                            throw new TimeoutException();
                         }
 
                         throw e.GetBaseException();
                     }
                     catch (System.OperationCanceledException)
                     {
-                        throw new CommandAbortedException();
+                        if (_aborted)
+                        {
+                            // We got here because Abort() was called
+                            throw new CommandAbortedException();
+                        }
+
+                        // We got here because the request timed out
+                        throw new TimeoutException();
                     }
                 }
             }
@@ -351,6 +366,7 @@ namespace CommandLib
         /// </summary>
         protected sealed override void AbortImpl()
         {
+            _aborted = true;
             cancelTokenSource.Cancel();
         }
 
@@ -358,6 +374,7 @@ namespace CommandLib
         private IResponseChecker responseChecker = null;
         private System.Net.Http.HttpClient httpClient = null;
         private bool disposeHttpClient = false;
+        private bool _aborted = false;
         private System.Threading.CancellationTokenSource cancelTokenSource = new System.Threading.CancellationTokenSource();
     }
 }
