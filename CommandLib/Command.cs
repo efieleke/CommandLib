@@ -535,12 +535,7 @@ namespace CommandLib
                 }
 
                 abortEvent.Set();
-
-                lock (childLock)
-                {
-                    AbortImplAllDescendents(this);
-                }
-
+                AbortImplAllDescendents(this);
                 AbortImpl();
             }
             catch (Exception exc)
@@ -879,10 +874,13 @@ namespace CommandLib
 
         private static void AbortImplAllDescendents(Command command)
         {
-            foreach (Command child in command.children)
+            lock (command.childLock)
             {
-                AbortImplAllDescendents(child);
-                child.AbortImpl();
+                foreach (Command child in command.children)
+                {
+                    AbortImplAllDescendents(child);
+                    child.AbortImpl();
+                }
             }
         }
 
