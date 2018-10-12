@@ -1,9 +1,7 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.ServiceModel.Channels;
+using System.Net.Http;
 using System.Security.Permissions;
+using System.Threading.Tasks;
 
 namespace CommandLib
 {
@@ -20,7 +18,7 @@ namespace CommandLib
     /// responsibility to dispose of this response object.
     /// </para>
     /// </remarks>
-    public class HttpRequestCommand : SyncCommand
+    public class HttpRequestCommand : TaskCommand<System.Net.Http.HttpResponseMessage>
     {
         /// <summary>
         /// Users of HttpRequestCommand must implement this interface and pass an instance to either the contructor or SyncExecute.
@@ -288,89 +286,81 @@ namespace CommandLib
         /// <summary>
         /// Do not call this method from a derived class. It is called by the framework.
         /// </summary>
-        /// <param name="runtimeArg">see base class documentation</param>
-        protected override void PrepareExecute(Object runtimeArg)
-        {
-            cancelTokenSource.Dispose();
-            cancelTokenSource = new System.Threading.CancellationTokenSource();
-            _aborted = false;
-        }
-
-        /// <summary>
-        /// Do not call this method from a derived class. It is called by the framework.
-        /// </summary>
-        /// <param name="runtimeArg">Not applicable</param>
-        /// <returns>The System.Net.Http.HttpResponseMessage</returns>
-        protected sealed override Object SyncExeImpl(Object runtimeArg)
-        {
-            IRequestGenerator generator = runtimeArg == null ? requestGenerator : (IRequestGenerator)runtimeArg;
-
-            using (System.Net.Http.HttpRequestMessage request = generator.GenerateRequest())
-            {
-                // The same request message cannot be sent more than once, so we have to contruct a new one every time.
-                using (System.Threading.Tasks.Task<System.Net.Http.HttpResponseMessage> task =
-                    httpClient.SendAsync(request, System.Net.Http.HttpCompletionOption.ResponseContentRead, cancelTokenSource.Token))
-                {
-                    try
-                    {
-                        task.Wait();
-
-                        if (responseChecker != null)
-                        {
-                            try
-                            {
-                                responseChecker.CheckResponse(task.Result);
-                            }
-                            catch(Exception)
-                            {
-                                task.Result.Dispose();
-                                throw;
-                            }
-                        }
-
-                        return task.Result;
-                    }
-                    catch (System.AggregateException e)
-                    {
-                        if (e.GetBaseException() is System.OperationCanceledException)
-                        {
-                            if (_aborted)
-                            {
-                                // We got here because Abort() was called
-                                throw new CommandAbortedException();
-                            }
-
-                            // We got here because the request timed out
-                            throw new TimeoutException();
-                        }
-
-                        throw e.GetBaseException();
-                    }
-                    catch (System.OperationCanceledException)
-                    {
-                        if (_aborted)
-                        {
-                            // We got here because Abort() was called
-                            throw new CommandAbortedException();
-                        }
-
-                        // We got here because the request timed out
-                        throw new TimeoutException();
-                    }
-                }
-            }
-        }
-
-        /// <summary>
-        /// Do not call this method from a derived class. It is called by the framework.
-        /// </summary>
         protected sealed override void AbortImpl()
         {
             _aborted = true;
             cancelTokenSource.Cancel();
         }
 
-        private IRequestGenerator requestGenerator = null;
+		/// <summary>
+		/// Do not call this method from a derived class. It is called by the framework.
+		/// </summary>
+		/// <param name="runtimeArg"></param>
+		/// <returns></returns>
+		protected sealed override async Task<HttpResponseMessage> CreateTask(object runtimeArg)
+		{
+			cancelTokenSource.Dispose();
+			cancelTokenSource = new System.Threading.CancellationTokenSource();
+			_aborted = false;
+			IRequestGenerator generator = runtimeArg == null ? requestGenerator : (IRequestGenerator)runtimeArg;
+
+			using (System.Net.Http.HttpRequestMessage request = generator.GenerateRequest())
+			{
+				// The same request message cannot be sent more than once, so we have to contruct a new one every time.
+				Task<System.Net.Http.HttpResponseMessage> task =
+					httpClient.SendAsync(request, System.Net.Http.HttpCompletionOption.ResponseContentRead, cancelTokenSource.Token);
+
+				try
+				{
+					System.Net.Http.HttpResponseMessage message = await task;
+
+					if (responseChecker != null)
+					{
+						try
+						{
+							responseChecker.CheckResponse(message);
+						}
+						catch (Exception)
+						{
+							message.Dispose();
+							task.Dispose();
+							throw;
+						}
+					}
+
+					return message;
+				}
+				catch (System.AggregateException e)
+				{
+					if (e.GetBaseException() is System.OperationCanceledException)
+					{
+						if (_aborted)
+						{
+							// We got here because Abort() was called
+							throw new CommandAbortedException();
+						}
+
+						// We got here because the request timed out
+						throw new TimeoutException();
+					}
+
+					throw e.GetBaseException();
+				}
+				catch (System.OperationCanceledException)
+				{
+					if (_aborted)
+					{
+						// We got here because Abort() was called
+						throw new CommandAbortedException();
+					}
+
+					// We got here because the request timed out
+					throw new TimeoutException();
+				}
+			}
+		}
+
+		private IRequestGenerator requestGenerator = null;
         private IResponseChecker responseChecker = null;
         private System.Net.Http.HttpClient httpClient = null;
         private bool disposeHttpClient = false;

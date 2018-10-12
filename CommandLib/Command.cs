@@ -1,46 +1,48 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Linq;
-using System.Text;
 using System.Threading.Tasks;
 
 namespace CommandLib
 {
-    /// <summary>
-    /// CommandLib contains a set of classes that can be used to easily coordinate synchronous and asynchronous activities in
-    /// complex ways. Most classes in this library inherit from <see cref="Command"/>, which represents an action. Any
-    /// <see cref="Command"/> can be run synchronously or asynchronously, and may be aborted.
-    /// <para>
-    /// Using <see cref="ParallelCommands"/>, you can run a collection of <see cref="Command"/> objects concurrently, and using
-    /// <see cref="SequentialCommands"/>, you can run a collection of <see cref="Command"/> objects in sequence. Any command
-    /// can be added to these two types (including <see cref="ParallelCommands"/> and <see cref="SequentialCommands"/> themselves,
-    /// because they are <see cref="Command"/> objects), so it's possible to create a deep nesting of coordinated activities.
-    /// </para>
-    /// <para>
-    /// <see cref="PeriodicCommand"/> repeats its action at a given interval, <see cref="ScheduledCommand"/> runs once at a specific
-    /// time, and <see cref="RecurringCommand"/> runs at times that are provided via a callback.
-    /// </para>
-    /// <para>
-    /// <see cref="RetryableCommand"/> provides the option to keep retrying a failed command until the caller decides enough is enough,
-    /// and <see cref="TimeLimitedCommand"/> fails with a timeout exception if a given duration elapses before the command finishes
-    /// execution.
-    /// </para>
-    /// <para>
-    /// <see cref="CommandDispatcher"/> provides the capability to set up a pool for command execution.
-    /// </para>
-    /// <para>
-    /// All of the above <see cref="Command"/> classes are simply containers for <see cref="Command"/> objects that presumably do
-    /// something of interest. CommandLib includes a few <see cref="Command"/> classes that might be commonly useful, including
-    /// <see cref="PauseCommand"/> and <see cref="HttpRequestCommand"/>, but it is expected that users of this library will
-    /// create their own <see cref="Command"/>-derived classes.
-    /// </para>
-    /// <para>
-    /// Documentation for <see cref="Command"/>, <see cref="AsyncCommand"/> and <see cref="SyncCommand"/> should be read before
-    /// developing a <see cref="Command"/>-derived class. <see cref="AbortEventedCommand"/> might also serve as an aid in the
-    /// development of a <see cref="Command"/>.
-    /// </para>
-    /// </summary>
-    [System.Runtime.CompilerServices.CompilerGeneratedAttribute()]
+	/// <summary>
+	/// CommandLib contains a set of classes that can be used to easily coordinate synchronous and asynchronous activities in
+	/// complex ways. Most classes in this library inherit from <see cref="Command"/>, which represents an action. Any
+	/// <see cref="Command"/> can be run synchronously or asynchronously, and may be aborted.
+	/// <para>
+	/// Using <see cref="ParallelCommands"/>, you can run a collection of <see cref="Command"/> objects concurrently, and using
+	/// <see cref="SequentialCommands"/>, you can run a collection of <see cref="Command"/> objects in sequence. Any command
+	/// can be added to these two types (including <see cref="ParallelCommands"/> and <see cref="SequentialCommands"/> themselves,
+	/// because they are <see cref="Command"/> objects), so it's possible to create a deep nesting of coordinated activities.
+	/// </para>
+	/// <para>
+	/// Using <see cref="TaskCommand{TResult}"/>, you can run a Task in the context of a <see cref="Command"/>. And using
+	/// <see cref="Command.CreateTask{TResult}(Command, object, Command)"/>, you can convert a <see cref="Command"/> to a Task.
+	/// </para>
+	/// <para>
+	/// <see cref="PeriodicCommand"/> repeats its action at a given interval, <see cref="ScheduledCommand"/> runs once at a specific
+	/// time, and <see cref="RecurringCommand"/> runs at times that are provided via a callback.
+	/// </para>
+	/// <para>
+	/// <see cref="RetryableCommand"/> provides the option to keep retrying a failed command until the caller decides enough is enough,
+	/// and <see cref="TimeLimitedCommand"/> fails with a timeout exception if a given duration elapses before the command finishes
+	/// execution.
+	/// </para>
+	/// <para>
+	/// <see cref="CommandDispatcher"/> provides the capability to set up a pool for command execution.
+	/// </para>
+	/// <para>
+	/// All of the above <see cref="Command"/> classes are simply containers for <see cref="Command"/> objects that presumably do
+	/// something of interest. CommandLib includes a few <see cref="Command"/> classes that might be commonly useful, including
+	/// <see cref="PauseCommand"/> and <see cref="HttpRequestCommand"/>, but it is expected that users of this library will
+	/// create their own <see cref="Command"/>-derived classes.
+	/// </para>
+	/// <para>
+	/// Documentation for <see cref="Command"/>, <see cref="AsyncCommand"/> and <see cref="SyncCommand"/> should be read before
+	/// developing a <see cref="Command"/>-derived class. <see cref="AbortEventedCommand"/> might also serve as an aid in the
+	/// development of a <see cref="Command"/>.
+	/// </para>
+	/// </summary>
+	[System.Runtime.CompilerServices.CompilerGeneratedAttribute()]
     class NamespaceDoc
     {
     }

@@ -13,10 +13,10 @@ namespace CommandLibTests
 		{
 			using (var cmd = new DoNothingCommand())
 			{
-				using (Task<Object> task = Command.CreateTask<Object>(cmd))
+				using (Task<int> task = Command.CreateTask<int>(cmd, 7))
 				{
 					task.Start();
-					Assert.IsNull(task.Result);
+					Assert.AreEqual(7, task.Result);
 				}
 
 				using (Task<int> task = Command.CreateTask<int>(cmd, 5))
@@ -32,17 +32,8 @@ namespace CommandLibTests
 		{
 			using (var cmd = new DoNothingCommand())
 			{
-				using (Task<int> task = Command.CreateTask<int>(cmd, 5))
-				{
-					var taskCmd = new TaskCommand<int>(task);
-					Assert.AreEqual(5, taskCmd.SyncExecute());
-				}
-
-				using (Task<int> task = Command.CreateTask<int>(cmd, 5))
-				{
-					var taskCmd = new TaskCommand<int>(task);
-					Assert.AreEqual(5, taskCmd.SyncExecute(4));// arg to SyncExecute is ignored
-				}
+				Assert.AreEqual(5, cmd.SyncExecute(5));
+				Assert.AreEqual(4, cmd.SyncExecute(4));
 			}
 		}
 
@@ -51,12 +42,10 @@ namespace CommandLibTests
 		{
 			using (var cmd = new DoNothingCommand())
 			{
-				using (Task<int> task = Command.CreateTask<int>(cmd, 5))
-				{
-					var taskCmd = new TaskCommand<int>(task);
-					taskCmd.AsyncExecute(new DoNothingListener(5), 1); // runtime arg is ignored
-					taskCmd.Wait();
-				}
+				cmd.AsyncExecute(new DoNothingListener(1), 1);
+				cmd.Wait();
+				cmd.AsyncExecute(new DoNothingListener(2), 2);
+				cmd.Wait();
 			}
 		}
 
@@ -65,19 +54,14 @@ namespace CommandLibTests
 		{
 			using (var cmd = new DoNothingCommand(true))
 			{
-				using (Task<int> task = Command.CreateTask<int>(cmd, 5))
+				try
 				{
-					var taskCmd = new TaskCommand<int>(task);
-
-					try
-					{
-						taskCmd.SyncExecute();
-						Assert.Fail("Did not expect to get here");
-					}
-					catch(Exception e)
-					{
-						Assert.AreEqual("boo hoo", e.Message);
-					}
+					cmd.SyncExecute();
+					Assert.Fail("Did not expect to get here");
+				}
+				catch(Exception e)
+				{
+					Assert.AreEqual("boo hoo", e.Message);
 				}
 			}
 		}
@@ -91,15 +75,15 @@ namespace CommandLibTests
 			private readonly object expectedResult;
 		}
 
-		private class DoNothingCommand : SyncCommand
+		private class DoNothingCommand : TaskCommand<int>
 		{
 			internal DoNothingCommand() : this(false) { }
 			internal DoNothingCommand(bool fail) : base(null) { this.fail = fail; }
 
-			protected override object SyncExeImpl(object runtimeArg)
+			protected override Task<int> CreateTask(object runtimeArg)
 			{
 				if (fail) { throw new Exception("boo hoo"); }
-				return runtimeArg;
+				return Task.FromResult((int)runtimeArg);
 			}
 
 			private readonly bool fail;
