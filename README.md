@@ -5,6 +5,8 @@ CommandLib is a C# library that simplifies coordination of asynchronous and sync
 
 ParallelCommands, itself a Command, executes a collection of commands concurrently (in parallel), and SequentialCommands executes its commands in sequence. Using these classes, it's possible to create a deep nesting of coordinated actions. For example, SequentialCommands can hold instances of ParallelCommands, SequentialCommands, and any other Command-derived object.
 
+Using TaskCommand, a Task can be run in the context of a Command. And using Command.CreateTask, a Command can be converted to a Task.
+
 PeriodicCommand repeats its action at a given interval, ScheduledCommand runs once at a specific time, and RecurringCommand runs at times that are provided via a callback.
 
 RetryableCommand provides the option to keep retrying a failed command until the caller decides enough is enough, and TimeLimitedCommand fails with a timeout exception if a given duration elapses before the command finishes execution.
@@ -21,7 +23,7 @@ The Command class allows registration of ICommandMonitor objects. CommandTracer 
 
 Build
 ----
-Included is a solution file that contains four projects: CommandLib itself, a unit test project, a log file viewer (for logs generated using CommandLogger) and a project demonstrating example usage. All projects target .NET 4.0, but I suspect they would build without issue against other versions of .NET as well. The solution and project files were created using Microsoft Visual Studio 2013.
+Included is a solution file that contains four projects: CommandLib itself, a unit test project, a log file viewer (for logs generated using CommandLogger) and a project demonstrating example usage. All projects target .NET 4.5. The solution and project files were created using Microsoft Visual Studio 2017.
 
 Example Usage
 ----
