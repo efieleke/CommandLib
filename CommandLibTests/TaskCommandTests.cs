@@ -61,21 +61,6 @@ namespace CommandLibTests
 		}
 
 		[TestMethod]
-		public void TaskCommand_TestAbort()
-		{
-			using (var cmd = new PauseCommand(TimeSpan.FromDays(1)))
-			{
-				using (Task<int> task = Command.CreateTask<int>(cmd, 5))
-				{
-					var taskCmd = new TaskCommand<int>(task);
-					taskCmd.AsyncExecute(new DoNothingListener(4));
-					cmd.Abort();
-					taskCmd.Wait();
-				}
-			}
-		}
-
-		[TestMethod]
 		public void TaskCommand_TestError()
 		{
 			using (var cmd = new DoNothingCommand(true))
