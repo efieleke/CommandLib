@@ -179,11 +179,106 @@ namespace CommandLib
             return null;
         }
 
-#region ICommandInfo
-        /// <summary>
-        /// Returns the unique identifier for this command.
-        /// </summary>
-        public long Id
+		/// <summary>
+		/// Returns a task that, when run, will execute the command passed as an argument.
+		/// </summary>
+		/// <typeparam name="TResult">
+		/// The type the command returns from SynExecute. If you don't care about the return value, it is safe to
+		/// specify Object as the type.
+		/// </typeparam>
+		/// <param name="command">
+		/// The command to execute when the returned task is run. Note that this command must not be disposed before
+		/// the task is disposed. Also, note that behavior is undefined if this command is executing at the time
+		/// the task is run.
+		/// </param>
+		/// <returns>
+		/// Concrete commands may return a value of interest. See the concrete command class for details.
+		/// </returns>
+		/// <exception cref="CommandLib.CommandAbortedException">Thrown when command execution is aborted.</exception>
+		/// <exception cref="System.ObjectDisposedException">Thrown if called after the command object has been disposed</exception>
+		/// <exception cref="System.Exception">
+		/// Thrown if execution does not complete successfully. Call <see cref="GetAttachedErrorInfo"/> to retrieve context information
+		/// about the command that was running at the time the exception was thrown.
+		/// </exception>
+		public static Task<TResult> CreateTask<TResult>(Command command)
+		{
+			return CreateTask<TResult>(command, null);
+		}
+
+		/// <summary>
+		/// Returns a task that, when run, will execute the command passed as an argument.
+		/// </summary>
+		/// <typeparam name="TResult">
+		/// The type the command returns from SynExecute. If you don't care about the return value, it is safe to
+		/// specify Object as the type.
+		/// </typeparam>
+		/// <param name="command">
+		/// The command to execute when the returned task is run. Note that this command must not be disposed before
+		/// the task is disposed. Also, note that behavior is undefined if this command is executing at the time
+		/// the task is run.
+		/// </param>
+		/// <param name="runtimeArg">
+		/// Some commands may expect some sort of argument at the time of execution, and some commands do not.
+		/// See the concrete command class of interest for details.
+		/// </param>
+		/// <returns>
+		/// Concrete commands may return a value of interest. See the concrete command class for details.
+		/// </returns>
+		/// <exception cref="CommandLib.CommandAbortedException">Thrown when command execution is aborted.</exception>
+		/// <exception cref="System.ObjectDisposedException">Thrown if called after the command object has been disposed</exception>
+		/// <exception cref="System.Exception">
+		/// Thrown if execution does not complete successfully. Call <see cref="GetAttachedErrorInfo"/> to retrieve context information
+		/// about the command that was running at the time the exception was thrown.
+		/// </exception>
+		public static Task<TResult> CreateTask<TResult>(Command command, object runtimeArg)
+		{
+			return CreateTask<TResult>(command, runtimeArg, null);
+		}
+
+		/// <summary>
+		/// Returns a task that, when run, will execute the command passed as an argument.
+		/// </summary>
+		/// <typeparam name="TResult">
+		/// The type the command returns from SynExecute. If you don't care about the return value, it is safe to
+		/// specify Object as the type.
+		/// </typeparam>
+		/// <param name="command">
+		/// The command to execute when the returned task is run. Note that this command must not be disposed before
+		/// the task is disposed. Also, note that behavior is undefined if this command is executing at the time
+		/// the task is run.
+		/// </param>
+		/// <param name="runtimeArg">
+		/// Some commands may expect some sort of argument at the time of execution, and some commands do not.
+		/// See the concrete command class of interest for details.
+		/// </param>
+		/// <param name="owner">
+		/// If you want the command to pay attention to abort requests of a different command, set this value to that command.
+		/// Note that if the Command is already assigned an owner, passing a non-null value will raise an exception. Also note
+		/// that the owner assignment is only in effect during the scope of this call. Upon return, this command will not
+		/// have an owner, and it is the caller's responsibility to properly dispose it.
+		/// </param>
+		/// <returns>
+		/// Concrete commands may return a value of interest. See the concrete command class for details.
+		/// </returns>
+		/// <exception cref="CommandLib.CommandAbortedException">Thrown when command execution is aborted.</exception>
+		/// <exception cref="System.ObjectDisposedException">Thrown if called after the command object has been disposed</exception>
+		/// <exception cref="System.Exception">
+		/// Thrown if execution does not complete successfully. Call <see cref="GetAttachedErrorInfo"/> to retrieve context information
+		/// about the command that was running at the time the exception was thrown.
+		/// </exception>
+		public static Task<TResult> CreateTask<TResult>(Command command, object runtimeArg, Command owner)
+		{
+			return new Task<TResult>(() =>
+			{
+				return command.SyncExecute<TResult>(runtimeArg, owner);
+			});
+		}
+
+		#region ICommandInfo
+		/// <summary>
+		/// Returns the unique identifier for this command.
+		/// </summary>
+		public long Id
         {
             get { return id; }
         }

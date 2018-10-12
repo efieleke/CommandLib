@@ -71,7 +71,9 @@
     <Compile Include="PeriodicCommand.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="SyncCommand.cs" />
+    <Compile Include="TaskCommand.cs" />
     <Compile Include="TimeLimitedCommand.cs" />
+    <Compile Include="VoidTaskCommand.cs" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 

@@ -57,7 +57,7 @@ namespace CommandLib
         protected sealed override void AsyncExecuteImpl(ICommandListener listener, Object runtimeArg)
         {
             PrepareExecute(runtimeArg);
-            thread = new System.Threading.Thread(ExecuteRoutine);
+            System.Threading.Thread thread = new System.Threading.Thread(ExecuteRoutine);
             thread.Name = Description + ": SyncCommand.ExecuteRoutine";
             thread.Start(new ThreadArg(listener, runtimeArg));
         }
@@ -108,7 +108,5 @@ namespace CommandLib
             internal ICommandListener Listener { get; set; }
             internal Object RuntimeArg { get; set; }
         }
-
-        private System.Threading.Thread thread = null;
     }
 }
