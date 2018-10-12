@@ -41,7 +41,7 @@ namespace CommandLib
             /// Throw an exception from this method if the response is deemed to be a failure that should cause the command to fail.
             /// </summary>
             /// <param name="response">The response to evalulate. Note that implementors must *not* dispose this parameter.</param>
-            void CheckResponse(System.Net.Http.HttpResponseMessage response);
+            Task CheckResponse(System.Net.Http.HttpResponseMessage response);
         }
 
         /// <summary>
@@ -123,7 +123,7 @@ namespace CommandLib
             /// Throws an HttpRequestException if the status code represents an error
             /// </summary>
             /// <param name="response">The response that is evaluated</param>
-            public void CheckResponse(System.Net.Http.HttpResponseMessage response)
+            public async Task CheckResponse(System.Net.Http.HttpResponseMessage response)
             {
                 if (!response.IsSuccessStatusCode)
                 {
@@ -133,7 +133,7 @@ namespace CommandLib
                     {
                         try
                         {
-                            reason.ResponseBody = HttpRequestCommand.ContentAsString(response.Content);
+                            reason.ResponseBody = await HttpRequestCommand.ContentAsString(response.Content);
                         }
                         catch(Exception)
                         {
@@ -154,12 +154,11 @@ namespace CommandLib
         /// </summary>
         /// <param name="content">The content to covert</param>
         /// <returns>The content as a string</returns>
-        public static String ContentAsString(System.Net.Http.HttpContent content)
+        public static async Task<String> ContentAsString(System.Net.Http.HttpContent content)
         {
             using (System.Threading.Tasks.Task<String> task = content.ReadAsStringAsync())
             {
-                task.Wait();
-                return task.Result;
+                return await task;
             }
         }
 
@@ -170,13 +169,13 @@ namespace CommandLib
         /// </summary>
         /// <param name="content"></param>
         /// <param name="fileName"></param>
-        public static void WriteContentToFile(System.Net.Http.HttpContent content, String fileName)
+        public static async Task WriteContentToFile(System.Net.Http.HttpContent content, String fileName)
         {
             using (var fileStream = System.IO.File.Create(fileName))
             {
                 using (System.Threading.Tasks.Task task = content.CopyToAsync(fileStream))
                 {
-                    task.Wait();
+					await task;
                 }
             }
         }
@@ -318,7 +317,7 @@ namespace CommandLib
 					{
 						try
 						{
-							responseChecker.CheckResponse(message);
+							await responseChecker.CheckResponse(message);
 						}
 						catch (Exception)
 						{

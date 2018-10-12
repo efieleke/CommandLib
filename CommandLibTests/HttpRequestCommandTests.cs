@@ -43,7 +43,7 @@ namespace CommandLibTests
         {
             using (System.Net.Http.HttpResponseMessage response = (System.Net.Http.HttpResponseMessage)actual)
             {
-                return CommandLib.HttpRequestCommand.ContentAsString(response.Content).Contains(expected.ToString()) ? 0 : 1;
+                return CommandLib.HttpRequestCommand.ContentAsString(response.Content).Result.Contains(expected.ToString()) ? 0 : 1;
             }
         }
 
@@ -53,7 +53,7 @@ namespace CommandLibTests
             {
                 String outputFileName = System.IO.Path.GetTempFileName();
                 System.IO.File.Delete(outputFileName);
-                CommandLib.HttpRequestCommand.WriteContentToFile(response.Content, outputFileName);
+                CommandLib.HttpRequestCommand.WriteContentToFile(response.Content, outputFileName).Wait();
                 System.IO.File.Delete(outputFileName);
                 return 0;
             }
