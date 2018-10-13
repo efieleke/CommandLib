@@ -8,16 +8,13 @@
     <PackageId>Sophos.Commands</PackageId>
     <Version>1.0.0</Version>
     <Authors>Eric Fieleke</Authors>
-    <Title>Commands Library</Title>
+    <Title>Commands Library, for coordination of synchronous and asynchronous actions</Title>
     <AssemblyName>Sophos.Commands</AssemblyName>
     <RootNamespace>Sophos.Commands</RootNamespace>
     <Description>
-      Commands
-      =========
+      Commands simplifies coordination of asynchronous and synchronous activities. The source is at https://github.com/efieleke/CommandLib.git. Versions for C++ and Java exist at https://github.com/efieleke/CommandLibForCPP.git and https://github.com/efieleke/CommandLibForJava.git. The library is built upon class Command, which represents an action. A Command may be run synchronously or asynchronously, and may be aborted.
 
-      Commands is a .NET library that simplifies coordination of asynchronous and synchronous activities. The source is at https://github.com/efieleke/CommandLib.git. Versions for C++ and Java exist at https://github.com/efieleke/CommandLibForCPP.git and https://github.com/efieleke/CommandLibForJava.git. The library is built upon class Command, which represents an action. A Command may be run synchronously or asynchronously, and may be aborted.
-
-      ParallelCommands, itself a Command, executes a collection of commands concurrently (in parallel), and SequentialCommands executes its commands in sequence. Using these classes, it's possible to create a deep nesting of coordinated actions. For example, SequentialCommands can hold instances of ParallelCommands, SequentialCommands, and any other Command-derived object.
+      ParallelCommands, itself a Command, executes a collection of commands concurrently (in parallel), and SequentialCommands executes its commands in sequence. Using these classes, it's possible to create a deep nesting of coordinated actions. For example, SequentialCommands can hold instances of ParallelCommands, which in turn could hold SequentialCommands, and any other Command-derived object.
 
       Using TaskCommand, a Task can be run in the context of a Command. And using Command.AsTask(), a Command can be converted to a Task.
 
@@ -26,14 +23,6 @@
       RetryableCommand offers the option to keep retrying a failed command until the caller decides enough is enough, and TimeLimitedCommand fails with a timeout exception if a given duration elapses before the command finishes execution.
 
       All of the above Command classes are simply containers for other Command objects that presumably do something of interest. Commands includes a few Command classes that might be commonly useful, including PauseCommand and HttpRequestCommand, but it is expected that users of this library will create their own Command-derived classes.
-
-      Diagnostics
-      ----
-      The Command class allows registration of ICommandMonitor objects. CommandTracer will write diagnostic output to the debug stream, and CommandLogger will write diagnostic output to file.
-
-      Author
-      ----
-      Eric Fieleke
     </Description>
     <Copyright>
       The MIT License (MIT)
@@ -46,7 +35,7 @@
 
       THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
     </Copyright>
-    <PackageTags>Commands;command;Task;asynchronous;synchronous;concurrent;abort;action;coordinate</PackageTags>
+    <PackageTags>Commands;command;task;asynchronous;synchronous;concurrent;abort;action;coordinate</PackageTags>
     <RepositoryUrl>https://github.com/efieleke/CommandLib.git</RepositoryUrl>
     <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
   </PropertyGroup>

@@ -16,7 +16,7 @@ namespace Sophos.Commands
 	/// </para>
 	/// <para>
 	/// Using <see cref="TaskCommand{TResult}"/>, you can run asynchronous Tasks in the context of a <see cref="Command"/>. And using
-	/// <see cref="Command.CreateTask{TResult}(Command, object, Command)"/>, you can convert a <see cref="Command"/> to a Task.
+	/// <see cref="Command.AsTask{TResult}(Command, object, Command)"/>, you can convert a <see cref="Command"/> to a Task.
 	/// </para>
 	/// <para>
 	/// <see cref="PeriodicCommand"/> repeats its action at a given interval, <see cref="ScheduledCommand"/> runs once at a specific
@@ -202,9 +202,9 @@ namespace Sophos.Commands
 		/// Thrown if execution does not complete successfully. Call <see cref="GetAttachedErrorInfo"/> to retrieve context information
 		/// about the command that was running at the time the exception was thrown.
 		/// </exception>
-		public static Task<TResult> CreateTask<TResult>(Command command)
+		public static Task<TResult> AsTask<TResult>(Command command)
 		{
-			return CreateTask<TResult>(command, null);
+			return AsTask<TResult>(command, null);
 		}
 
 		/// <summary>
@@ -232,9 +232,9 @@ namespace Sophos.Commands
 		/// Thrown if execution does not complete successfully. Call <see cref="GetAttachedErrorInfo"/> to retrieve context information
 		/// about the command that was running at the time the exception was thrown.
 		/// </exception>
-		public static Task<TResult> CreateTask<TResult>(Command command, object runtimeArg)
+		public static Task<TResult> AsTask<TResult>(Command command, object runtimeArg)
 		{
-			return CreateTask<TResult>(command, runtimeArg, null);
+			return AsTask<TResult>(command, runtimeArg, null);
 		}
 
 		/// <summary>
@@ -268,7 +268,7 @@ namespace Sophos.Commands
 		/// Thrown if execution does not complete successfully. Call <see cref="GetAttachedErrorInfo"/> to retrieve context information
 		/// about the command that was running at the time the exception was thrown.
 		/// </exception>
-		public static Task<TResult> CreateTask<TResult>(Command command, object runtimeArg, Command owner)
+		public static Task<TResult> AsTask<TResult>(Command command, object runtimeArg, Command owner)
 		{
 			return new Task<TResult>(() =>
 			{

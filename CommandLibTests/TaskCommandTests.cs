@@ -13,13 +13,13 @@ namespace CommandLibTests
 		{
 			using (var cmd = new DoNothingCommand())
 			{
-				using (Task<int> task = Command.CreateTask<int>(cmd, 7))
+				using (Task<int> task = Command.AsTask<int>(cmd, 7))
 				{
 					task.Start();
 					Assert.AreEqual(7, task.Result);
 				}
 
-				using (Task<int> task = Command.CreateTask<int>(cmd, 5))
+				using (Task<int> task = Command.AsTask<int>(cmd, 5))
 				{
 					task.Start();
 					Assert.AreEqual(5, task.Result);
