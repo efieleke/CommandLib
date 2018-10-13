@@ -15,8 +15,8 @@ namespace Sophos.Commands
 	/// because they are <see cref="Command"/> objects), so it's possible to create a deep nesting of coordinated activities.
 	/// </para>
 	/// <para>
-	/// Using <see cref="TaskCommand{TResult}"/>, you can run asynchronous Tasks in the context of a <see cref="Command"/>. And using
-	/// <see cref="Command.AsTask{TResult}(Command, object, Command)"/>, you can convert a <see cref="Command"/> to a Task.
+	/// <see cref="TaskCommand{TResult}"/>, <see cref="DelegateCommand{TResult}"/> and <see cref="Command.AsTask{TResult}(Command, object, Command)"/>,
+	/// offer easy integration with Tasks and delegates.
 	/// </para>
 	/// <para>
 	/// <see cref="PeriodicCommand"/> repeats its action at a given interval, <see cref="ScheduledCommand"/> runs once at a specific
@@ -711,8 +711,9 @@ namespace Sophos.Commands
 
         /// <summary>
         /// Signaled when this command is to be aborted. Note that this event is only reset when the command next begins execution.
+		/// Callers must not alter the state of this handle, which is why this is internal and not public.
         /// </summary>
-        public System.Threading.WaitHandle AbortEvent
+        internal System.Threading.WaitHandle AbortEvent
         {
             get
             {
@@ -720,6 +721,15 @@ namespace Sophos.Commands
                 return abortEvent;
             }
         }
+
+		/// <summary>
+		/// Returns whether an abort request has been made
+		/// </summary>
+		/// <returns>true, if an abort request has been made.</returns>
+		protected bool AbortRequested()
+		{
+			return AbortEvent.WaitOne(0);
+		}
 
         /// <summary>
         /// Signaled when this command has finished execution, regardless of whether it succeeded, failed or was aborted.

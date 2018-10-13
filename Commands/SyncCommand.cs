@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Threading.Tasks;
 
 namespace Sophos.Commands
 {
@@ -46,17 +47,15 @@ namespace Sophos.Commands
         /// <returns>The implementation of the command defines what this value will be.</returns>
         protected abstract Object SyncExeImpl(Object runtimeArg);
 
-        /// <summary>
-        /// Do not call this method from a derived class. It is called by the framework.
-        /// </summary>
-        /// <param name="listener">Not applicable</param>
-        /// <param name="runtimeArg">Not applicable</param>
-        protected sealed override void AsyncExecuteImpl(ICommandListener listener, Object runtimeArg)
-        {
-            PrepareExecute(runtimeArg);
-            System.Threading.Thread thread = new System.Threading.Thread(ExecuteRoutine);
-            thread.Name = Description + ": SyncCommand.ExecuteRoutine";
-            thread.Start(new ThreadArg(listener, runtimeArg));
+		/// <summary>
+		/// Do not call this method from a derived class. It is called by the framework.
+		/// </summary>
+		/// <param name="listener">Not applicable</param>
+		/// <param name="runtimeArg">Not applicable</param>
+		protected sealed override void AsyncExecuteImpl(ICommandListener listener, Object runtimeArg)
+		{
+			asyncWrapperCmd = new DelegateCommand<object>(SyncExecuteImpl, this);
+			asyncWrapperCmd.AsyncExecute(listener, runtimeArg);
         }
 
         /// <summary>
@@ -70,40 +69,6 @@ namespace Sophos.Commands
             return SyncExeImpl(runtimeArg);
         }
 
-        private void ExecuteRoutine(Object arg)
-        {
-            ThreadArg threadArg = (ThreadArg)arg;
-            Object result = null;
-
-            try
-            {
-                CheckAbortFlag(); // not strictly necessary, but can result in a more timely abort
-                result = SyncExecuteImpl(threadArg.RuntimeArg);
-            }
-            catch (CommandAbortedException)
-            {
-                threadArg.Listener.CommandAborted();
-                return;
-            }
-            catch (Exception exc)
-            {
-                threadArg.Listener.CommandFailed(exc);
-                return;
-            }
-
-            threadArg.Listener.CommandSucceeded(result);
-        }
-
-        private class ThreadArg
-        {
-            internal ThreadArg(ICommandListener listener, Object runtimeArg)
-            {
-                Listener = listener;
-                RuntimeArg = runtimeArg;
-            }
-
-            internal ICommandListener Listener { get; set; }
-            internal Object RuntimeArg { get; set; }
-        }
-    }
+		private DelegateCommand<object> asyncWrapperCmd;
+	}
 }

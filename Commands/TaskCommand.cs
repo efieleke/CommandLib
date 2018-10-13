@@ -5,7 +5,7 @@ using System.Threading.Tasks;
 namespace Sophos.Commands
 {
 	/// <summary>
-	/// This Command encapsulates a Task. This command ignores abort requests. Concrete classes must implement the abstract method
+	/// This Command encapsulates a Task. Concrete classes must implement the abstract method
 	/// that creates the Task.
 	/// </summary>
 	/// <remarks>
@@ -145,7 +145,9 @@ namespace Sophos.Commands
 		}
 
 		/// <summary>
-		/// Concrete classes must implement this by returning a Task.
+		/// Concrete classes must implement this by returning a Task. If the delegate method takes significant
+		/// time, it is advisable to have it be responsive to abort requests by checking
+		/// <see cref="Command.AbortRequested"/> or calling <see cref="Command.CheckAbortFlag"/>.
 		/// </summary>
 		/// <param name="runtimeArg">
 		/// Concrete implementations decide what to do with this. This value is passed on from the runtimeArg
