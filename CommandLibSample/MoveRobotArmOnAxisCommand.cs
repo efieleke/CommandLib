@@ -1,14 +1,11 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+using Sophos.Commands;
 
 namespace CommandLibSample
 {
-    class MoveRobotArmOnAxisCommand : CommandLib.AsyncCommand
+    class MoveRobotArmOnAxisCommand : AsyncCommand
     {
-        internal MoveRobotArmOnAxisCommand(RobotArm robotArm, int destination, RobotArm.Axis axis, CommandLib.Command owner)
+        internal MoveRobotArmOnAxisCommand(RobotArm robotArm, int destination, RobotArm.Axis axis, Command owner)
             : base(owner)
         {
             this.robotArm = robotArm;
@@ -33,7 +30,7 @@ namespace CommandLibSample
             base.Dispose(disposing);
         }
 
-        protected override void AsyncExecuteImpl(CommandLib.ICommandListener listener, object runtimeArg)
+        protected override void AsyncExecuteImpl(ICommandListener listener, object runtimeArg)
         {
             this.listener = listener;
             RobotArm.IAbortableAsyncResult result = robotArm.Move(axis, destination, this);
@@ -83,7 +80,7 @@ namespace CommandLibSample
         private readonly int destination;
         private readonly RobotArm.Axis axis;
         private RobotArm.IAbortableAsyncResult asyncResult;
-        private CommandLib.ICommandListener listener;
+        private ICommandListener listener;
         private Object criticalSection = new Object();
     }
 }

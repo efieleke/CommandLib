@@ -1,9 +1,10 @@
 ﻿using System;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
+using Sophos.Commands;
 
 namespace CommandLibTests
 {
-    internal class BadAsyncCommand : CommandLib.AsyncCommand
+    internal class BadAsyncCommand : AsyncCommand
     {
         internal enum FinishType { Succeed, Fail, Abort }
 
@@ -12,7 +13,7 @@ namespace CommandLibTests
             this.finishType = finishType;
         }
 
-        protected override void AsyncExecuteImpl(CommandLib.ICommandListener listener, object runtimeArg)
+        protected override void AsyncExecuteImpl(ICommandListener listener, object runtimeArg)
         {
             switch(finishType)
             {
@@ -31,14 +32,14 @@ namespace CommandLibTests
         private FinishType finishType;
     }
 
-    internal class DoublyDoneAsyncCommand : CommandLib.AsyncCommand
+    internal class DoublyDoneAsyncCommand : AsyncCommand
     {
         internal DoublyDoneAsyncCommand()
             : base(null)
         {
         }
 
-        protected override void AsyncExecuteImpl(CommandLib.ICommandListener listener, object runtimeArg)
+        protected override void AsyncExecuteImpl(ICommandListener listener, object runtimeArg)
         {
             System.Threading.Thread thread = new System.Threading.Thread(() =>
             {

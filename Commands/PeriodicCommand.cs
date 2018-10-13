@@ -1,9 +1,6 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
 
-namespace CommandLib
+namespace Sophos.Commands
 {
     /// <summary>Represents a <see cref="Command"/> that repeats periodically at a specified interval</summary>
     /// <remarks>

@@ -1,5 +1,6 @@
 ﻿using System;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
+using Sophos.Commands;
 
 namespace CommandLibTests
 {
@@ -9,31 +10,31 @@ namespace CommandLibTests
         [TestMethod]
         public void PeriodicCommand_TestAbort()
         {
-            using (CommandLib.PeriodicCommand periodicCmd = new CommandLib.PeriodicCommand(
-                new CommandLib.PauseCommand(TimeSpan.FromMilliseconds(10)),
+            using (PeriodicCommand periodicCmd = new PeriodicCommand(
+                new PauseCommand(TimeSpan.FromMilliseconds(10)),
                 int.MaxValue,
                 TimeSpan.FromDays(1),
-                CommandLib.PeriodicCommand.IntervalType.PauseAfter,
+                PeriodicCommand.IntervalType.PauseAfter,
                 false))
             {
                 AbortTest.Run(periodicCmd, null, 20);
             }
 
-            using (CommandLib.PeriodicCommand periodicCmd = new CommandLib.PeriodicCommand(
-                new CommandLib.PauseCommand(TimeSpan.FromMilliseconds(10)),
+            using (PeriodicCommand periodicCmd = new PeriodicCommand(
+                new PauseCommand(TimeSpan.FromMilliseconds(10)),
                 int.MaxValue,
                 TimeSpan.FromDays(1),
-                CommandLib.PeriodicCommand.IntervalType.PauseBefore,
+                PeriodicCommand.IntervalType.PauseBefore,
                 false))
             {
                 AbortTest.Run(periodicCmd, null, 20);
             }
 
-            using (CommandLib.PeriodicCommand periodicCmd = new CommandLib.PeriodicCommand(
-                new CommandLib.PauseCommand(TimeSpan.FromMilliseconds(10)),
+            using (PeriodicCommand periodicCmd = new PeriodicCommand(
+				new PauseCommand(TimeSpan.FromMilliseconds(10)),
                 int.MaxValue,
                 TimeSpan.FromDays(1),
-                CommandLib.PeriodicCommand.IntervalType.PauseAfter,
+                PeriodicCommand.IntervalType.PauseAfter,
                 true))
             {
                 AbortTest.Run(periodicCmd, null, 20);
@@ -43,41 +44,41 @@ namespace CommandLibTests
         [TestMethod]
         public void PeriodicCommand_TestHappyPath()
         {
-            using (CommandLib.PeriodicCommand periodicCmd = new CommandLib.PeriodicCommand(
+            using (PeriodicCommand periodicCmd = new PeriodicCommand(
                 new AddCommand(1),
                 5,
                 TimeSpan.FromMilliseconds(1),
-                CommandLib.PeriodicCommand.IntervalType.PauseAfter,
+                PeriodicCommand.IntervalType.PauseAfter,
                 false))
             {
                 HappyPathTest.Run(periodicCmd, 0, null);
             }
 
-            using (CommandLib.PeriodicCommand periodicCmd = new CommandLib.PeriodicCommand(
+            using (PeriodicCommand periodicCmd = new PeriodicCommand(
                 new AddCommand(2),
                 5,
                 TimeSpan.FromMilliseconds(1),
-                CommandLib.PeriodicCommand.IntervalType.PauseBefore,
+                PeriodicCommand.IntervalType.PauseBefore,
                 false))
             {
                 HappyPathTest.Run(periodicCmd, 0, null);
             }
 
-            using (CommandLib.PeriodicCommand periodicCmd = new CommandLib.PeriodicCommand(
+            using (PeriodicCommand periodicCmd = new PeriodicCommand(
                 new AddCommand(2),
                 5,
                 TimeSpan.FromMilliseconds(10),
-                CommandLib.PeriodicCommand.IntervalType.PauseAfter,
+                PeriodicCommand.IntervalType.PauseAfter,
                 true))
             {
                 HappyPathTest.Run(periodicCmd, 0, null);
             }
 
-            using (CommandLib.PeriodicCommand periodicCmd = new CommandLib.PeriodicCommand(
+            using (PeriodicCommand periodicCmd = new PeriodicCommand(
                 new AddCommand(1),
                 0,
                 TimeSpan.FromDays(1),
-                CommandLib.PeriodicCommand.IntervalType.PauseBefore,
+                PeriodicCommand.IntervalType.PauseBefore,
                 true))
             {
                 HappyPathTest.Run(periodicCmd, 0, null);
@@ -85,11 +86,11 @@ namespace CommandLibTests
 
             try
             {
-                using (CommandLib.PeriodicCommand periodicCmd = new CommandLib.PeriodicCommand(
+                using (PeriodicCommand periodicCmd = new PeriodicCommand(
                     new AddCommand(1),
                     0,
                     TimeSpan.FromDays(1),
-                    (CommandLib.PeriodicCommand.IntervalType)27,
+                    (PeriodicCommand.IntervalType)27,
                     true))
                 {
                     Assert.Fail("Invalid interval type was allowed");
@@ -103,31 +104,31 @@ namespace CommandLibTests
         [TestMethod]
         public void PeriodicCommand_TestFail()
         {
-            using (CommandLib.PeriodicCommand periodicCmd = new CommandLib.PeriodicCommand(
+            using (PeriodicCommand periodicCmd = new PeriodicCommand(
                 new FailingCommand(),
                 5,
                 TimeSpan.FromMilliseconds(1),
-                CommandLib.PeriodicCommand.IntervalType.PauseAfter,
+                PeriodicCommand.IntervalType.PauseAfter,
                 false))
             {
                 FailTest.Run<FailingCommand.FailException>(periodicCmd, null);
             }
 
-            using (CommandLib.PeriodicCommand periodicCmd = new CommandLib.PeriodicCommand(
+            using (PeriodicCommand periodicCmd = new PeriodicCommand(
                 new FailingCommand(),
                 5,
                 TimeSpan.FromMilliseconds(1),
-                CommandLib.PeriodicCommand.IntervalType.PauseBefore,
+                PeriodicCommand.IntervalType.PauseBefore,
                 false))
             {
                 FailTest.Run<FailingCommand.FailException>(periodicCmd, null);
             }
 
-            using (CommandLib.PeriodicCommand periodicCmd = new CommandLib.PeriodicCommand(
+            using (PeriodicCommand periodicCmd = new PeriodicCommand(
                 new FailingCommand(),
                 5,
                 TimeSpan.FromMilliseconds(1),
-                CommandLib.PeriodicCommand.IntervalType.PauseAfter,
+                PeriodicCommand.IntervalType.PauseAfter,
                 true))
             {
                 FailTest.Run<FailingCommand.FailException>(periodicCmd, null);
@@ -137,11 +138,11 @@ namespace CommandLibTests
         [TestMethod]
         public void PeriodicCommand_TestSkipCurrentWait()
         {
-            using (CommandLib.PeriodicCommand periodicCmd = new CommandLib.PeriodicCommand(
+            using (PeriodicCommand periodicCmd = new PeriodicCommand(
                 new AddCommand(1),
                 3,
                 TimeSpan.FromDays(1),
-                CommandLib.PeriodicCommand.IntervalType.PauseAfter,
+                PeriodicCommand.IntervalType.PauseAfter,
                 false))
             {
                 CmdListener listener = new CmdListener(CmdListener.CallbackType.Succeeded, null);
@@ -178,11 +179,11 @@ namespace CommandLibTests
         [TestMethod]
         public void PeriodicCommand_TestReset()
         {
-            using (CommandLib.PeriodicCommand periodicCmd = new CommandLib.PeriodicCommand(
+            using (PeriodicCommand periodicCmd = new PeriodicCommand(
                 new AddCommand(1),
                 2,
                 TimeSpan.FromDays(1),
-                CommandLib.PeriodicCommand.IntervalType.PauseBefore,
+                PeriodicCommand.IntervalType.PauseBefore,
                 true))
             {
                 Assert.AreEqual(TimeSpan.FromDays(1), periodicCmd.Interval);
@@ -207,11 +208,11 @@ namespace CommandLibTests
                 listener.Check();
             }
 
-            using (CommandLib.PeriodicCommand periodicCmd = new CommandLib.PeriodicCommand(
+            using (PeriodicCommand periodicCmd = new PeriodicCommand(
                 new AddCommand(1),
                 1,
                 TimeSpan.FromDays(1),
-                CommandLib.PeriodicCommand.IntervalType.PauseBefore,
+                PeriodicCommand.IntervalType.PauseBefore,
                 true))
             {
                 CmdListener listener = new CmdListener(CmdListener.CallbackType.Succeeded, null);
@@ -227,11 +228,11 @@ namespace CommandLibTests
         [TestMethod]
         public void PeriodicCommand_TestStop()
         {
-            using (CommandLib.PeriodicCommand periodicCmd = new CommandLib.PeriodicCommand(
+            using (PeriodicCommand periodicCmd = new PeriodicCommand(
                 new AddCommand(1),
                 2,
                 TimeSpan.FromDays(1),
-                CommandLib.PeriodicCommand.IntervalType.PauseBefore,
+                PeriodicCommand.IntervalType.PauseBefore,
                 true))
             {
                 periodicCmd.Stop();
@@ -262,11 +263,11 @@ namespace CommandLibTests
 
             using (System.Threading.ManualResetEvent stopEvent = new System.Threading.ManualResetEvent(false))
             {
-                using (CommandLib.PeriodicCommand periodicCmd = new CommandLib.PeriodicCommand(
+                using (PeriodicCommand periodicCmd = new PeriodicCommand(
                     new AddCommand(1),
                     2,
                     TimeSpan.FromDays(1),
-                    CommandLib.PeriodicCommand.IntervalType.PauseBefore,
+                    PeriodicCommand.IntervalType.PauseBefore,
                     true,
                     stopEvent))
                 {

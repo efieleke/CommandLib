@@ -1,9 +1,6 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
 
-namespace CommandLib
+namespace Sophos.Commands
 {
     /// <summary>
     /// A <see cref="Command"/> wrapper that, in addition to responding to normal <see cref="Command.Abort"/> requests, also aborts in response to either

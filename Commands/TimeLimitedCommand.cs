@@ -1,9 +1,6 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
 
-namespace CommandLib
+namespace Sophos.Commands
 {
     /// <summary>
     /// This <see cref="Command"/> wraps another <see cref="Command"/>, throwing a <see cref="TimeoutException"/> if a

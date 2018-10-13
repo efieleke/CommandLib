@@ -1,11 +1,9 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
+using Sophos.Commands;
 
 namespace CommandLibSample
 {
-    class GetToyCommand : CommandLib.SyncCommand
+    class GetToyCommand : SyncCommand
     {
         internal GetToyCommand(RobotArm robotArm) : base(null)
         {

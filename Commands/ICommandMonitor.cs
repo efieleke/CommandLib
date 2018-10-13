@@ -1,9 +1,6 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
 
-namespace CommandLib
+namespace Sophos.Commands
 {
     /// <summary>
     /// This is a callback interface for <see cref="Command"/> starting and finishing events. Its intended use is for logging and diagnostics.

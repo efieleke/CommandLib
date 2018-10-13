@@ -1,6 +1,6 @@
 ﻿using System;
 using System.Threading.Tasks;
-using CommandLib;
+using Sophos.Commands;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 
 namespace CommandLibTests

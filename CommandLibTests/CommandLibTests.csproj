@@ -8,7 +8,7 @@
     <AppDesignerFolder>Properties</AppDesignerFolder>
     <RootNamespace>CommandLibTests</RootNamespace>
     <AssemblyName>CommandLibTests</AssemblyName>
-    <TargetFrameworkVersion>v4.5</TargetFrameworkVersion>
+    <TargetFrameworkVersion>v4.6.1</TargetFrameworkVersion>
     <FileAlignment>512</FileAlignment>
     <ProjectTypeGuids>{3AC096D0-A1C2-E12C-1390-A8335801FDAB};{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}</ProjectTypeGuids>
     <VisualStudioVersion Condition="'$(VisualStudioVersion)' == ''">10.0</VisualStudioVersion>
@@ -84,9 +84,9 @@
     <Compile Include="CommandDispatcherTests.cs" />
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="..\CommandLib\CommandLib.csproj">
-      <Project>{5cb882c2-3c24-449a-bed5-376c3fe1034f}</Project>
-      <Name>CommandLib</Name>
+    <ProjectReference Include="..\Commands\Commands.csproj">
+      <Project>{59b54591-ab1f-43ce-b0a4-85f5ccd58abf}</Project>
+      <Name>Commands</Name>
     </ProjectReference>
   </ItemGroup>
   <Choose>

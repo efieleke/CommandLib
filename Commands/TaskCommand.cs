@@ -2,7 +2,7 @@
 using System.Threading;
 using System.Threading.Tasks;
 
-namespace CommandLib
+namespace Sophos.Commands
 {
 	/// <summary>
 	/// This Command encapsulates a Task. This command ignores abort requests. Concrete classes must implement the abstract method

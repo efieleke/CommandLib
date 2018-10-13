@@ -1,9 +1,6 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
 
-namespace CommandLib
+namespace Sophos.Commands
 {
     /// <summary>
     /// An object implementing this interface is required as a parameter to <see cref="Command.AsyncExecute(ICommandListener)"/>.

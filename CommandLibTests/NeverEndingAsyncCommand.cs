@@ -1,21 +1,18 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
+﻿using Sophos.Commands;
 
 namespace CommandLibTests
 {
-    internal class NeverEndingAsyncCommand : CommandLib.AsyncCommand
+    internal class NeverEndingAsyncCommand : AsyncCommand
     {
         internal NeverEndingAsyncCommand() : base(null)
         {
         }
 
-        internal NeverEndingAsyncCommand(CommandLib.Command owner) : base (owner)
+        internal NeverEndingAsyncCommand(Command owner) : base (owner)
         {
         }
 
-        protected sealed override void AsyncExecuteImpl(CommandLib.ICommandListener listener, object runtimeArg)
+        protected sealed override void AsyncExecuteImpl(ICommandListener listener, object runtimeArg)
         {
             new System.Threading.Thread(() =>
             {

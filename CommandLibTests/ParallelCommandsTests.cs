@@ -1,5 +1,6 @@
 ﻿using System;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
+using Sophos.Commands;
 
 namespace CommandLibTests
 {
@@ -15,11 +16,11 @@ namespace CommandLibTests
 
         private void TestHappyPath(bool abortUponFailure)
         {
-            CommandLib.ParallelCommands parallelCmds = new CommandLib.ParallelCommands(abortUponFailure);
+            ParallelCommands parallelCmds = new ParallelCommands(abortUponFailure);
             Assert.IsFalse(parallelCmds.Commands.GetEnumerator().MoveNext());
             HappyPathTest.Run(parallelCmds, null, null);
             parallelCmds.Dispose();
-            parallelCmds = new CommandLib.ParallelCommands(abortUponFailure);
+            parallelCmds = new ParallelCommands(abortUponFailure);
             const int count = 10;
 
             for (int i = 0; i < count; ++i)
@@ -29,7 +30,7 @@ namespace CommandLibTests
 
             int addedCount = 0;
 
-            foreach(CommandLib.Command cmd in parallelCmds.Commands)
+            foreach(Command cmd in parallelCmds.Commands)
             {
                 Assert.IsTrue(cmd is AddCommand);
                 ++addedCount;
@@ -51,21 +52,21 @@ namespace CommandLibTests
 
         private void TestAbort(bool abortUponFailure)
         {
-            using (CommandLib.ParallelCommands parallelCmds = new CommandLib.ParallelCommands(abortUponFailure))
+            using (ParallelCommands parallelCmds = new ParallelCommands(abortUponFailure))
             {
-                parallelCmds.Add(new CommandLib.PauseCommand(TimeSpan.FromMilliseconds(10)));
+                parallelCmds.Add(new PauseCommand(TimeSpan.FromMilliseconds(10)));
                 parallelCmds.Add(new NeverEndingAsyncCommand());
                 AbortTest.Run(parallelCmds, null, 5);
             }
 
-            using (CommandLib.ParallelCommands parallelCmds = new CommandLib.ParallelCommands(abortUponFailure))
+            using (ParallelCommands parallelCmds = new ParallelCommands(abortUponFailure))
             {
                 parallelCmds.Add(new NeverEndingAsyncCommand());
-                parallelCmds.Add(new CommandLib.PauseCommand(TimeSpan.FromMilliseconds(10)));
+                parallelCmds.Add(new PauseCommand(TimeSpan.FromMilliseconds(10)));
                 AbortTest.Run(parallelCmds, null, 20);
             }
 
-            using (CommandLib.ParallelCommands parallelCmds = new CommandLib.ParallelCommands(abortUponFailure))
+            using (ParallelCommands parallelCmds = new ParallelCommands(abortUponFailure))
             {
                 parallelCmds.Add(new NeverEndingAsyncCommand());
                 parallelCmds.Add(new NeverEndingAsyncCommand());
@@ -82,20 +83,20 @@ namespace CommandLibTests
 
         private void TestFail(bool abortUponFailure)
         {
-            CommandLib.ParallelCommands parallelCmds = new CommandLib.ParallelCommands(abortUponFailure);
-            parallelCmds.Add(new CommandLib.PauseCommand(TimeSpan.FromMilliseconds(0)));
+            ParallelCommands parallelCmds = new ParallelCommands(abortUponFailure);
+            parallelCmds.Add(new PauseCommand(TimeSpan.FromMilliseconds(0)));
             parallelCmds.Add(new FailingCommand());
             FailTest.Run<FailingCommand.FailException>(parallelCmds, null);
             parallelCmds.Dispose();
 
-            parallelCmds = new CommandLib.ParallelCommands(abortUponFailure);
+            parallelCmds = new ParallelCommands(abortUponFailure);
             parallelCmds.Add(new FailingCommand());
-            parallelCmds.Add(new CommandLib.PauseCommand(TimeSpan.FromMilliseconds(0)));
+            parallelCmds.Add(new PauseCommand(TimeSpan.FromMilliseconds(0)));
             FailTest.Run<FailingCommand.FailException>(parallelCmds, null);
             parallelCmds.Dispose();
 
-            parallelCmds = new CommandLib.ParallelCommands(abortUponFailure);
-            parallelCmds.Add(new CommandLib.PauseCommand(TimeSpan.FromMilliseconds(0)));
+            parallelCmds = new ParallelCommands(abortUponFailure);
+            parallelCmds.Add(new PauseCommand(TimeSpan.FromMilliseconds(0)));
             parallelCmds.Add(new FailingCommand());
             FailTest.Run<FailingCommand.FailException>(parallelCmds, null);
             parallelCmds.Dispose();

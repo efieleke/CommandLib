@@ -1,5 +1,6 @@
 ﻿using System;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
+using Sophos.Commands;
 
 namespace CommandLibTests
 {
@@ -11,14 +12,14 @@ namespace CommandLibTests
         {
             using (System.Threading.ManualResetEvent abortEvent = new System.Threading.ManualResetEvent(true))
             {
-                using (CommandLib.AbortEventedCommand abortEventedPauseCmd = new CommandLib.AbortEventedCommand(new NeverEndingAsyncCommand(), abortEvent))
+                using (AbortEventedCommand abortEventedPauseCmd = new AbortEventedCommand(new NeverEndingAsyncCommand(), abortEvent))
                 {
                     try
                     {
                         abortEventedPauseCmd.SyncExecute();
                         Assert.Fail();
                     }
-                    catch (CommandLib.CommandAbortedException)
+                    catch (CommandAbortedException)
                     {
                     }
                     catch (Exception)
@@ -35,7 +36,7 @@ namespace CommandLibTests
                             abortEventedPauseCmd.SyncExecute();
                             Assert.Fail();
                         }
-                        catch (CommandLib.CommandAbortedException)
+                        catch (CommandAbortedException)
                         {
                         }
                         catch (Exception)
@@ -78,7 +79,7 @@ namespace CommandLibTests
         {
             using (System.Threading.ManualResetEvent abortEvent = new System.Threading.ManualResetEvent(false))
             {
-                using (CommandLib.AbortEventedCommand abortEventedPauseCmd = new CommandLib.AbortEventedCommand(new NeverEndingAsyncCommand(), abortEvent))
+                using (AbortEventedCommand abortEventedPauseCmd = new AbortEventedCommand(new NeverEndingAsyncCommand(), abortEvent))
                 {
                     AbortTest.Run(abortEventedPauseCmd, null, 10);
                 }
@@ -90,8 +91,8 @@ namespace CommandLibTests
         {
             using (System.Threading.ManualResetEvent abortEvent = new System.Threading.ManualResetEvent(false))
             {
-                CommandLib.PauseCommand pauseCmd = new CommandLib.PauseCommand(TimeSpan.FromMilliseconds(10));
-                using (CommandLib.AbortEventedCommand abortEventedPauseCmd = new CommandLib.AbortEventedCommand(pauseCmd, abortEvent))
+                PauseCommand pauseCmd = new PauseCommand(TimeSpan.FromMilliseconds(10));
+                using (AbortEventedCommand abortEventedPauseCmd = new AbortEventedCommand(pauseCmd, abortEvent))
                 {
                     HappyPathTest.Run(abortEventedPauseCmd, null, null);
                 }
@@ -103,7 +104,7 @@ namespace CommandLibTests
         {
             using (System.Threading.ManualResetEvent abortEvent = new System.Threading.ManualResetEvent(false))
             {
-                CommandLib.AbortEventedCommand abortEventedCmd = new CommandLib.AbortEventedCommand(new FailingCommand(), abortEvent);
+                AbortEventedCommand abortEventedCmd = new AbortEventedCommand(new FailingCommand(), abortEvent);
                 FailTest.Run<FailingCommand.FailException>(abortEventedCmd, null);
                 abortEventedCmd.Dispose();
             }
@@ -114,11 +115,11 @@ namespace CommandLibTests
         {
             using (System.Threading.ManualResetEvent abortEvent = new System.Threading.ManualResetEvent(false))
             {
-                CommandLib.PauseCommand pauseCmd = new CommandLib.PauseCommand(TimeSpan.FromMilliseconds(10));
+                PauseCommand pauseCmd = new PauseCommand(TimeSpan.FromMilliseconds(10));
 
-                using (CommandLib.AbortEventedCommand abortEventedPauseCmd = new CommandLib.AbortEventedCommand(pauseCmd, abortEvent))
+                using (AbortEventedCommand abortEventedPauseCmd = new AbortEventedCommand(pauseCmd, abortEvent))
                 {
-                    using (CommandLib.SequentialCommands seqCmd = new CommandLib.SequentialCommands())
+                    using (SequentialCommands seqCmd = new SequentialCommands())
                     {
                         try
                         {

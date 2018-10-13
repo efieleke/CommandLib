@@ -1,8 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+using Sophos.Commands;
 
 // This application moves a robot arm to 0,0 and tries to grab the toy at that location with its clamp.
 // If it succeeds, it deposits the toy down the chute. Otherwise, it just returns to its home position.
@@ -18,9 +16,9 @@ namespace CommandLibSample
             // Output all the command activity to a file in the temp directory. This is a simple text file, and it
             // can be viewed using CommandLogViewer.
             String tempFile = System.IO.Path.GetTempFileName();
-            CommandLib.Command.Monitors = new LinkedList<CommandLib.ICommandMonitor>();
-            CommandLib.Command.Monitors.AddLast(new CommandLib.CommandTracer());
-            CommandLib.Command.Monitors.AddLast(new CommandLib.CommandLogger(tempFile));
+            Command.Monitors = new LinkedList<ICommandMonitor>();
+            Command.Monitors.AddLast(new CommandTracer());
+            Command.Monitors.AddLast(new CommandLogger(tempFile));
 
             RobotArm robotArm = new RobotArm();
 
@@ -38,7 +36,7 @@ namespace CommandLibSample
                 }
             }
             
-            foreach(CommandLib.ICommandMonitor monitor in CommandLib.Command.Monitors)
+            foreach(ICommandMonitor monitor in Command.Monitors)
             {
                 monitor.Dispose();
             }

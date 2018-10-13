@@ -3,22 +3,22 @@ using System.Net.Http;
 using System.Security.Permissions;
 using System.Threading.Tasks;
 
-namespace CommandLib
+namespace Sophos.Commands
 {
     /// <summary>
-    /// A <see cref="Command"/> wrapper for <see cref="System.Net.Http.HttpClient.SendAsync(System.Net.Http.HttpRequestMessage)"/>
+    /// A <see cref="Command"/> wrapper for <see cref="HttpClient.SendAsync(HttpRequestMessage)"/>
     /// </summary>
     /// <remarks>
     /// <see cref="Command.SyncExecute(object)"/> and <see cref="Command.AsyncExecute(ICommandListener, object)"/> will accept 
     /// an object of type IHttpRequestGenerator for the'runtimeArg', If not null, that will be used instead of the
     /// IHttpRequestGenerator passed to the constructor.
     /// <para>
-    /// This command returns from synchronous execution a System.Net.Http.HttpResponseMessage that represents the server response from  the HTTP
+    /// This command returns from synchronous execution a .HttpResponseMessage that represents the server response from  the HTTP
     /// operation. The 'result' parameter of <see cref="ICommandListener.CommandSucceeded"/> will be set in similar fashion. It is the caller's
     /// responsibility to dispose of this response object.
     /// </para>
     /// </remarks>
-    public class HttpRequestCommand : TaskCommand<System.Net.Http.HttpResponseMessage>
+    public class HttpRequestCommand : TaskCommand<HttpResponseMessage>
     {
         /// <summary>
         /// Users of HttpRequestCommand must implement this interface and pass an instance to either the contructor or SyncExecute.
@@ -29,7 +29,7 @@ namespace CommandLib
             /// Every time this is called, it should return a new object, because requests cannot be reused.
             /// </summary>
             /// <returns>the request to send</returns>
-            System.Net.Http.HttpRequestMessage GenerateRequest();
+            HttpRequestMessage GenerateRequest();
         }
 
         /// <summary>
@@ -41,7 +41,7 @@ namespace CommandLib
             /// Throw an exception from this method if the response is deemed to be a failure that should cause the command to fail.
             /// </summary>
             /// <param name="response">The response to evalulate. Note that implementors must *not* dispose this parameter.</param>
-            Task CheckResponse(System.Net.Http.HttpResponseMessage response);
+            Task CheckResponse(HttpResponseMessage response);
         }
 
         /// <summary>
@@ -115,7 +115,8 @@ namespace CommandLib
         }
 
         /// <summary>
-        /// Implementation of IResposeChecker that throws an HttpRequestException if the status code represents an error, with an inner exception with more detail.
+        /// Implementation of IResposeChecker that throws an HttpRequestException if the status code
+		/// represents an error, with an inner exception with more detail.
         /// </summary>
         public class EnsureSuccessStatusCodeResponseChecker : IResponseChecker
         {
@@ -123,7 +124,7 @@ namespace CommandLib
             /// Throws an HttpRequestException if the status code represents an error
             /// </summary>
             /// <param name="response">The response that is evaluated</param>
-            public async Task CheckResponse(System.Net.Http.HttpResponseMessage response)
+            public async Task CheckResponse(HttpResponseMessage response)
             {
                 if (!response.IsSuccessStatusCode)
                 {
@@ -143,7 +144,7 @@ namespace CommandLib
                         }
                     }
 
-                    throw new System.Net.Http.HttpRequestException(response.ReasonPhrase, reason);
+                    throw new HttpRequestException(response.ReasonPhrase, reason);
                 }
             }
         }
@@ -154,12 +155,9 @@ namespace CommandLib
         /// </summary>
         /// <param name="content">The content to covert</param>
         /// <returns>The content as a string</returns>
-        public static async Task<String> ContentAsString(System.Net.Http.HttpContent content)
+        public static Task<String> ContentAsString(HttpContent content)
         {
-            using (System.Threading.Tasks.Task<String> task = content.ReadAsStringAsync())
-            {
-                return await task;
-            }
+			return content.ReadAsStringAsync();
         }
 
         /// <summary>
@@ -169,22 +167,18 @@ namespace CommandLib
         /// </summary>
         /// <param name="content"></param>
         /// <param name="fileName"></param>
-        public static async Task WriteContentToFile(System.Net.Http.HttpContent content, String fileName)
+        public static async Task WriteContentToFile(HttpContent content, String fileName)
         {
             using (var fileStream = System.IO.File.Create(fileName))
             {
-                using (System.Threading.Tasks.Task task = content.CopyToAsync(fileStream))
-                {
-					await task;
-                }
+				await content.CopyToAsync(fileStream);
             }
         }
 
         /// <summary>
         /// Constructs a HttpRequestCommand object as a top-level <see cref="Command"/>
         /// </summary>
-        public HttpRequestCommand()
-            : this(null)
+        public HttpRequestCommand() : this(null)
         {
         }
 
@@ -192,8 +186,7 @@ namespace CommandLib
         /// Constructs a HttpGetCommand object as a top-level <see cref="Command"/>
         /// </summary>
         /// <param name="requestGenerator">If null, be certain to pass a non-null value to the execution routine.</param>
-        public HttpRequestCommand(IRequestGenerator requestGenerator)
-            : this(requestGenerator, null)
+        public HttpRequestCommand(IRequestGenerator requestGenerator) : this(requestGenerator, null)
         {
         }
 
@@ -206,7 +199,7 @@ namespace CommandLib
         /// is provided as an implementation.
         /// </param>
         public HttpRequestCommand(IRequestGenerator requestGenerator, IResponseChecker responseChecker)
-            : this(requestGenerator, responseChecker, new System.Net.Http.HttpClient())
+            : this(requestGenerator, responseChecker, new HttpClient())
         {
             disposeHttpClient = true;
         }
@@ -223,7 +216,7 @@ namespace CommandLib
         /// The HttpClient instance to use for the operation. Be careful how that object is shared with other code (including
         /// passing it to multiple instances of this class, or other Command objects that accept a HttpClient object).
         /// </param>
-        public HttpRequestCommand(IRequestGenerator requestGenerator, IResponseChecker responseChecker, System.Net.Http.HttpClient httpClient)
+        public HttpRequestCommand(IRequestGenerator requestGenerator, IResponseChecker responseChecker, HttpClient httpClient)
             : this(requestGenerator, responseChecker, httpClient, null)
         {
         }
@@ -244,21 +237,18 @@ namespace CommandLib
         /// Specify null to indicate a top-level command. Otherwise, this command will be owned by 'owner'. Owned commands respond to
         /// abort requests made of their owner. Also, owned commands are disposed of when the owner is disposed.
         /// </param>
-        public HttpRequestCommand(IRequestGenerator requestGenerator, IResponseChecker responseChecker, System.Net.Http.HttpClient httpClient, Command owner)
+        public HttpRequestCommand(IRequestGenerator requestGenerator, IResponseChecker responseChecker, HttpClient httpClient, Command owner)
             : base(owner)
         {
             this.requestGenerator = requestGenerator;
             this.responseChecker = responseChecker;
-            this.httpClient = httpClient;
+            Client = httpClient;
         }
 
         /// <summary>
         /// Returns the underlying HttpClient instance used to download the data
         /// </summary>
-        public System.Net.Http.HttpClient Client
-        {
-            get { return httpClient; }
-        }
+        public HttpClient Client { get; }
 
         /// <summary>
         /// Implementations should override only if they contain members that must be disposed. Remember to invoke the base class implementation from within any override.
@@ -274,7 +264,7 @@ namespace CommandLib
 
                     if (disposeHttpClient)
                     {
-                        httpClient.Dispose();
+                        Client.Dispose();
                     }
                 }
             }
@@ -303,15 +293,14 @@ namespace CommandLib
 			_aborted = false;
 			IRequestGenerator generator = runtimeArg == null ? requestGenerator : (IRequestGenerator)runtimeArg;
 
-			using (System.Net.Http.HttpRequestMessage request = generator.GenerateRequest())
+			using (HttpRequestMessage request = generator.GenerateRequest())
 			{
 				// The same request message cannot be sent more than once, so we have to contruct a new one every time.
-				Task<System.Net.Http.HttpResponseMessage> task =
-					httpClient.SendAsync(request, System.Net.Http.HttpCompletionOption.ResponseContentRead, cancelTokenSource.Token);
+				Task<HttpResponseMessage> task = Client.SendAsync(request, HttpCompletionOption.ResponseContentRead, cancelTokenSource.Token);
 
 				try
 				{
-					System.Net.Http.HttpResponseMessage message = await task;
+					HttpResponseMessage message = await task;
 
 					if (responseChecker != null)
 					{
@@ -329,22 +318,6 @@ namespace CommandLib
 
 					return message;
 				}
-				catch (System.AggregateException e)
-				{
-					if (e.GetBaseException() is System.OperationCanceledException)
-					{
-						if (_aborted)
-						{
-							// We got here because Abort() was called
-							throw new CommandAbortedException();
-						}
-
-						// We got here because the request timed out
-						throw new TimeoutException();
-					}
-
-					throw e.GetBaseException();
-				}
 				catch (System.OperationCanceledException)
 				{
 					if (_aborted)
@@ -361,7 +334,6 @@ namespace CommandLib
 
 		private IRequestGenerator requestGenerator = null;
         private IResponseChecker responseChecker = null;
-        private System.Net.Http.HttpClient httpClient = null;
         private bool disposeHttpClient = false;
         private bool _aborted = false;
         private System.Threading.CancellationTokenSource cancelTokenSource = new System.Threading.CancellationTokenSource();

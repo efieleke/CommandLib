@@ -1,22 +1,21 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Linq;
-using System.Text;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
+using Sophos.Commands;
 
 namespace CommandLibTests
 {
     internal static class AbortTest
     {
-        internal static void Run(CommandLib.Command cmd, Object runtimeArg, int maxDelayTime)
+        internal static void Run(Command cmd, Object runtimeArg, int maxDelayTime)
         {
             String tempFile = System.IO.Path.GetTempFileName();
 
             try
             {
-                CommandLib.Command.Monitors = new LinkedList<CommandLib.ICommandMonitor>();
-                CommandLib.Command.Monitors.AddLast(new CommandLib.CommandLogger(tempFile));
-                CommandLib.Command.Monitors.AddLast(new CommandLib.CommandTracer());
+                Command.Monitors = new LinkedList<ICommandMonitor>();
+                Command.Monitors.AddLast(new CommandLogger(tempFile));
+                Command.Monitors.AddLast(new CommandTracer());
                 CmdListener listener = new CmdListener(CmdListener.CallbackType.Aborted, null);
                 cmd.AsyncExecute(listener, runtimeArg);
                 cmd.AbortAndWait();
@@ -35,9 +34,9 @@ namespace CommandLibTests
                         cmd.SyncExecute(runtimeArg);
                         Assert.Fail("Command succeeded when it was expected to be aborted");
                     }
-                    catch (CommandLib.CommandAbortedException exc)
+                    catch (CommandAbortedException exc)
                     {
-                        Assert.IsTrue(CommandLib.Command.GetAttachedErrorInfo(exc) == null);
+                        Assert.IsTrue(Command.GetAttachedErrorInfo(exc) == null);
                     }
                     catch (Exception exc)
                     {
@@ -53,12 +52,12 @@ namespace CommandLibTests
             }
             finally
             {
-                foreach (CommandLib.ICommandMonitor monitor in CommandLib.Command.Monitors)
+                foreach (ICommandMonitor monitor in Command.Monitors)
                 {
                     monitor.Dispose();
                 }
 
-                CommandLib.Command.Monitors = null;
+                Command.Monitors = null;
                 System.IO.File.Delete(tempFile);
             }
         }

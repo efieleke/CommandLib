@@ -2,10 +2,10 @@
 using System.Collections.Generic;
 using System.Threading.Tasks;
 
-namespace CommandLib
+namespace Sophos.Commands
 {
 	/// <summary>
-	/// CommandLib contains a set of classes that can be used to easily coordinate synchronous and asynchronous activities in
+	/// This library contains a set of classes that can be used to easily coordinate synchronous and asynchronous activities in
 	/// complex ways. Most classes in this library inherit from <see cref="Command"/>, which represents an action. Any
 	/// <see cref="Command"/> can be run synchronously or asynchronously, and may be aborted.
 	/// <para>
@@ -15,7 +15,7 @@ namespace CommandLib
 	/// because they are <see cref="Command"/> objects), so it's possible to create a deep nesting of coordinated activities.
 	/// </para>
 	/// <para>
-	/// Using <see cref="TaskCommand{TResult}"/>, you can run a Task in the context of a <see cref="Command"/>. And using
+	/// Using <see cref="TaskCommand{TResult}"/>, you can run asynchronous Tasks in the context of a <see cref="Command"/>. And using
 	/// <see cref="Command.CreateTask{TResult}(Command, object, Command)"/>, you can convert a <see cref="Command"/> to a Task.
 	/// </para>
 	/// <para>

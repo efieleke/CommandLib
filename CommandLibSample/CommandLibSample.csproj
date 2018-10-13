@@ -9,7 +9,7 @@
     <AppDesignerFolder>Properties</AppDesignerFolder>
     <RootNamespace>CommandLibSample</RootNamespace>
     <AssemblyName>CommandLibSample</AssemblyName>
-    <TargetFrameworkVersion>v4.5</TargetFrameworkVersion>
+    <TargetFrameworkVersion>v4.6.1</TargetFrameworkVersion>
     <FileAlignment>512</FileAlignment>
     <TargetFrameworkProfile />
   </PropertyGroup>
@@ -61,9 +61,9 @@
     <None Include="App.config" />
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="..\CommandLib\CommandLib.csproj">
-      <Project>{5cb882c2-3c24-449a-bed5-376c3fe1034f}</Project>
-      <Name>CommandLib</Name>
+    <ProjectReference Include="..\Commands\Commands.csproj">
+      <Project>{59b54591-ab1f-43ce-b0a4-85f5ccd58abf}</Project>
+      <Name>Commands</Name>
     </ProjectReference>
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />

@@ -1,12 +1,13 @@
 ﻿using System;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
+using Sophos.Commands;
 
 namespace CommandLibTests
 {
     [TestClass]
     public class RecurringCommandTests
     {
-        private class RecurCallback : CommandLib.RecurringCommand.IExecutionTimeCallback
+        private class RecurCallback : RecurringCommand.IExecutionTimeCallback
         {
             internal RecurCallback(TimeSpan intervalBeforeFirst, TimeSpan intervalBeforeRest, int repetitions)
             {
@@ -40,22 +41,22 @@ namespace CommandLibTests
         [TestMethod]
         public void RecurringCommand_TestAbort()
         {
-            using (CommandLib.RecurringCommand recurringCmd = new CommandLib.RecurringCommand(
+            using (RecurringCommand recurringCmd = new RecurringCommand(
                 new AddCommand(0),
                 new RecurCallback(TimeSpan.FromDays(1), TimeSpan.FromDays(1), 7)))
             {
                 AbortTest.Run(recurringCmd, 2, 20);
             }
 
-            using (CommandLib.RecurringCommand recurringCmd = new CommandLib.RecurringCommand(
+            using (RecurringCommand recurringCmd = new RecurringCommand(
                 new AddCommand(0),
                 new RecurCallback(TimeSpan.FromDays(1).Negate(), TimeSpan.FromDays(1), 7)))
             {
                 AbortTest.Run(recurringCmd, 3, 20);
             }
 
-            using (CommandLib.RecurringCommand recurringCmd = new CommandLib.RecurringCommand(
-                new CommandLib.PauseCommand(TimeSpan.FromDays(1)),
+            using (RecurringCommand recurringCmd = new RecurringCommand(
+                new PauseCommand(TimeSpan.FromDays(1)),
                 new RecurCallback(TimeSpan.FromDays(1).Negate(), TimeSpan.FromDays(1).Negate(), 7)))
             {
                 AbortTest.Run(recurringCmd, 1, 20);
@@ -65,14 +66,14 @@ namespace CommandLibTests
         [TestMethod]
         public void RecurringCommand_TestHappyPath()
         {
-            using (CommandLib.RecurringCommand recurringCmd = new CommandLib.RecurringCommand(
+            using (RecurringCommand recurringCmd = new RecurringCommand(
                 new AddCommand(0),
                 new RecurCallback(TimeSpan.FromMilliseconds(5), TimeSpan.FromMilliseconds(5), 7)))
             {
                 HappyPathTest.Run(recurringCmd, 2, null);
             }
 
-            using (CommandLib.RecurringCommand recurringCmd = new CommandLib.RecurringCommand(
+            using (RecurringCommand recurringCmd = new RecurringCommand(
                 new AddCommand(0),
                 new RecurCallback(TimeSpan.FromDays(1).Negate(), TimeSpan.FromDays(1).Negate(), 7)))
             {
@@ -83,7 +84,7 @@ namespace CommandLibTests
         [TestMethod]
         public void RecurringCommand_TestFail()
         {
-            using (CommandLib.RecurringCommand recurringCmd = new CommandLib.RecurringCommand(
+            using (RecurringCommand recurringCmd = new RecurringCommand(
                 new FailingCommand(),
                 new RecurCallback(TimeSpan.FromMilliseconds(5), TimeSpan.FromMilliseconds(5), 7)))
             {
@@ -94,7 +95,7 @@ namespace CommandLibTests
         [TestMethod]
         public void RecurringCommand_TestSkipCurrentWait()
         {
-            using (CommandLib.RecurringCommand recurringCmd = new CommandLib.RecurringCommand(
+            using (RecurringCommand recurringCmd = new RecurringCommand(
                 new AddCommand(0),
                 new RecurCallback(TimeSpan.FromDays(1), TimeSpan.FromDays(1), 2)))
             {
@@ -112,7 +113,7 @@ namespace CommandLibTests
         [TestMethod]
         public void RecurringCommand_TestSetNextExecutionTime()
         {
-            using (CommandLib.RecurringCommand recurringCmd = new CommandLib.RecurringCommand(
+            using (RecurringCommand recurringCmd = new RecurringCommand(
                 new AddCommand(0),
                 new RecurCallback(TimeSpan.FromDays(1), TimeSpan.FromDays(1), 1)))
             {

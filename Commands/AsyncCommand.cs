@@ -1,9 +1,6 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
 
-namespace CommandLib
+namespace Sophos.Commands
 {
     /// <summary>
     /// Represents a <see cref="Command"/> which is most naturally asynchronous in its implementation. If you inherit from this class, you

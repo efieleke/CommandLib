@@ -1,5 +1,6 @@
 ﻿using System;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
+using Sophos.Commands;
 
 namespace CommandLibTests
 {
@@ -10,13 +11,13 @@ namespace CommandLibTests
         private int aborted;
         private int failed;
 
-        internal void dispatcher_CommandFinishedEvent(Object sender, CommandLib.CommandDispatcher.CommandFinishedEventArgs e)
+        internal void dispatcher_CommandFinishedEvent(Object sender, CommandDispatcher.CommandFinishedEventArgs e)
         {
             if (e.Error == null)
             {
                 System.Threading.Interlocked.Increment(ref completed);
             }
-            else if (e.Error is CommandLib.CommandAbortedException)
+            else if (e.Error is CommandAbortedException)
             {
                 System.Threading.Interlocked.Increment(ref aborted);
             }
@@ -29,17 +30,17 @@ namespace CommandLibTests
         [TestMethod]
         public void CommandDispatcher_TestAbort()
         {
-            CommandLib.CommandDispatcher dispatcher = new CommandLib.CommandDispatcher(2);
+            CommandDispatcher dispatcher = new CommandDispatcher(2);
             dispatcher.CommandFinishedEvent += dispatcher_CommandFinishedEvent;
             aborted = 0;
             completed = 0;
             failed = 0;
-            dispatcher.Dispatch(new CommandLib.PauseCommand(TimeSpan.FromDays(1)));
-            dispatcher.Dispatch(new CommandLib.PauseCommand(TimeSpan.FromMilliseconds(0)));
-            dispatcher.Dispatch(new CommandLib.PauseCommand(TimeSpan.FromMilliseconds(0)));
-            dispatcher.Dispatch(new CommandLib.PauseCommand(TimeSpan.FromDays(1)));
-            dispatcher.Dispatch(new CommandLib.PauseCommand(TimeSpan.FromDays(1)));
-            dispatcher.Dispatch(new CommandLib.PauseCommand(TimeSpan.FromDays(1)));
+            dispatcher.Dispatch(new PauseCommand(TimeSpan.FromDays(1)));
+            dispatcher.Dispatch(new PauseCommand(TimeSpan.FromMilliseconds(0)));
+            dispatcher.Dispatch(new PauseCommand(TimeSpan.FromMilliseconds(0)));
+            dispatcher.Dispatch(new PauseCommand(TimeSpan.FromDays(1)));
+            dispatcher.Dispatch(new PauseCommand(TimeSpan.FromDays(1)));
+            dispatcher.Dispatch(new PauseCommand(TimeSpan.FromDays(1)));
             System.Threading.Thread.Sleep(100);
             dispatcher.AbortAndWait();
             Assert.AreEqual(2, completed);
@@ -50,18 +51,18 @@ namespace CommandLibTests
         [TestMethod]
         public void CommandDispatcher_TestHappyPath()
         {
-            using (CommandLib.CommandDispatcher dispatcher = new CommandLib.CommandDispatcher(2))
+            using (CommandDispatcher dispatcher = new CommandDispatcher(2))
             {
                 dispatcher.CommandFinishedEvent += dispatcher_CommandFinishedEvent;
                 aborted = 0;
                 completed = 0;
                 failed = 0;
-                dispatcher.Dispatch(new CommandLib.PauseCommand(TimeSpan.FromMilliseconds(10)));
-                dispatcher.Dispatch(new CommandLib.PauseCommand(TimeSpan.FromMilliseconds(0)));
-                dispatcher.Dispatch(new CommandLib.PauseCommand(TimeSpan.FromMilliseconds(0)));
-                dispatcher.Dispatch(new CommandLib.PauseCommand(TimeSpan.FromMilliseconds(100)));
+                dispatcher.Dispatch(new PauseCommand(TimeSpan.FromMilliseconds(10)));
+                dispatcher.Dispatch(new PauseCommand(TimeSpan.FromMilliseconds(0)));
+                dispatcher.Dispatch(new PauseCommand(TimeSpan.FromMilliseconds(0)));
+                dispatcher.Dispatch(new PauseCommand(TimeSpan.FromMilliseconds(100)));
                 dispatcher.Dispatch(new FailingCommand());
-                dispatcher.Dispatch(new CommandLib.PauseCommand(TimeSpan.FromMilliseconds(0)));
+                dispatcher.Dispatch(new PauseCommand(TimeSpan.FromMilliseconds(0)));
             }
 
             Assert.AreEqual(5, completed);
@@ -74,18 +75,18 @@ namespace CommandLibTests
         {
             try
             {
-                CommandLib.CommandDispatcher dispatcher = new CommandLib.CommandDispatcher(0);
+                CommandDispatcher dispatcher = new CommandDispatcher(0);
                 Assert.Fail("Dispatcher with 0 pool size constructed.");
             }
             catch(ArgumentException)
             {
             }
 
-            using (CommandLib.CommandDispatcher dispatcher = new CommandLib.CommandDispatcher(2))
+            using (CommandDispatcher dispatcher = new CommandDispatcher(2))
             {
-                CommandLib.PauseCommand pause = new CommandLib.PauseCommand(TimeSpan.FromDays(1));
+                PauseCommand pause = new PauseCommand(TimeSpan.FromDays(1));
                 
-                using (CommandLib.SequentialCommands seq = new CommandLib.SequentialCommands())
+                using (SequentialCommands seq = new SequentialCommands())
                 {
                     seq.Add(pause);
 

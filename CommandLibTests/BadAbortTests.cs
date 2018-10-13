@@ -1,5 +1,6 @@
 ﻿using System;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
+using Sophos.Commands;
 
 namespace CommandLibTests
 {
@@ -9,7 +10,7 @@ namespace CommandLibTests
         [TestMethod]
         public void BadAbort_TestAbortChild()
         {
-            using (CommandLib.SequentialCommands seqCmd = new CommandLib.SequentialCommands())
+            using (SequentialCommands seqCmd = new SequentialCommands())
             {
                 AddCommand addCmd = new AddCommand(0);
                 seqCmd.Add(addCmd);

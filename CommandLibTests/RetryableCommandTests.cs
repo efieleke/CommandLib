@@ -1,12 +1,13 @@
 ﻿using System;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
+using Sophos.Commands;
 
 namespace CommandLibTests
 {
     [TestClass]
     public class RetryableCommandTests
     {
-        private class RetryCallback : CommandLib.RetryableCommand.IRetryCallback
+        private class RetryCallback : RetryableCommand.IRetryCallback
         {
             internal RetryCallback(int maxRetries, TimeSpan waitTime)
             {
@@ -27,15 +28,15 @@ namespace CommandLibTests
         [TestMethod]
         public void RetryableCommand_TestAbort()
         {
-            using (CommandLib.RetryableCommand retryableCmd = new CommandLib.RetryableCommand(
+            using (RetryableCommand retryableCmd = new RetryableCommand(
                 new FailingCommand(),
                 new RetryCallback(int.MaxValue, TimeSpan.FromMilliseconds(1))))
             {
                 AbortTest.Run(retryableCmd, null, 10);
             }
 
-            using (CommandLib.RetryableCommand retryableCmd = new CommandLib.RetryableCommand(
-                new CommandLib.PauseCommand(TimeSpan.FromDays(1)),
+            using (RetryableCommand retryableCmd = new RetryableCommand(
+                new PauseCommand(TimeSpan.FromDays(1)),
                 new RetryCallback(int.MaxValue, TimeSpan.FromMilliseconds(1))))
             {
                 AbortTest.Run(retryableCmd, null, 10);
@@ -45,7 +46,7 @@ namespace CommandLibTests
         [TestMethod]
         public void RetryableCommand_TestHappyPath()
         {
-            using (CommandLib.RetryableCommand retryableCmd = new CommandLib.RetryableCommand(
+            using (RetryableCommand retryableCmd = new RetryableCommand(
                 new AddCommand(6),
                 new RetryCallback(int.MaxValue, TimeSpan.FromMilliseconds(1))))
             {
@@ -56,7 +57,7 @@ namespace CommandLibTests
         [TestMethod]
         public void RetryableCommand_TestFail()
         {
-            using (CommandLib.RetryableCommand retryableCmd = new CommandLib.RetryableCommand(
+            using (RetryableCommand retryableCmd = new RetryableCommand(
                 new FailingCommand(),
                 new RetryCallback(5, TimeSpan.FromMilliseconds(1))))
             {

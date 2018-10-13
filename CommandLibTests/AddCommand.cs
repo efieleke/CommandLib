@@ -1,17 +1,14 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
+﻿using Sophos.Commands;
 
 namespace CommandLibTests
 {
-    internal class AddCommand : CommandLib.SyncCommand
+    internal class AddCommand : SyncCommand
     {
         internal AddCommand(int amount) : this(amount, null)
         {
         }
 
-        internal AddCommand(int amount, CommandLib.Command owner) : base(owner)
+        internal AddCommand(int amount, Command owner) : base(owner)
         {
             this.amount = amount;
         }

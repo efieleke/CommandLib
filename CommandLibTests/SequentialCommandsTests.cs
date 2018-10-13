@@ -1,5 +1,6 @@
 ﻿using System;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
+using Sophos.Commands;
 
 namespace CommandLibTests
 {
@@ -9,7 +10,7 @@ namespace CommandLibTests
         [TestMethod]
         public void SequentialCommand_TestHappyPath()
         {
-            using (CommandLib.SequentialCommands seqCmds = new CommandLib.SequentialCommands())
+            using (SequentialCommands seqCmds = new SequentialCommands())
             {
                 HappyPathTest.Run(seqCmds, null, null);
                 Assert.IsFalse(seqCmds.Commands.GetEnumerator().MoveNext());
@@ -22,7 +23,7 @@ namespace CommandLibTests
 
                 int addedCount = 0;
 
-                foreach (CommandLib.Command cmd in seqCmds.Commands)
+                foreach (Command cmd in seqCmds.Commands)
                 {
                     Assert.IsTrue(cmd is AddCommand);
                     ++addedCount;
@@ -39,17 +40,17 @@ namespace CommandLibTests
         [TestMethod]
         public void SequentialCommand_TestAbort()
         {
-            using (CommandLib.SequentialCommands seqCmds = new CommandLib.SequentialCommands())
+            using (SequentialCommands seqCmds = new SequentialCommands())
             {
-                seqCmds.Add(new CommandLib.PauseCommand(TimeSpan.FromMilliseconds(10)));
+                seqCmds.Add(new PauseCommand(TimeSpan.FromMilliseconds(10)));
                 seqCmds.Add(new NeverEndingAsyncCommand());
                 AbortTest.Run(seqCmds, null, 20);
             }
 
-            using (CommandLib.SequentialCommands seqCmds = new CommandLib.SequentialCommands())
+            using (SequentialCommands seqCmds = new SequentialCommands())
             {
                 seqCmds.Add(new NeverEndingAsyncCommand());
-                seqCmds.Add(new CommandLib.PauseCommand(TimeSpan.FromMilliseconds(10)));
+                seqCmds.Add(new PauseCommand(TimeSpan.FromMilliseconds(10)));
                 AbortTest.Run(seqCmds, null, 20);
             }
         }
@@ -57,23 +58,23 @@ namespace CommandLibTests
         [TestMethod]
         public void SequentialCommand_TestFail()
         {
-            using (CommandLib.SequentialCommands seqCmds = new CommandLib.SequentialCommands())
+            using (SequentialCommands seqCmds = new SequentialCommands())
             {
-                seqCmds.Add(new CommandLib.PauseCommand(TimeSpan.FromMilliseconds(0)));
+                seqCmds.Add(new PauseCommand(TimeSpan.FromMilliseconds(0)));
                 seqCmds.Add(new FailingCommand());
                 FailTest.Run<FailingCommand.FailException>(seqCmds, null);
             }
 
-            using (CommandLib.SequentialCommands seqCmds = new CommandLib.SequentialCommands())
+            using (SequentialCommands seqCmds = new SequentialCommands())
             {
                 seqCmds.Add(new FailingCommand());
-                seqCmds.Add(new CommandLib.PauseCommand(TimeSpan.FromMilliseconds(0)));
+                seqCmds.Add(new PauseCommand(TimeSpan.FromMilliseconds(0)));
                 FailTest.Run<FailingCommand.FailException>(seqCmds, null);
             }
 
-            using (CommandLib.SequentialCommands seqCmds = new CommandLib.SequentialCommands())
+            using (SequentialCommands seqCmds = new SequentialCommands())
             {
-                seqCmds.Add(new CommandLib.PauseCommand(TimeSpan.FromMilliseconds(0)));
+                seqCmds.Add(new PauseCommand(TimeSpan.FromMilliseconds(0)));
                 seqCmds.Add(new AddCommand(1)); // won't get the right type passed in
                 FailTest.Run<InvalidCastException>(seqCmds, new Object());
             }

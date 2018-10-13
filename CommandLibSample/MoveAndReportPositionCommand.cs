@@ -1,27 +1,25 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
+using Sophos.Commands;
 
 namespace CommandLibSample
 {
-    class MoveAndReportPositionCommand : CommandLib.SyncCommand
+    class MoveAndReportPositionCommand : SyncCommand
     {
-        internal MoveAndReportPositionCommand(RobotArm robotArm, int x, int y, int z, CommandLib.Command owner) : base(owner)
+        internal MoveAndReportPositionCommand(RobotArm robotArm, int x, int y, int z, Command owner) : base(owner)
         {
             MoveRobotArmCommand moveCmd = new MoveRobotArmCommand(robotArm, x, y, z);
 
             // Create a commands that will periodically report robot arm position until it reaches the destination (x,y,z)
-            CommandLib.PeriodicCommand reportPositionCmd = new CommandLib.PeriodicCommand(
+            PeriodicCommand reportPositionCmd = new PeriodicCommand(
                 new ReportPositionCommand(robotArm), // the command to execute
                 long.MaxValue, // no fixed upper limit on repetitions
                 TimeSpan.FromMilliseconds(500), // execute the command twice a second
-                CommandLib.PeriodicCommand.IntervalType.PauseBefore, // wait a second before executing the command the first time
+                PeriodicCommand.IntervalType.PauseBefore, // wait a second before executing the command the first time
                 true, // the second to wait is inclusive of the time it actually takes to report the position
                 moveCmd.DoneEvent); // stop when this event is signaled (in other words, when the arm reaches 0,0)
 
             // Create the command that will move the robot arm and periodically report at the same time
-            CommandLib.ParallelCommands moveAndReportCmd = new CommandLib.ParallelCommands(true);
+            ParallelCommands moveAndReportCmd = new ParallelCommands(true);
             moveAndReportCmd.Add(moveCmd);
             moveAndReportCmd.Add(reportPositionCmd);
 
@@ -32,7 +30,7 @@ namespace CommandLibSample
             // If we didn't do that, abort requests would not be honored (and we'd have a
             // resource leak).
             // also have a resource leak because we never dispose this object).
-            framedMoveAndReportCmd = new CommandLib.SequentialCommands(this);
+            framedMoveAndReportCmd = new SequentialCommands(this);
             framedMoveAndReportCmd.Add(new ReportPositionCommand(robotArm));
             framedMoveAndReportCmd.Add(moveAndReportCmd);
             framedMoveAndReportCmd.Add(new ReportPositionCommand(robotArm));
@@ -44,6 +42,6 @@ namespace CommandLibSample
             return null;
         }
 
-        private CommandLib.SequentialCommands framedMoveAndReportCmd;
+        private SequentialCommands framedMoveAndReportCmd;
     }
 }

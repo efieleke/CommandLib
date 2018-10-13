@@ -1,5 +1,6 @@
 ﻿using System;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
+using Sophos.Commands;
 
 namespace CommandLibTests
 {
@@ -11,7 +12,7 @@ namespace CommandLibTests
         {
             using (System.Threading.ManualResetEvent abortEvent = new System.Threading.ManualResetEvent(false))
             {
-                using (CommandLib.Command test = GenerateComplexCommand(abortEvent, 1, false))
+                using (Command test = GenerateComplexCommand(abortEvent, 1, false))
                 {
                     HappyPathTest.Run(test, null, null);
                 }
@@ -23,7 +24,7 @@ namespace CommandLibTests
         {
             using (System.Threading.ManualResetEvent abortEvent = new System.Threading.ManualResetEvent(false))
             {
-                using (CommandLib.Command test = GenerateComplexCommand(abortEvent, 1, true))
+                using (Command test = GenerateComplexCommand(abortEvent, 1, true))
                 {
                     FailTest.Run<FailingCommand.FailException>(test, null);
                 }
@@ -33,8 +34,8 @@ namespace CommandLibTests
         [TestMethod]
         public void ComplexCommand_TestNestedCommandAbort()
         {
-            CommandLib.SequentialCommands outerSeq = new CommandLib.SequentialCommands();
-            CommandLib.SequentialCommands innerSeq = new CommandLib.SequentialCommands();
+            SequentialCommands outerSeq = new SequentialCommands();
+            SequentialCommands innerSeq = new SequentialCommands();
             innerSeq.Add(new NeverEndingAsyncCommand());
             outerSeq.Add(innerSeq);
             outerSeq.AsyncExecute(new CmdListener(CmdListener.CallbackType.Aborted, null));
@@ -47,7 +48,7 @@ namespace CommandLibTests
         {
             using (System.Threading.ManualResetEvent abortEvent = new System.Threading.ManualResetEvent(false))
             {
-                using (CommandLib.Command test = GenerateComplexCommand(abortEvent, 1, false))
+                using (Command test = GenerateComplexCommand(abortEvent, 1, false))
                 {
                     CmdListener listener = new CmdListener(CmdListener.CallbackType.Aborted, null);
                     test.AsyncExecute(listener, null);
@@ -68,26 +69,26 @@ namespace CommandLibTests
             }
         }
 
-        private CommandLib.Command GenerateComplexCommand(System.Threading.ManualResetEvent abortEvent, int maxPauseMS, bool insertFailure)
+        private Command GenerateComplexCommand(System.Threading.ManualResetEvent abortEvent, int maxPauseMS, bool insertFailure)
         {
-            return new CommandLib.AbortEventedCommand(new ComplexCommand(maxPauseMS, insertFailure), abortEvent);
+            return new AbortEventedCommand(new ComplexCommand(maxPauseMS, insertFailure), abortEvent);
         }
 
-        private class ComplexCommand : CommandLib.SyncCommand
+        private class ComplexCommand : SyncCommand
         {
             internal ComplexCommand(int maxPauseMS, bool insertFailure) : base(null)
             {
-                CommandLib.ParallelCommands parallel = GenerateParallelCommands(maxPauseMS, insertFailure);
-                CommandLib.SequentialCommands seq = GenerateSequentialCommands(maxPauseMS, insertFailure);
+                ParallelCommands parallel = GenerateParallelCommands(maxPauseMS, insertFailure);
+                SequentialCommands seq = GenerateSequentialCommands(maxPauseMS, insertFailure);
                 parallel.Add(GenerateSequentialCommands(maxPauseMS, insertFailure));
                 parallel.Add(GenerateParallelCommands(maxPauseMS, insertFailure));
                 seq.Add(GenerateParallelCommands(maxPauseMS, insertFailure));
                 seq.Add(GenerateSequentialCommands(maxPauseMS, insertFailure));
-                CommandLib.ParallelCommands combined = new CommandLib.ParallelCommands(false);
+                ParallelCommands combined = new ParallelCommands(false);
                 combined.Add(seq);
                 combined.Add(parallel);
-                cmd = new CommandLib.PeriodicCommand(
-                    combined, 3, TimeSpan.FromMilliseconds(maxPauseMS), CommandLib.PeriodicCommand.IntervalType.PauseAfter, true, null, this);
+                cmd = new PeriodicCommand(
+                    combined, 3, TimeSpan.FromMilliseconds(maxPauseMS), PeriodicCommand.IntervalType.PauseAfter, true, null, this);
 
                 // For code coverage. Also, gives us an opportunity to try the third overload of SyncExecute.
                 RelinquishOwnership(cmd);
@@ -113,7 +114,7 @@ namespace CommandLibTests
                 {
                 }
 
-                using (CommandLib.PauseCommand pauseCmd = new CommandLib.PauseCommand(TimeSpan.FromTicks(0)))
+                using (PauseCommand pauseCmd = new PauseCommand(TimeSpan.FromTicks(0)))
                 {
                     String dontCare = "test";
                     
@@ -126,11 +127,11 @@ namespace CommandLibTests
                 return cmd.SyncExecute(runtimeArg, this);
             }
 
-            private static CommandLib.ParallelCommands GenerateParallelCommands(int maxPauseMS, bool insertFailure)
+            private static ParallelCommands GenerateParallelCommands(int maxPauseMS, bool insertFailure)
             {
-                CommandLib.ParallelCommands cmds = new CommandLib.ParallelCommands(false);
+                ParallelCommands cmds = new ParallelCommands(false);
 
-                foreach (CommandLib.Command cmd in GenerateCommands(maxPauseMS, insertFailure))
+                foreach (Command cmd in GenerateCommands(maxPauseMS, insertFailure))
                 {
                     cmds.Add(cmd);
                 }
@@ -138,11 +139,11 @@ namespace CommandLibTests
                 return cmds;
             }
 
-            private static CommandLib.SequentialCommands GenerateSequentialCommands(int maxPauseMS, bool insertFailure)
+            private static SequentialCommands GenerateSequentialCommands(int maxPauseMS, bool insertFailure)
             {
-                CommandLib.SequentialCommands cmds = new CommandLib.SequentialCommands();
+                SequentialCommands cmds = new SequentialCommands();
 
-                foreach (CommandLib.Command cmd in GenerateCommands(maxPauseMS, insertFailure))
+                foreach (Command cmd in GenerateCommands(maxPauseMS, insertFailure))
                 {
                     cmds.Add(cmd);
                 }
@@ -150,32 +151,32 @@ namespace CommandLibTests
                 return cmds;
             }
 
-            private static CommandLib.Command[] GenerateCommands(int maxPauseMS, bool insertFailure)
+            private static Command[] GenerateCommands(int maxPauseMS, bool insertFailure)
             {
-                return new CommandLib.Command[]
+                return new Command[]
                 {
-                    new CommandLib.PauseCommand(TimeSpan.FromMilliseconds(maxPauseMS)),
+                    new PauseCommand(TimeSpan.FromMilliseconds(maxPauseMS)),
                     new NoOpCommand(),
-                    new CommandLib.PeriodicCommand(
-                        insertFailure ? (CommandLib.Command)new FailingCommand() : (CommandLib.Command)new NoOpCommand(),
+                    new PeriodicCommand(
+                        insertFailure ? (Command)new FailingCommand() : (Command)new NoOpCommand(),
                         5, TimeSpan.FromMilliseconds(maxPauseMS),
-                        CommandLib.PeriodicCommand.IntervalType.PauseBefore,
+                        PeriodicCommand.IntervalType.PauseBefore,
                         true)
                 };
             }
 
-            private CommandLib.Command cmd;
+            private Command cmd;
         }
     }
 
-    internal class NoOpCommand : CommandLib.SyncCommand
+    internal class NoOpCommand : SyncCommand
     {
         internal NoOpCommand()
             : this(null)
         {
         }
 
-        internal NoOpCommand(CommandLib.Command owner)
+        internal NoOpCommand(Command owner)
             : base(owner)
         {
         }

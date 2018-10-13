@@ -1,11 +1,9 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
+using Sophos.Commands;
 
 namespace CommandLibTests
 {
-    internal class FailingCommand : CommandLib.SyncCommand
+    internal class FailingCommand : SyncCommand
     {
         [Serializable]
         internal class FailException : Exception
@@ -16,7 +14,7 @@ namespace CommandLibTests
         {
         }
 
-        internal FailingCommand (CommandLib.Command owner) : base(owner)
+        internal FailingCommand (Command owner) : base(owner)
         {
         }
 

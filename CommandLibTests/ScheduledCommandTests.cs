@@ -1,5 +1,6 @@
 ﻿using System;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
+using Sophos.Commands;
 
 namespace CommandLibTests
 {
@@ -24,12 +25,12 @@ namespace CommandLibTests
         [TestMethod]
         public void ScheduledCommand_TestAbort()
         {
-            using (CommandLib.ScheduledCommand scheduledCmd = new CommandLib.ScheduledCommand(new AddCommand(0), Tomorrow(), false))
+            using (ScheduledCommand scheduledCmd = new ScheduledCommand(new AddCommand(0), Tomorrow(), false))
             {
                 AbortTest.Run(scheduledCmd, null, 20);
             }
 
-            using (CommandLib.ScheduledCommand scheduledCmd = new CommandLib.ScheduledCommand(new NeverEndingAsyncCommand(), Yesterday(), true))
+            using (ScheduledCommand scheduledCmd = new ScheduledCommand(new NeverEndingAsyncCommand(), Yesterday(), true))
             {
                 AbortTest.Run(scheduledCmd, null, 20);
             }
@@ -38,17 +39,17 @@ namespace CommandLibTests
         [TestMethod]
         public void ScheduledCommand_TestHappyPath()
         {
-            using (CommandLib.ScheduledCommand scheduledCmd = new CommandLib.ScheduledCommand(new AddCommand(3), Yesterday(), true))
+            using (ScheduledCommand scheduledCmd = new ScheduledCommand(new AddCommand(3), Yesterday(), true))
             {
                 HappyPathTest.Run(scheduledCmd, 0, 3);
             }
 
-            using (CommandLib.ScheduledCommand scheduledCmd = new CommandLib.ScheduledCommand(new AddCommand(2), RealSoon(), true))
+            using (ScheduledCommand scheduledCmd = new ScheduledCommand(new AddCommand(2), RealSoon(), true))
             {
                 HappyPathTest.Run(scheduledCmd, 0, 2);
             }
 
-            using (CommandLib.ScheduledCommand scheduledCmd = new CommandLib.ScheduledCommand(new AddCommand(2), RealSoon(), false))
+            using (ScheduledCommand scheduledCmd = new ScheduledCommand(new AddCommand(2), RealSoon(), false))
             {
                 Assert.AreEqual(scheduledCmd.SyncExecute(3), 5);
             }
@@ -57,12 +58,12 @@ namespace CommandLibTests
         [TestMethod]
         public void ScheduledCommand_TestFail()
         {
-            using (CommandLib.ScheduledCommand scheduledCmd = new CommandLib.ScheduledCommand(new AddCommand(0), Yesterday(), false))
+            using (ScheduledCommand scheduledCmd = new ScheduledCommand(new AddCommand(0), Yesterday(), false))
             {
                 FailTest.Run<InvalidOperationException>(scheduledCmd, 0);
             }
 
-            using (CommandLib.ScheduledCommand scheduledCmd = new CommandLib.ScheduledCommand(new FailingCommand(), RealSoon(), true))
+            using (ScheduledCommand scheduledCmd = new ScheduledCommand(new FailingCommand(), RealSoon(), true))
             {
                 FailTest.Run<FailingCommand.FailException>(scheduledCmd, 0);
             }
@@ -71,7 +72,7 @@ namespace CommandLibTests
         [TestMethod]
         public void ScheduledCommand_TestSkipCurrentWait()
         {
-            using (CommandLib.ScheduledCommand scheduledCmd = new CommandLib.ScheduledCommand(new AddCommand(0), Tomorrow(), false))
+            using (ScheduledCommand scheduledCmd = new ScheduledCommand(new AddCommand(0), Tomorrow(), false))
             {
                 CmdListener listener = new CmdListener(CmdListener.CallbackType.Succeeded, 0);
                 scheduledCmd.AsyncExecute(listener, 0);
@@ -93,7 +94,7 @@ namespace CommandLibTests
         [TestMethod]
         public void ScheduledCommand_TestChange()
         {
-            using (CommandLib.ScheduledCommand scheduledCmd = new CommandLib.ScheduledCommand(new AddCommand(0), Tomorrow(), false))
+            using (ScheduledCommand scheduledCmd = new ScheduledCommand(new AddCommand(0), Tomorrow(), false))
             {
                 CmdListener listener = new CmdListener(CmdListener.CallbackType.Succeeded, 0);
                 scheduledCmd.AsyncExecute(listener, 0);

@@ -1,9 +1,6 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
 
-namespace CommandLib
+namespace Sophos.Commands
 {
     /// <summary>
     /// This <see cref="Command"/> wraps another command, allowing the command to be retried upon failure, up to any number of times.
@@ -16,7 +13,7 @@ namespace CommandLib
     /// and the 'result' parameter of <see cref="ICommandListener.CommandSucceeded"/> will be set in similar fashion.
     /// </para>
     /// </remarks>
-    public class RetryableCommand : CommandLib.SyncCommand
+    public class RetryableCommand : Commands.SyncCommand
     {
         /// <summary>
         /// Interface that defines aspects of retry behavior

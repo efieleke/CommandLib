@@ -1,12 +1,9 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+using Sophos.Commands;
 
 namespace CommandLibSample
 {
-    class ReportPositionCommand : CommandLib.SyncCommand
+    class ReportPositionCommand : SyncCommand
     {
         internal ReportPositionCommand(RobotArm robotArm) : base(null)
         {

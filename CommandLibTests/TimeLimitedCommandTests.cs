@@ -1,5 +1,6 @@
 ﻿using System;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
+using Sophos.Commands;
 
 namespace CommandLibTests
 {
@@ -9,8 +10,8 @@ namespace CommandLibTests
         [TestMethod]
         public void TimeLimitedCommand_TestAbort()
         {
-            using (CommandLib.TimeLimitedCommand timeLimitedCmd = new CommandLib.TimeLimitedCommand(
-                new CommandLib.PauseCommand(TimeSpan.FromDays(1)),
+            using (TimeLimitedCommand timeLimitedCmd = new TimeLimitedCommand(
+                new PauseCommand(TimeSpan.FromDays(1)),
                 int.MaxValue))
             {
                 AbortTest.Run(timeLimitedCmd, null, 10);
@@ -20,13 +21,13 @@ namespace CommandLibTests
         [TestMethod]
         public void TimeLimitedCommand_TestHappyPath()
         {
-            using (CommandLib.TimeLimitedCommand timeLimitedCmd = new CommandLib.TimeLimitedCommand(new AddCommand(4), int.MaxValue))
+            using (TimeLimitedCommand timeLimitedCmd = new TimeLimitedCommand(new AddCommand(4), int.MaxValue))
             {
                 HappyPathTest.Run(timeLimitedCmd, 10, 14);
             }
 
-            using (CommandLib.TimeLimitedCommand timeLimitedCmd = new CommandLib.TimeLimitedCommand(
-                new CommandLib.PauseCommand(TimeSpan.FromMilliseconds(10)),
+            using (TimeLimitedCommand timeLimitedCmd = new TimeLimitedCommand(
+                new PauseCommand(TimeSpan.FromMilliseconds(10)),
                 100))
             {
                 HappyPathTest.Run(timeLimitedCmd, null, null);
@@ -36,13 +37,13 @@ namespace CommandLibTests
         [TestMethod]
         public void TimeLimitedCommand_TestFail()
         {
-            using (CommandLib.TimeLimitedCommand timeLimitedCmd = new CommandLib.TimeLimitedCommand(new FailingCommand(), int.MaxValue))
+            using (TimeLimitedCommand timeLimitedCmd = new TimeLimitedCommand(new FailingCommand(), int.MaxValue))
             {
                 FailTest.Run<FailingCommand.FailException>(timeLimitedCmd, null);
             }
 
-            using (CommandLib.TimeLimitedCommand timeLimitedCmd = new CommandLib.TimeLimitedCommand(
-                new CommandLib.PauseCommand(TimeSpan.FromMilliseconds(100)),
+            using (TimeLimitedCommand timeLimitedCmd = new TimeLimitedCommand(
+                new PauseCommand(TimeSpan.FromMilliseconds(100)),
                 10))
             {
                 FailTest.Run<TimeoutException>(timeLimitedCmd, null);
@@ -52,8 +53,8 @@ namespace CommandLibTests
         [TestMethod]
         public void TimeLimitedCommand_TestTimeout()
         {
-            using (CommandLib.TimeLimitedCommand timeLimitedCmd = new CommandLib.TimeLimitedCommand(
-                new CommandLib.PauseCommand(TimeSpan.FromDays(1)), 10))
+            using (TimeLimitedCommand timeLimitedCmd = new TimeLimitedCommand(
+                new PauseCommand(TimeSpan.FromDays(1)), 10))
             {
                 try
                 {
@@ -65,10 +66,10 @@ namespace CommandLibTests
                 }
             }
 
-            CommandLib.TimeLimitedCommand innerCmd = new CommandLib.TimeLimitedCommand(
-                new CommandLib.PauseCommand(TimeSpan.FromDays(1)), 10);
+            TimeLimitedCommand innerCmd = new TimeLimitedCommand(
+                new PauseCommand(TimeSpan.FromDays(1)), 10);
 
-            using (CommandLib.TimeLimitedCommand timeLimitedCmd = new CommandLib.TimeLimitedCommand(innerCmd, int.MaxValue))
+            using (TimeLimitedCommand timeLimitedCmd = new TimeLimitedCommand(innerCmd, int.MaxValue))
             {
                 try
                 {
@@ -80,9 +81,9 @@ namespace CommandLibTests
                 }
             }
 
-            innerCmd = new CommandLib.TimeLimitedCommand(new CommandLib.PauseCommand(TimeSpan.FromDays(1)), int.MaxValue);
+            innerCmd = new TimeLimitedCommand(new PauseCommand(TimeSpan.FromDays(1)), int.MaxValue);
 
-            using (CommandLib.TimeLimitedCommand timeLimitedCmd = new CommandLib.TimeLimitedCommand(innerCmd, 10))
+            using (TimeLimitedCommand timeLimitedCmd = new TimeLimitedCommand(innerCmd, 10))
             {
                 try
                 {
