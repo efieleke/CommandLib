@@ -13,7 +13,7 @@
     <RootNamespace>Sophos.Commands</RootNamespace>
     <Description>Commands simplifies coordination of asynchronous and synchronous activities. The library is built upon class Command, which represents an action. A Command may be run synchronously or asynchronously, and may be aborted.
 
-ParallelCommands, itself a Command, executes a collection of commands concurrently (in parallel), and SequentialCommands executes its commands in sequence. Using these classes, it's possible to create a deep nesting of coordinated actions. For example, SequentialCommands can hold instances of ParallelCommands, which in turn could hold SequentialCommands, and any other Command-derived object.
+ParallelCommands, itself a Command, executes a collection of commands concurrently, and SequentialCommands executes its commands in sequence. Using these classes, it's possible to create a deep nesting of coordinated actions. For example, SequentialCommands can hold instances of ParallelCommands, which in turn could hold SequentialCommands, and any other Command-derived object.
 
 TaskCommand, DelegateCommand and Command.AsTask() offer easy integration with Tasks and delegates.
 
@@ -52,6 +52,61 @@ The MIT License (MIT)
     <PackageTags>Commands;command;task;asynchronous;synchronous;concurrent;abort;action;coordinate</PackageTags>
     <RepositoryUrl>https://github.com/efieleke/CommandLib.git</RepositoryUrl>
     <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
+  </PropertyGroup>
+
+  <PropertyGroup Condition="'$(Configuration)|$(TargetFramework)|$(Platform)'=='Release|net45|AnyCPU'">
+    <DocumentationFile>C:\Users\efieleke\Documents\GitHub\CommandLib\Commands\Sophos.Commands.xml</DocumentationFile>
+    <GenerateSerializationAssemblies>Auto</GenerateSerializationAssemblies>
+  </PropertyGroup>
+
+  <PropertyGroup Condition="'$(Configuration)|$(TargetFramework)|$(Platform)'=='Release|net451|AnyCPU'">
+    <DocumentationFile>C:\Users\efieleke\Documents\GitHub\CommandLib\Commands\Sophos.Commands.xml</DocumentationFile>
+    <GenerateSerializationAssemblies>Auto</GenerateSerializationAssemblies>
+  </PropertyGroup>
+
+  <PropertyGroup Condition="'$(Configuration)|$(TargetFramework)|$(Platform)'=='Release|net452|AnyCPU'">
+    <DocumentationFile>C:\Users\efieleke\Documents\GitHub\CommandLib\Commands\Sophos.Commands.xml</DocumentationFile>
+    <GenerateSerializationAssemblies>Auto</GenerateSerializationAssemblies>
+  </PropertyGroup>
+
+  <PropertyGroup Condition="'$(Configuration)|$(TargetFramework)|$(Platform)'=='Release|net46|AnyCPU'">
+    <DocumentationFile>C:\Users\efieleke\Documents\GitHub\CommandLib\Commands\Sophos.Commands.xml</DocumentationFile>
+    <GenerateSerializationAssemblies>Auto</GenerateSerializationAssemblies>
+  </PropertyGroup>
+
+  <PropertyGroup Condition="'$(Configuration)|$(TargetFramework)|$(Platform)'=='Release|net461|AnyCPU'">
+    <DocumentationFile>C:\Users\efieleke\Documents\GitHub\CommandLib\Commands\Sophos.Commands.xml</DocumentationFile>
+    <GenerateSerializationAssemblies>Auto</GenerateSerializationAssemblies>
+  </PropertyGroup>
+
+  <PropertyGroup Condition="'$(Configuration)|$(TargetFramework)|$(Platform)'=='Release|net462|AnyCPU'">
+    <DocumentationFile>C:\Users\efieleke\Documents\GitHub\CommandLib\Commands\Sophos.Commands.xml</DocumentationFile>
+    <GenerateSerializationAssemblies>Auto</GenerateSerializationAssemblies>
+  </PropertyGroup>
+
+  <PropertyGroup Condition="'$(Configuration)|$(TargetFramework)|$(Platform)'=='Release|net47|AnyCPU'">
+    <DocumentationFile>C:\Users\efieleke\Documents\GitHub\CommandLib\Commands\Sophos.Commands.xml</DocumentationFile>
+    <GenerateSerializationAssemblies>Auto</GenerateSerializationAssemblies>
+  </PropertyGroup>
+
+  <PropertyGroup Condition="'$(Configuration)|$(TargetFramework)|$(Platform)'=='Release|net471|AnyCPU'">
+    <DocumentationFile>C:\Users\efieleke\Documents\GitHub\CommandLib\Commands\Sophos.Commands.xml</DocumentationFile>
+    <GenerateSerializationAssemblies>Auto</GenerateSerializationAssemblies>
+  </PropertyGroup>
+
+  <PropertyGroup Condition="'$(Configuration)|$(TargetFramework)|$(Platform)'=='Release|net472|AnyCPU'">
+    <DocumentationFile>C:\Users\efieleke\Documents\GitHub\CommandLib\Commands\Sophos.Commands.xml</DocumentationFile>
+    <GenerateSerializationAssemblies>Auto</GenerateSerializationAssemblies>
+  </PropertyGroup>
+
+  <PropertyGroup Condition="'$(Configuration)|$(TargetFramework)|$(Platform)'=='Release|netcoreapp2.0|AnyCPU'">
+    <DocumentationFile>C:\Users\efieleke\Documents\GitHub\CommandLib\Commands\Sophos.Commands.xml</DocumentationFile>
+    <GenerateSerializationAssemblies>Auto</GenerateSerializationAssemblies>
+  </PropertyGroup>
+
+  <PropertyGroup Condition="'$(Configuration)|$(TargetFramework)|$(Platform)'=='Release|netcoreapp2.1|AnyCPU'">
+    <DocumentationFile>C:\Users\efieleke\Documents\GitHub\CommandLib\Commands\Sophos.Commands.xml</DocumentationFile>
+    <GenerateSerializationAssemblies>Auto</GenerateSerializationAssemblies>
   </PropertyGroup>
 
   <PropertyGroup Condition="'$(Configuration)|$(TargetFramework)|$(Platform)'=='Release|netstandard2.0|AnyCPU'">
