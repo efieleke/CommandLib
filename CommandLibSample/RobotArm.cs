@@ -5,6 +5,10 @@ namespace CommandLibSample
     /// <summary>
     /// A robot arm can move along X and Y axes, report its current position, open and close its clamp,
     /// and report whether it has successfully grabbed something.
+	/// 
+	/// This class is contrived in that it simulates being asynchronous via worker threads and idle waits.
+	/// For that reason there is probably not much learning to be gained by comprehending anything more
+	/// than its public interface.
     /// </summary>
     class RobotArm
     {
@@ -78,12 +82,8 @@ namespace CommandLibSample
                 }
 
                 moveOp.doneEvent.Set();
-
-                if (MoveCompleteEvent != null)
-                {
-                    MoveCompleteEvent(this, moveOp);
-                }
-            });
+				MoveCompleteEvent?.Invoke(this, moveOp);
+			});
 
             thread.Start();
             return moveOp;
@@ -284,6 +284,6 @@ namespace CommandLibSample
         private int yPos = 0;
         private int zPos = 0;
         private bool clampIsOpen = false;
-        private Object criticalSection = new Object();
+        private readonly Object criticalSection = new Object();
     }
 }

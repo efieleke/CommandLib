@@ -68,7 +68,18 @@ namespace Sophos.Commands
 			int startingThreadId = Thread.CurrentThread.ManagedThreadId;
 
 			if (task != null) { task.Dispose(); }
-			task = CreateTask(runtimeArg);
+
+			try
+			{
+				task = CreateTask(runtimeArg);
+			}
+			catch(Exception e)
+			{
+				// We failed synchronously. This is most likely due to an exception occuring before
+				// the first await. Let's be consistent about this and make the callback on the listener.
+				// That must be done on a different thread.
+				task = new Task<TResult>(() => { throw e; });
+			}
 
 			task.ContinueWith(t =>
 			{
@@ -99,7 +110,14 @@ namespace Sophos.Commands
 					}
 					catch (AggregateException exc)
 					{
-						listener.CommandFailed(exc.InnerException);
+						if (exc.InnerException is CommandAbortedException)
+						{
+							listener.CommandAborted();
+						}
+						else
+						{
+							listener.CommandFailed(exc.InnerException);
+						}
 					}
 				}
 			},
@@ -137,6 +155,10 @@ namespace Sophos.Commands
 			if (threadArg.Exception == null)
 			{
 				threadArg.Listener.CommandSucceeded(threadArg.Result);
+			}
+			else if (threadArg.Exception is CommandAbortedException)
+			{
+				threadArg.Listener.CommandAborted();
 			}
 			else
 			{

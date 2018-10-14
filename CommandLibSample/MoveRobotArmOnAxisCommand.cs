@@ -81,6 +81,6 @@ namespace CommandLibSample
         private readonly RobotArm.Axis axis;
         private RobotArm.IAbortableAsyncResult asyncResult;
         private ICommandListener listener;
-        private Object criticalSection = new Object();
+        private readonly Object criticalSection = new Object();
     }
 }

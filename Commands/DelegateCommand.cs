@@ -11,7 +11,7 @@ namespace Sophos.Commands
 	/// the <see cref="Command.AbortRequested"/> on the command that is the owner of this command.
 	/// </summary>
 	/// <typeparam name="TResult"></typeparam>
-	public class DelegateCommand<TResult> : TaskCommand<TResult>
+	public sealed class DelegateCommand<TResult> : TaskCommand<TResult>
 	{
 		/// <summary>
 		/// Constructs a command that will run the provided function, with no owner
@@ -39,6 +39,10 @@ namespace Sophos.Commands
 		/// <param name="function">The function to run when this command is executed</param>
 		public DelegateCommand(Func<object, TResult> function) : this(function, null) { }
 
+		/// <summary>
+		/// Constructs a command that will run the provided function, with no owner
+		/// </summary>
+		/// <param name="function">The function to run when this command is executed</param>
 		/// <param name="owner">
 		/// Specify null to indicate a top-level command. Otherwise, this command will be owned by 'owner'.
 		/// Owned commands respond to abort requests made of their owner. Also, owned commands are
@@ -49,6 +53,7 @@ namespace Sophos.Commands
 			func = function;
 		}
 
+	    /// <inheritdoc />
 		protected sealed override Task<TResult> CreateTask(object runtimeArg)
 		{
 			return new Task<TResult>(func, runtimeArg);

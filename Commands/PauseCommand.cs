@@ -178,7 +178,7 @@ namespace Sophos.Commands
         private TimeSpan duration;
         private System.Threading.ManualResetEvent resetEvent = new System.Threading.ManualResetEvent(false);
         private System.Threading.ManualResetEvent cutShortEvent = new System.Threading.ManualResetEvent(false);
-        private System.Threading.WaitHandle externalCutShortEvent = null;
-        private Object criticalSection = new Object();
+        private readonly System.Threading.WaitHandle externalCutShortEvent = null;
+        private readonly Object criticalSection = new Object();
     }
 }

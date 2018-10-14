@@ -288,53 +288,57 @@ namespace Sophos.Commands
 		/// <returns></returns>
 		protected sealed override async Task<HttpResponseMessage> CreateTask(object runtimeArg)
 		{
-			cancelTokenSource.Dispose();
-			cancelTokenSource = new System.Threading.CancellationTokenSource();
-			_aborted = false;
-			IRequestGenerator generator = runtimeArg == null ? requestGenerator : (IRequestGenerator)runtimeArg;
-
-			using (HttpRequestMessage request = generator.GenerateRequest())
+			// Dispose of the prior cancel token source after the request is performed. We need to keep
+			// the prior one until then for thread safety reasons
+			using (var previousCancelTokenSource = cancelTokenSource)
 			{
-				// The same request message cannot be sent more than once, so we have to contruct a new one every time.
-				Task<HttpResponseMessage> task = Client.SendAsync(request, HttpCompletionOption.ResponseContentRead, cancelTokenSource.Token);
+				cancelTokenSource = new System.Threading.CancellationTokenSource();
+				_aborted = false;
+				IRequestGenerator generator = runtimeArg == null ? requestGenerator : (IRequestGenerator)runtimeArg;
 
-				try
+				using (HttpRequestMessage request = generator.GenerateRequest())
 				{
-					HttpResponseMessage message = await task;
+					// The same request message cannot be sent more than once, so we have to contruct a new one every time.
+					Task<HttpResponseMessage> task = Client.SendAsync(request, HttpCompletionOption.ResponseContentRead, cancelTokenSource.Token);
 
-					if (responseChecker != null)
+					try
 					{
-						try
-						{
-							await responseChecker.CheckResponse(message);
-						}
-						catch (Exception)
-						{
-							message.Dispose();
-							task.Dispose();
-							throw;
-						}
-					}
+						HttpResponseMessage message = await task;
 
-					return message;
-				}
-				catch (System.OperationCanceledException)
-				{
-					if (_aborted)
+						if (responseChecker != null)
+						{
+							try
+							{
+								await responseChecker.CheckResponse(message);
+							}
+							catch (Exception)
+							{
+								message.Dispose();
+								task.Dispose();
+								throw;
+							}
+						}
+
+						return message;
+					}
+					catch (System.OperationCanceledException)
 					{
-						// We got here because Abort() was called
-						throw new CommandAbortedException();
-					}
+						if (_aborted)
+						{
+							// We got here because Abort() was called
+							throw new CommandAbortedException();
+						}
 
-					// We got here because the request timed out
-					throw new TimeoutException();
+						// We got here because the request timed out
+						throw new TimeoutException();
+					}
 				}
 			}
 		}
 
-		private IRequestGenerator requestGenerator = null;
+		private readonly IRequestGenerator requestGenerator = null;
         private IResponseChecker responseChecker = null;
-        private bool disposeHttpClient = false;
+        private readonly bool disposeHttpClient = false;
         private bool _aborted = false;
         private System.Threading.CancellationTokenSource cancelTokenSource = new System.Threading.CancellationTokenSource();
     }

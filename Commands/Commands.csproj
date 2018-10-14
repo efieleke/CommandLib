@@ -6,30 +6,40 @@
     <OutputType>Library</OutputType>
     <StartupObject />
     <PackageId>Sophos.Commands</PackageId>
-    <Version>1.1.1</Version>
+    <Version>1.2.0</Version>
     <Authors>Eric Fieleke</Authors>
     <Title>Commands Library, for coordination of synchronous and asynchronous actions</Title>
     <AssemblyName>Sophos.Commands</AssemblyName>
     <RootNamespace>Sophos.Commands</RootNamespace>
-    <Description>
-      Commands simplifies coordination of asynchronous and synchronous activities. The library is built upon class Command, which represents an action. A Command may be run synchronously or asynchronously, and may be aborted.
+    <Description>Commands simplifies coordination of asynchronous and synchronous activities. The library is built upon class Command, which represents an action. A Command may be run synchronously or asynchronously, and may be aborted.
 
-      ParallelCommands, itself a Command, executes a collection of commands concurrently (in parallel), and SequentialCommands executes its commands in sequence. Using these classes, it's possible to create a deep nesting of coordinated actions. For example, SequentialCommands can hold instances of ParallelCommands, which in turn could hold SequentialCommands, and any other Command-derived object.
+ParallelCommands, itself a Command, executes a collection of commands concurrently (in parallel), and SequentialCommands executes its commands in sequence. Using these classes, it's possible to create a deep nesting of coordinated actions. For example, SequentialCommands can hold instances of ParallelCommands, which in turn could hold SequentialCommands, and any other Command-derived object.
 
-      TaskCommand, DelegateCommand and Command.AsTask() offer easy integration with Tasks and delegates.
+TaskCommand, DelegateCommand and Command.AsTask() offer easy integration with Tasks and delegates.
 
-      PeriodicCommand repeats its action at a given interval, ScheduledCommand runs once at a specific time, and RecurringCommand runs at times that are provided via a callback.
+PeriodicCommand repeats its action at a given interval, ScheduledCommand runs once at a specific time, and RecurringCommand runs at times that are provided via a callback.
 
-      RetryableCommand offers the option to keep retrying a failed command until the caller has had enough, and TimeLimitedCommand fails with a timeout exception if a given duration elapses before the command finishes execution.
+RetryableCommand offers the option to keep retrying a failed command until the caller has had enough, and TimeLimitedCommand fails with a timeout exception if a given duration elapses before the command finishes execution.
 
-      All of the above Command classes are simply containers for other Command objects that presumably do something of interest. They can be combined in ways that offer a lot of customization. For example, to make an HttpRequest at a given time, with a timeout and a configurable number of retries, you could create a ScheduledCommand containing a RetryableCommand which contains a TimeLimitedCommand which contains an HttpRequestCommand.
+All of the above Command classes are simply containers for other Command objects that presumably do something of interest. They can be combined in ways that offer a lot of customization. For example, to make an HttpRequest at a given time, with a timeout and a configurable number of retries, you could create a ScheduledCommand containing a RetryableCommand which contains a TimeLimitedCommand which contains an HttpRequestCommand.
       
-      Commands includes a few Command classes that might be commonly useful, including PauseCommand and HttpRequestCommand, but it is expected that users of this library will create their own Command-derived classes.
-      
-      Versions for C++ and Java exist at https://github.com/efieleke/CommandLibForCPP.git and https://github.com/efieleke/CommandLibForJava.git.
-  </Description>
+Commands includes a few Command classes that might be commonly useful, including PauseCommand and HttpRequestCommand, but it is expected that users of this library will create their own Command-derived classes.
+
+
+Guidelines for developing your own Command-derived class:
+
+- If the implementation of your command is naturally synchronous, inherit from SyncCommand
+
+- If the implementation of your command is naturally asynronous and makes use of await, inherit from TaskCommand
+
+- If the implementation of your command is naturally asynchronous but does not make use of await, inherit from AsyncCommand
+
+- Make your implementation responsive to abort requests. To do this, make ocassional calls to Command.CheckAbortFlag() or Command.AbortRequested.
+
+
+Versions for C++ and Java exist at https://github.com/efieleke/CommandLibForCPP.git and https://github.com/efieleke/CommandLibForJava.git.</Description>
     <Copyright>
-      The MIT License (MIT)
+The MIT License (MIT)
 
       Copyright (c) 2014 Sophos Ltd.
 
@@ -38,10 +48,15 @@
       The above copyright notice and this permission notice shall be included in all copies or substantial portions of the Software.
 
       THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
-    </Copyright>
+</Copyright>
     <PackageTags>Commands;command;task;asynchronous;synchronous;concurrent;abort;action;coordinate</PackageTags>
     <RepositoryUrl>https://github.com/efieleke/CommandLib.git</RepositoryUrl>
     <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
+  </PropertyGroup>
+
+  <PropertyGroup Condition="'$(Configuration)|$(TargetFramework)|$(Platform)'=='Release|netstandard2.0|AnyCPU'">
+    <DocumentationFile>C:\Users\efieleke\Documents\GitHub\CommandLib\Commands\Sophos.Commands.xml</DocumentationFile>
+    <GenerateSerializationAssemblies>Auto</GenerateSerializationAssemblies>
   </PropertyGroup>
 
   <ItemGroup Condition=" '$(TargetFramework)' == 'net45' ">

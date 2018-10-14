@@ -7,19 +7,19 @@ namespace CommandLibSample
     {
         internal MoveAndReportPositionCommand(RobotArm robotArm, int x, int y, int z, Command owner) : base(owner)
         {
-            MoveRobotArmCommand moveCmd = new MoveRobotArmCommand(robotArm, x, y, z);
+            var moveCmd = new MoveRobotArmCommand(robotArm, x, y, z);
 
-            // Create a commands that will periodically report robot arm position until it reaches the destination (x,y,z)
-            PeriodicCommand reportPositionCmd = new PeriodicCommand(
+            // Create a command that will periodically report robot arm position until it reaches the destination (x,y,z)
+            var reportPositionCmd = new PeriodicCommand(
                 new ReportPositionCommand(robotArm), // the command to execute
-                long.MaxValue, // no fixed upper limit on repetitions
-                TimeSpan.FromMilliseconds(500), // execute the command twice a second
-                PeriodicCommand.IntervalType.PauseBefore, // wait a second before executing the command the first time
-                true, // the second to wait is inclusive of the time it actually takes to report the position
-                moveCmd.DoneEvent); // stop when this event is signaled (in other words, when the arm reaches 0,0)
+                repeatCount: long.MaxValue, // no fixed upper limit on repetitions
+                interval: TimeSpan.FromMilliseconds(500), // execute the command twice a second
+                intervalType: PeriodicCommand.IntervalType.PauseBefore, // wait half a second before executing the command the first time
+                intervalIsInclusive: true, // the half second to wait is inclusive of the time it actually takes to report the position
+                stopEvent: moveCmd.DoneEvent); // stop when this event is signaled (in other words, when the arm reaches 0,0)
 
             // Create the command that will move the robot arm and periodically report at the same time
-            ParallelCommands moveAndReportCmd = new ParallelCommands(true);
+            var moveAndReportCmd = new ParallelCommands(abortUponFailure:true);
             moveAndReportCmd.Add(moveCmd);
             moveAndReportCmd.Add(reportPositionCmd);
 
@@ -29,7 +29,6 @@ namespace CommandLibSample
             // Notice that 'this' is passed as the owning command to this child command.
             // If we didn't do that, abort requests would not be honored (and we'd have a
             // resource leak).
-            // also have a resource leak because we never dispose this object).
             framedMoveAndReportCmd = new SequentialCommands(this);
             framedMoveAndReportCmd.Add(new ReportPositionCommand(robotArm));
             framedMoveAndReportCmd.Add(moveAndReportCmd);
@@ -42,6 +41,6 @@ namespace CommandLibSample
             return null;
         }
 
-        private SequentialCommands framedMoveAndReportCmd;
+        private readonly SequentialCommands framedMoveAndReportCmd;
     }
 }

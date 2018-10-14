@@ -32,37 +32,31 @@ namespace CommandLibTests
 		{
 			using (var cmd = new DoNothingCommand())
 			{
-				Assert.AreEqual(5, cmd.SyncExecute(5));
-				Assert.AreEqual(4, cmd.SyncExecute(4));
-			}
-		}
-
-		[TestMethod]
-		public void TaskCommand_TestAsync()
-		{
-			using (var cmd = new DoNothingCommand())
-			{
-				cmd.AsyncExecute(new DoNothingListener(1), 1);
-				cmd.Wait();
-				cmd.AsyncExecute(new DoNothingListener(2), 2);
-				cmd.Wait();
+				HappyPathTest.Run(cmd, 5, 5);
+				HappyPathTest.Run(cmd, 4, 4);
 			}
 		}
 
 		[TestMethod]
 		public void TaskCommand_TestError()
 		{
-			using (var cmd = new DoNothingCommand(true))
+			using (var cmd = new DoNothingCommand(DoNothingCommand.Behavior.FailUpFront))
 			{
-				try
-				{
-					cmd.SyncExecute();
-					Assert.Fail("Did not expect to get here");
-				}
-				catch(Exception e)
-				{
-					Assert.AreEqual("boo hoo", e.Message);
-				}
+				FailTest.Run<NotSupportedException>(cmd, 7);
+			}
+
+			using (var cmd = new DoNothingCommand(DoNothingCommand.Behavior.FailInTask))
+			{
+				FailTest.Run<InvalidOperationException>(cmd, 7);
+			}
+		}
+
+		[TestMethod]
+		public void TaskCommand_TestAbort()
+		{
+			using (var cmd = new DoNothingCommand(DoNothingCommand.Behavior.Abort))
+			{
+				AbortTest.Run(cmd, 7, 0);
 			}
 		}
 
@@ -77,16 +71,35 @@ namespace CommandLibTests
 
 		private class DoNothingCommand : TaskCommand<int>
 		{
-			internal DoNothingCommand() : this(false) { }
-			internal DoNothingCommand(bool fail) : base(null) { this.fail = fail; }
+			internal enum Behavior {Succeed, FailUpFront, FailInTask, AbortUpFront, Abort };
+
+			internal DoNothingCommand() : this(Behavior.Succeed) { }
+			internal DoNothingCommand(Behavior behavior) : base(null) { this.behavior = behavior; }
 
 			protected override Task<int> CreateTask(object runtimeArg)
 			{
-				if (fail) { throw new Exception("boo hoo"); }
-				return Task.FromResult((int)runtimeArg);
+				if (behavior == Behavior.FailUpFront) { throw new NotSupportedException(); }
+
+				return Task.Run<int>(() =>
+				{	
+					if (behavior == Behavior.FailInTask) { throw new InvalidOperationException(); }
+
+					if (behavior == Behavior.Abort && abortEvent.WaitOne())
+					{
+						throw new CommandAbortedException();
+					}
+
+					return (int)runtimeArg;
+				});
 			}
 
-			private readonly bool fail;
+			protected override void AbortImpl()
+			{
+				abortEvent.Set();
+			}
+
+			private readonly Behavior behavior;
+			private readonly System.Threading.ManualResetEvent abortEvent = new System.Threading.ManualResetEvent(false);
 		}
 	}
 }

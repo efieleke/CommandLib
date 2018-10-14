@@ -32,17 +32,23 @@ namespace Sophos.Commands
 	/// </para>
 	/// <para>
 	/// All of the above <see cref="Command"/> classes are simply containers for <see cref="Command"/> objects that presumably do
-	/// something of interest. CommandLib includes a few <see cref="Command"/> classes that might be commonly useful, including
+	/// something of interest. Commands includes a few <see cref="Command"/> classes that might be commonly useful, including
 	/// <see cref="PauseCommand"/> and <see cref="HttpRequestCommand"/>, but it is expected that users of this library will
 	/// create their own <see cref="Command"/>-derived classes.
 	/// </para>
 	/// <para>
-	/// Documentation for <see cref="Command"/>, <see cref="AsyncCommand"/> and <see cref="SyncCommand"/> should be read before
-	/// developing a <see cref="Command"/>-derived class. <see cref="AbortEventedCommand"/> might also serve as an aid in the
-	/// development of a <see cref="Command"/>.
-	/// </para>
+    /// Guidelines for developing your own Command-derived class:
+    /// - If the implementation of your command is naturally synchronous, inherit from SyncCommand
+    /// - If the implementation of your command is naturally asynronous and makes use of await, inherit from TaskCommand
+    /// - If the implementation of your command is naturally asynchronous but does not make use of await, inherit from AsyncCommand
+	/// - Make your implementation responsive to abort requests.To do this, make ocassional calls to Command.CheckAbortFlag() or Command.AbortRequested.
+    /// </para>
+    /// <para>
+    /// At a minimum, documentation for <see cref="Command"/>, <see cref="AsyncCommand"/> and <see cref="SyncCommand"/> and <see cref="TaskCommand{TResult}"/> should be read
+	/// before developing a <see cref="Command"/>-derived class.
+    /// </para>
 	/// </summary>
-	[System.Runtime.CompilerServices.CompilerGeneratedAttribute()]
+ [System.Runtime.CompilerServices.CompilerGeneratedAttribute()]
     class NamespaceDoc
     {
     }
@@ -196,7 +202,7 @@ namespace Sophos.Commands
 		/// <returns>
 		/// Concrete commands may return a value of interest. See the concrete command class for details.
 		/// </returns>
-		/// <exception cref="CommandLib.CommandAbortedException">Thrown when command execution is aborted.</exception>
+		/// <exception cref="Commands.CommandAbortedException">Thrown when command execution is aborted.</exception>
 		/// <exception cref="System.ObjectDisposedException">Thrown if called after the command object has been disposed</exception>
 		/// <exception cref="System.Exception">
 		/// Thrown if execution does not complete successfully. Call <see cref="GetAttachedErrorInfo"/> to retrieve context information
@@ -226,7 +232,7 @@ namespace Sophos.Commands
 		/// <returns>
 		/// Concrete commands may return a value of interest. See the concrete command class for details.
 		/// </returns>
-		/// <exception cref="CommandLib.CommandAbortedException">Thrown when command execution is aborted.</exception>
+		/// <exception cref="Commands.CommandAbortedException">Thrown when command execution is aborted.</exception>
 		/// <exception cref="System.ObjectDisposedException">Thrown if called after the command object has been disposed</exception>
 		/// <exception cref="System.Exception">
 		/// Thrown if execution does not complete successfully. Call <see cref="GetAttachedErrorInfo"/> to retrieve context information
@@ -262,7 +268,7 @@ namespace Sophos.Commands
 		/// <returns>
 		/// Concrete commands may return a value of interest. See the concrete command class for details.
 		/// </returns>
-		/// <exception cref="CommandLib.CommandAbortedException">Thrown when command execution is aborted.</exception>
+		/// <exception cref="Commands.CommandAbortedException">Thrown when command execution is aborted.</exception>
 		/// <exception cref="System.ObjectDisposedException">Thrown if called after the command object has been disposed</exception>
 		/// <exception cref="System.Exception">
 		/// Thrown if execution does not complete successfully. Call <see cref="GetAttachedErrorInfo"/> to retrieve context information
@@ -385,7 +391,7 @@ namespace Sophos.Commands
         /// Concrete commands may return a value of interest. See the concrete command class for details.
         /// Generic methods are also provided to automatically cast the return value to the expected type.
         /// </returns>
-        /// <exception cref="CommandLib.CommandAbortedException">Thrown when execution is aborted</exception>
+        /// <exception cref="Commands.CommandAbortedException">Thrown when execution is aborted</exception>
         /// <exception cref="System.ObjectDisposedException">Thrown if called after this object has been disposed</exception>
         /// <exception cref="System.Exception">
         /// Thrown if execution does not complete successfully. Call <see cref="GetAttachedErrorInfo"/> to retrieve context information
@@ -413,7 +419,7 @@ namespace Sophos.Commands
         /// Concrete commands may return a value of interest. See the concrete command class for details.
         /// Generic methods are also provided to automatically cast the return value to the expected type.
         /// </returns>
-        /// <exception cref="CommandLib.CommandAbortedException">Thrown when execution is aborted</exception>
+        /// <exception cref="Commands.CommandAbortedException">Thrown when execution is aborted</exception>
         /// <exception cref="System.ObjectDisposedException">Thrown if called after this object has been disposed</exception>
         /// <exception cref="System.Exception">
         /// Thrown if execution does not complete successfully. Call <see cref="GetAttachedErrorInfo"/> to retrieve context information
@@ -444,7 +450,7 @@ namespace Sophos.Commands
         /// Concrete commands may return a value of interest. See the concrete command class for details.
         /// Generic methods are also provided to automatically cast the return value to the expected type.
         /// </returns>
-        /// <exception cref="CommandLib.CommandAbortedException">Thrown when execution is aborted</exception>
+        /// <exception cref="Commands.CommandAbortedException">Thrown when execution is aborted</exception>
         /// <exception cref="System.ObjectDisposedException">Thrown if called after this object has been disposed</exception>
         /// <exception cref="System.Exception">
         /// Thrown if execution does not complete successfully. Call <see cref="GetAttachedErrorInfo"/> to retrieve context information
@@ -464,7 +470,7 @@ namespace Sophos.Commands
         /// <returns>
         /// Concrete commands may return a value of interest. See the concrete command class for details.
         /// </returns>
-        /// <exception cref="CommandLib.CommandAbortedException">Thrown when execution is aborted</exception>
+        /// <exception cref="Commands.CommandAbortedException">Thrown when execution is aborted</exception>
         /// <exception cref="System.ObjectDisposedException">Thrown if called after this object has been disposed</exception>
         /// <exception cref="System.Exception">
         /// Thrown if execution does not complete successfully. Call <see cref="GetAttachedErrorInfo"/> to retrieve context information
@@ -492,7 +498,7 @@ namespace Sophos.Commands
         /// <returns>
         /// Concrete commands may return a value of interest. See the concrete command class for details.
         /// </returns>
-        /// <exception cref="CommandLib.CommandAbortedException">Thrown when execution is aborted</exception>
+        /// <exception cref="Commands.CommandAbortedException">Thrown when execution is aborted</exception>
         /// <exception cref="System.ObjectDisposedException">Thrown if called after this object has been disposed</exception>
         /// <exception cref="System.Exception">
         /// Thrown if execution does not complete successfully. Call <see cref="GetAttachedErrorInfo"/> to retrieve context information
@@ -522,7 +528,7 @@ namespace Sophos.Commands
         /// <returns>
         /// Concrete commands may return a value of interest. See the concrete command class for details.
         /// </returns>
-        /// <exception cref="CommandLib.CommandAbortedException">Thrown when execution is aborted</exception>
+        /// <exception cref="Commands.CommandAbortedException">Thrown when execution is aborted</exception>
         /// <exception cref="System.ObjectDisposedException">Thrown if called after this object has been disposed</exception>
         /// <exception cref="System.Exception">
         /// Thrown if execution does not complete successfully. Call <see cref="GetAttachedErrorInfo"/> to retrieve context information
@@ -709,10 +715,6 @@ namespace Sophos.Commands
             }
         }
 
-        /// <summary>
-        /// Signaled when this command is to be aborted. Note that this event is only reset when the command next begins execution.
-		/// Callers must not alter the state of this handle, which is why this is internal and not public.
-        /// </summary>
         internal System.Threading.WaitHandle AbortEvent
         {
             get
@@ -726,10 +728,7 @@ namespace Sophos.Commands
 		/// Returns whether an abort request has been made
 		/// </summary>
 		/// <returns>true, if an abort request has been made.</returns>
-		protected bool AbortRequested()
-		{
-			return AbortEvent.WaitOne(0);
-		}
+		protected bool AbortRequested => AbortEvent.WaitOne(0);
 
         /// <summary>
         /// Signaled when this command has finished execution, regardless of whether it succeeded, failed or was aborted.
@@ -960,13 +959,12 @@ namespace Sophos.Commands
                 return command.owner;
             }
 
-            if (command is AbortEventedCommand)
-            {
-                AbortEventedCommand abortEventedCommand = (AbortEventedCommand)command;
-                return abortEventedCommand.CommandToWatch;
-            }
+			if (command is AbortEventedCommand abortEventedCommand)
+			{
+				return abortEventedCommand.CommandToWatch;
+			}
 
-            return null;
+			return null;
         }
 
         private void SetAbortEvent(Command target)
@@ -1146,8 +1144,8 @@ namespace Sophos.Commands
             }
 
             private Command command;
-            private ICommandListener listener;
-            private int asyncExeThreadId;
+            private readonly ICommandListener listener;
+            private readonly int asyncExeThreadId;
         }
 
         private readonly long id;
