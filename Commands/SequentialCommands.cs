@@ -1,5 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 
 namespace Sophos.Commands
 {
@@ -41,13 +40,13 @@ namespace Sophos.Commands
         /// <remarks>
         /// This object takes ownership of any commands that are added, so the passed command must not already have an owner.
         /// The passed command will be disposed when this SequentialCommands object is disposed.
-        /// <para>Behavior is undefined if you add a command while this SeqentialCommands object is executing</para>
+        /// <para>Behavior is undefined if you add a command while this SequentialCommands object is executing</para>
         /// </remarks>
         public void Add(Command command)
         {
             CheckDisposed();
             TakeOwnership(command);
-            commands.AddLast(command);
+            _commands.AddLast(command);
         }
 
         /// <summary>
@@ -57,13 +56,13 @@ namespace Sophos.Commands
         {
             CheckDisposed();
 
-            foreach (Command cmd in commands)
+            foreach (Command cmd in _commands)
             {
                 RelinquishOwnership(cmd);
                 cmd.Dispose();
             }
 
-            commands.Clear();
+            _commands.Clear();
         }
 
         /// <summary>
@@ -73,7 +72,7 @@ namespace Sophos.Commands
         {
             get
             {
-                return commands;
+                return _commands;
             }
         }
 
@@ -85,7 +84,7 @@ namespace Sophos.Commands
         /// </returns>
         public override string ExtendedDescription()
         {
-            return String.Format("Number of commands: {0}", commands.Count);
+            return $"Number of commands: {_commands.Count}";
         }
 
         /// <summary>
@@ -93,9 +92,9 @@ namespace Sophos.Commands
         /// </summary>
         /// <param name="runtimeArg">Not applicable</param>
         /// <returns>Not applicable</returns>
-        protected sealed override Object SyncExeImpl(Object runtimeArg)
+        protected sealed override object SyncExeImpl(object runtimeArg)
         {
-            foreach (Command cmd in commands)
+            foreach (Command cmd in _commands)
             {
                 CheckAbortFlag();
                 runtimeArg = cmd.SyncExecute(runtimeArg);
@@ -104,6 +103,6 @@ namespace Sophos.Commands
             return runtimeArg;
         }
 
-        private System.Collections.Generic.LinkedList<Command> commands = new LinkedList<Command>();
+        private readonly LinkedList<Command> _commands = new LinkedList<Command>();
     }
 }

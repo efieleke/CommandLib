@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Threading.Tasks;
 using Sophos.Commands;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 
@@ -7,10 +8,10 @@ namespace CommandLibTests
 {
     internal static class HappyPathTest
     {
-        internal static void Run(Command cmd, Object runtimeArg, Object expectedResult, Comparison<Object> compare = null)
+        internal static void Run(Command cmd, object runtimeArg, object expectedResult, Comparison<object> compare = null)
         {
             Assert.IsTrue(Command.Monitors == null);
-            String tempFile = System.IO.Path.GetTempFileName();
+            string tempFile = System.IO.Path.GetTempFileName();
 
             try
             {
@@ -23,17 +24,9 @@ namespace CommandLibTests
                 cmd.Wait();
                 listener.Check();
                 cmd.Abort(); // should be a no-op
-                Object result;
 
-                // Only doing this hooey-booey for code coverage reasons
-                if (runtimeArg == null)
-                {
-                    result = cmd.SyncExecute<Object>();
-                }
-                else
-                {
-                    result = cmd.SyncExecute<Object>(runtimeArg);
-                }
+	            // Only doing this hooey-booey for code coverage reasons
+                object result = runtimeArg == null ? cmd.SyncExecute<object>() : cmd.SyncExecute<object>(runtimeArg);
 
                 if (compare == null)
                 {
@@ -41,15 +34,32 @@ namespace CommandLibTests
                 }
                 else if (compare(expectedResult, result) != 0)
                 {
-                    Assert.Fail(String.Format("expectedResult != result ({0} != {1}", expectedResult, result));
+                    Assert.Fail($"expectedResult != result ({expectedResult} != {result}");
                 }
 
                 cmd.Wait(); // should be a no-op
                 cmd.AbortAndWait(); // should be a no-op
+
+	            using (Task<object> task = cmd.AsTask<object>(runtimeArg))
+	            {
+		            task.Start();
+		            result = task.Result;
+
+		            if (compare == null)
+		            {
+			            Assert.AreEqual(expectedResult, result);
+		            }
+		            else if (compare(expectedResult, result) != 0)
+		            {
+			            Assert.Fail($"expectedResult != result ({expectedResult} != {result}");
+		            }
+	            }
             }
-            finally
+			finally
             {
-                foreach (ICommandMonitor monitor in Command.Monitors)
+	            Assert.IsNotNull(Command.Monitors);
+
+	            foreach (ICommandMonitor monitor in Command.Monitors)
                 {
                     monitor.Dispose();
                 }

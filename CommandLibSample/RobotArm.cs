@@ -10,12 +10,12 @@ namespace CommandLibSample
 	/// For that reason there is probably not much learning to be gained by comprehending anything more
 	/// than its public interface.
     /// </summary>
-    class RobotArm
+    internal class RobotArm
     {
         [SerializableAttribute]
         public class OverheatedException : Exception
         {
-            public OverheatedException(String message)
+            public OverheatedException(string message)
                 : base(message)
             {
             }
@@ -33,7 +33,7 @@ namespace CommandLibSample
         /// </summary>
         internal interface IAbortableAsyncResult : IAsyncResult, IDisposable
         {
-            Object UserData { get;  }
+            object UserData { get;  }
             Axis MoveAxis { get; }
             bool Aborted { get; }
             Exception Failure { get; }
@@ -45,16 +45,17 @@ namespace CommandLibSample
 
         internal RobotArm()
         {
-            random = new Random();
+            _random = new Random();
         }
 
-        /// <summary>
-        /// Begin moving along an axis.
-        /// </summary>
-        /// <param name="destination">The target to move to</param>
-        /// <param name="userData">Caller defined data that will be passed to the completion callback</param>
-        /// <returns></returns>
-        internal IAbortableAsyncResult Move(Axis axis, int destination, Object userData)
+	    /// <summary>
+	    /// Begin moving along an axis.
+	    /// </summary>
+	    /// <param name="axis">The axis on which to move</param>
+	    /// <param name="destination">The target to move to</param>
+	    /// <param name="userData">Caller defined data that will be passed to the completion callback</param>
+	    /// <returns></returns>
+	    internal IAbortableAsyncResult Move(Axis axis, int destination, object userData)
         {
             Operation moveOp = new Operation(axis, userData);
 
@@ -71,17 +72,17 @@ namespace CommandLibSample
                             break;
                         }
 
-                        aborted = moveOp.abortEvent.WaitOne(125);
+                        aborted = moveOp.AbortEvent.WaitOne(125);
                     }
 
                     moveOp.aborted = aborted;
                 }
                 catch (Exception e)
                 {
-                    moveOp.error = e;
+                    moveOp.Error = e;
                 }
 
-                moveOp.doneEvent.Set();
+                moveOp.DoneEvent.Set();
 				MoveCompleteEvent?.Invoke(this, moveOp);
 			});
 
@@ -89,18 +90,19 @@ namespace CommandLibSample
             return moveOp;
         }
 
-        /// <summary>
-        /// The current position of this RobotArm
-        /// </summary>
-        /// <param name="x">x coordinate</param>
-        /// <param name="y">y coordinate</param>
-        internal void GetPosition(out int x, out int y, out int z)
+	    /// <summary>
+	    /// The current position of this RobotArm
+	    /// </summary>
+	    /// <param name="x">x coordinate</param>
+	    /// <param name="y">y coordinate</param>
+	    /// <param name="z">coordinate</param>
+	    internal void GetPosition(out int x, out int y, out int z)
         {
-            lock (criticalSection)
+            lock (_criticalSection)
             {
-                x = xPos;
-                y = yPos;
-                z = zPos;
+                x = _xPos;
+                y = _yPos;
+                z = _zPos;
             }
         }
 
@@ -109,7 +111,7 @@ namespace CommandLibSample
         /// </summary>
         internal void OpenClamp()
         {
-            clampIsOpen = true;
+            _clampIsOpen = true;
         }
 
         /// <summary>
@@ -118,10 +120,10 @@ namespace CommandLibSample
         /// <returns>true, if the clamp actually grabbed something with this close operation</returns>
         internal bool CloseClamp()
         {
-            if (clampIsOpen)
+            if (_clampIsOpen)
             {
-                clampIsOpen = false;
-                return random.Next() % 5 == 0;
+                _clampIsOpen = false;
+                return _random.Next() % 5 == 0;
             }
 
             return false;
@@ -129,61 +131,61 @@ namespace CommandLibSample
 
         private bool AdjustPosition(Axis axis, int destination)
         {
-            if (random.Next() % 100 == 0)
+            if (_random.Next() % 100 == 0)
             {
-                throw new OverheatedException(String.Format("Error: {0} axis motor has overheated.", axis));
+                throw new OverheatedException($"Error: {axis} axis motor has overheated.");
             }
 
-            lock (criticalSection)
+            lock (_criticalSection)
             {
                 // Yuck! Wish I could pass an int by reference to this method.
                 switch(axis)
                 {
                     case Axis.X:
-                        if (xPos == destination)
+                        if (_xPos == destination)
                         {
                             return false;
                         }
 
-                        if (xPos < destination)
+                        if (_xPos < destination)
                         {
-                            ++xPos;
+                            ++_xPos;
                         }
                         else
                         {
-                            --xPos;
+                            --_xPos;
                         }
 
                         break;
                     case Axis.Y:
-                        if (yPos == destination)
+                        if (_yPos == destination)
                         {
                             return false;
                         }
 
-                        if (yPos < destination)
+                        if (_yPos < destination)
                         {
-                            ++yPos;
+                            ++_yPos;
                         }
                         else
                         {
-                            --yPos;
+                            --_yPos;
                         }
 
                         break;
                     default:
-                        if (zPos == destination)
+                        if (_zPos == destination)
                         {
                             return false;
                         }
 
-                        if (zPos < destination)
+                        if (_zPos < destination)
                         {
-                            ++zPos;
+                            ++_zPos;
                         }
                         else
                         {
-                            --zPos;
+                            --_zPos;
                         }
 
                         break;
@@ -195,10 +197,10 @@ namespace CommandLibSample
 
         private class Operation : IAbortableAsyncResult
         {
-            internal Operation (Axis axis, Object userData)
+            internal Operation (Axis axis, object userData)
             {
-                this.axis = axis;
-                this.userData = userData;
+                MoveAxis = axis;
+                UserData = userData;
             }
 
             ~Operation()
@@ -218,7 +220,7 @@ namespace CommandLibSample
 
             public System.Threading.WaitHandle AsyncWaitHandle
             {
-                get { return doneEvent; }
+                get { return DoneEvent; }
             }
 
             public bool CompletedSynchronously
@@ -228,62 +230,55 @@ namespace CommandLibSample
 
             public bool IsCompleted
             {
-                get { return doneEvent.WaitOne(0); }
+                get { return DoneEvent.WaitOne(0); }
             }
 
-            public Axis MoveAxis
-            {
-                get { return axis; }
-            }
+            public Axis MoveAxis { get; }
 
-            public Object UserData
-            {
-                get { return userData;  }
-            }
+	        public object UserData { get; }
 
-            public bool Aborted
+	        public bool Aborted
             {
                 get { return aborted;  }
             }
 
             public Exception Failure
             {
-                get { return error;  }
+                get { return Error;  }
             }
 
             public void Abort()
             {
-                abortEvent.Set();
+                AbortEvent.Set();
             }
 
-            protected virtual void Dispose(bool disposing)
+            private void Dispose(bool disposing)
             {
-                if (!disposed)
+                if (!_disposed)
                 {
-                    disposed = true;
+                    _disposed = true;
 
                     if (disposing)
                     {
-                        doneEvent.Dispose();
-                        abortEvent.Dispose();
+                        DoneEvent.Dispose();
+                        AbortEvent.Dispose();
                     }
                 }
             }
 
-            internal bool aborted = false;
-            internal Exception error;
-            internal System.Threading.ManualResetEvent doneEvent = new System.Threading.ManualResetEvent(false);
-            internal System.Threading.ManualResetEvent abortEvent = new System.Threading.ManualResetEvent(false);
-            internal Axis axis;
-            internal Object userData;
-            private bool disposed = false;
+	        // ReSharper disable once InconsistentNaming
+	        internal bool aborted;
+            internal Exception Error;
+            internal readonly System.Threading.ManualResetEvent DoneEvent = new System.Threading.ManualResetEvent(false);
+            internal readonly System.Threading.ManualResetEvent AbortEvent = new System.Threading.ManualResetEvent(false);
+	        private bool _disposed;
         }
 
-        private Random random;
-        private int xPos = 0;
-        private int yPos = 0;
-        private int zPos = 0;
-        private bool clampIsOpen = false;
-        private readonly Object criticalSection = new Object();
+        private readonly Random _random;
+        private int _xPos;
+        private int _yPos;
+	    private int _zPos;
+        private bool _clampIsOpen;
+        private readonly object _criticalSection = new object();
     }
 }

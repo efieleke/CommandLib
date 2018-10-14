@@ -10,7 +10,7 @@ namespace Sophos.Commands
     /// </summary>
     /// <remarks>
     /// <see cref="Command.SyncExecute(object)"/> and <see cref="Command.AsyncExecute(ICommandListener, object)"/> will accept 
-    /// an object of type IHttpRequestGenerator for the'runtimeArg', If not null, that will be used instead of the
+    /// an object of type IHttpRequestGenerator for the 'runtimeArg', If not null, that will be used instead of the
     /// IHttpRequestGenerator passed to the constructor.
     /// <para>
     /// This command returns from synchronous execution a .HttpResponseMessage that represents the server response from  the HTTP
@@ -21,7 +21,7 @@ namespace Sophos.Commands
     public class HttpRequestCommand : TaskCommand<HttpResponseMessage>
     {
         /// <summary>
-        /// Users of HttpRequestCommand must implement this interface and pass an instance to either the contructor or SyncExecute.
+        /// Users of HttpRequestCommand must implement this interface and pass an instance to either the constructor or SyncExecute.
         /// </summary>
         public interface IRequestGenerator
         {
@@ -40,7 +40,7 @@ namespace Sophos.Commands
             /// <summary>
             /// Throw an exception from this method if the response is deemed to be a failure that should cause the command to fail.
             /// </summary>
-            /// <param name="response">The response to evalulate. Note that implementors must *not* dispose this parameter.</param>
+            /// <param name="response">The response to evaluate. Note that implementors must *not* dispose this parameter.</param>
             Task CheckResponse(HttpResponseMessage response);
         }
 
@@ -61,7 +61,7 @@ namespace Sophos.Commands
             /// Constructs a HttpStatusException object
             /// </summary>
             /// <param name="message">See <see cref="Exception"/> documentation</param>
-            public HttpStatusException(String message) : base(message)
+            public HttpStatusException(string message) : base(message)
             {
             }
 
@@ -70,7 +70,7 @@ namespace Sophos.Commands
             /// </summary>
             /// <param name="message">See <see cref="Exception"/> documentation</param>
             /// <param name="innerException">>See <see cref="Exception"/> documentation</param>
-            public HttpStatusException(String message, Exception innerException)
+            public HttpStatusException(string message, Exception innerException)
                 : base(message, innerException)
             {
             }
@@ -93,7 +93,7 @@ namespace Sophos.Commands
             /// <summary>
             /// The body of the response returned by the server
             /// </summary>
-            public String ResponseBody { get; set; }
+            public string ResponseBody { get; set; }
 
             /// <summary>
             /// Exists to support serialization
@@ -105,17 +105,17 @@ namespace Sophos.Commands
             {
                 if (info == null)
                 {
-                    throw new ArgumentNullException("info");
+                    throw new ArgumentNullException(nameof(info));
                 }
 
-                info.AddValue("StatusCode", this.StatusCode);
-                info.AddValue("ResponseBody", this.ResponseBody);
+                info.AddValue("StatusCode", StatusCode);
+                info.AddValue("ResponseBody", ResponseBody);
                 base.GetObjectData(info, context);
             }
         }
 
         /// <summary>
-        /// Implementation of IResposeChecker that throws an HttpRequestException if the status code
+        /// Implementation of IResponseChecker that throws an HttpRequestException if the status code
 		/// represents an error, with an inner exception with more detail.
         /// </summary>
         public class EnsureSuccessStatusCodeResponseChecker : IResponseChecker
@@ -128,18 +128,18 @@ namespace Sophos.Commands
             {
                 if (!response.IsSuccessStatusCode)
                 {
-                    HttpStatusException reason = new HttpStatusException() { StatusCode = response.StatusCode };
+                    HttpStatusException reason = new HttpStatusException { StatusCode = response.StatusCode };
 
                     if (response.Content != null)
                     {
                         try
                         {
-                            reason.ResponseBody = await HttpRequestCommand.ContentAsString(response.Content);
+                            reason.ResponseBody = await ContentAsString(response.Content);
                         }
                         catch(Exception)
                         {
                             // We have no guarantee that the server will give us a response body that can be
-                            // serialized as a string. So just eat any failure here and instead propogate
+                            // serialized as a string. So just eat any failure here and instead propagate
                             // the real error.
                         }
                     }
@@ -155,7 +155,7 @@ namespace Sophos.Commands
         /// </summary>
         /// <param name="content">The content to covert</param>
         /// <returns>The content as a string</returns>
-        public static Task<String> ContentAsString(HttpContent content)
+        public static Task<string> ContentAsString(HttpContent content)
         {
 			return content.ReadAsStringAsync();
         }
@@ -167,7 +167,7 @@ namespace Sophos.Commands
         /// </summary>
         /// <param name="content"></param>
         /// <param name="fileName"></param>
-        public static async Task WriteContentToFile(HttpContent content, String fileName)
+        public static async Task WriteContentToFile(HttpContent content, string fileName)
         {
             using (var fileStream = System.IO.File.Create(fileName))
             {
@@ -201,7 +201,7 @@ namespace Sophos.Commands
         public HttpRequestCommand(IRequestGenerator requestGenerator, IResponseChecker responseChecker)
             : this(requestGenerator, responseChecker, new HttpClient())
         {
-            disposeHttpClient = true;
+            _disposeHttpClient = true;
         }
 
         /// <summary>
@@ -240,8 +240,8 @@ namespace Sophos.Commands
         public HttpRequestCommand(IRequestGenerator requestGenerator, IResponseChecker responseChecker, HttpClient httpClient, Command owner)
             : base(owner)
         {
-            this.requestGenerator = requestGenerator;
-            this.responseChecker = responseChecker;
+            _requestGenerator = requestGenerator;
+            _responseChecker = responseChecker;
             Client = httpClient;
         }
 
@@ -260,9 +260,9 @@ namespace Sophos.Commands
             {
                 if (disposing)
                 {
-                    cancelTokenSource.Dispose();
+                    _cancelTokenSource.Dispose();
 
-                    if (disposeHttpClient)
+                    if (_disposeHttpClient)
                     {
                         Client.Dispose();
                     }
@@ -278,7 +278,7 @@ namespace Sophos.Commands
         protected sealed override void AbortImpl()
         {
             _aborted = true;
-            cancelTokenSource.Cancel();
+            _cancelTokenSource.Cancel();
         }
 
 		/// <summary>
@@ -290,26 +290,26 @@ namespace Sophos.Commands
 		{
 			// Dispose of the prior cancel token source after the request is performed. We need to keep
 			// the prior one until then for thread safety reasons
-			using (var previousCancelTokenSource = cancelTokenSource)
+			using (var _ = _cancelTokenSource)
 			{
-				cancelTokenSource = new System.Threading.CancellationTokenSource();
+				_cancelTokenSource = new System.Threading.CancellationTokenSource();
 				_aborted = false;
-				IRequestGenerator generator = runtimeArg == null ? requestGenerator : (IRequestGenerator)runtimeArg;
+				IRequestGenerator generator = runtimeArg == null ? _requestGenerator : (IRequestGenerator)runtimeArg;
 
 				using (HttpRequestMessage request = generator.GenerateRequest())
 				{
-					// The same request message cannot be sent more than once, so we have to contruct a new one every time.
-					Task<HttpResponseMessage> task = Client.SendAsync(request, HttpCompletionOption.ResponseContentRead, cancelTokenSource.Token);
+					// The same request message cannot be sent more than once, so we have to construct a new one every time.
+					Task<HttpResponseMessage> task = Client.SendAsync(request, HttpCompletionOption.ResponseContentRead, _cancelTokenSource.Token);
 
 					try
 					{
 						HttpResponseMessage message = await task;
 
-						if (responseChecker != null)
+						if (_responseChecker != null)
 						{
 							try
 							{
-								await responseChecker.CheckResponse(message);
+								await _responseChecker.CheckResponse(message);
 							}
 							catch (Exception)
 							{
@@ -321,7 +321,7 @@ namespace Sophos.Commands
 
 						return message;
 					}
-					catch (System.OperationCanceledException)
+					catch (OperationCanceledException)
 					{
 						if (_aborted)
 						{
@@ -336,10 +336,10 @@ namespace Sophos.Commands
 			}
 		}
 
-		private readonly IRequestGenerator requestGenerator = null;
-        private IResponseChecker responseChecker = null;
-        private readonly bool disposeHttpClient = false;
-        private bool _aborted = false;
-        private System.Threading.CancellationTokenSource cancelTokenSource = new System.Threading.CancellationTokenSource();
+		private readonly IRequestGenerator _requestGenerator;
+        private readonly IResponseChecker _responseChecker;
+        private readonly bool _disposeHttpClient;
+        private bool _aborted;
+        private System.Threading.CancellationTokenSource _cancelTokenSource = new System.Threading.CancellationTokenSource();
     }
 }

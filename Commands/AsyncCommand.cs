@@ -20,17 +20,17 @@ namespace Sophos.Commands
         {
         }
 
-        /// <summary>
-        /// Implementations should override only if they contain members that must be disposed. Remember to invoke the base class implementation from within any override.
-        /// </summary>
-        /// <param name="disposing">Will be true if this was called as a direct result of the object being explicitly disposed.</param>
-        protected override void Dispose(bool disposing)
+		/// <summary>
+		/// Implementations should override only if they contain members that must be disposed. Remember to invoke the base class implementation from within any override.
+		/// </summary>
+		/// <param name="disposing">Will be true if this was called as a direct result of the object being explicitly disposed.</param>
+		protected override void Dispose(bool disposing)
         {
             if (!Disposed)
             {
                 if (disposing)
                 {
-                    doneEvent.Dispose();
+                    _doneEvent.Dispose();
                 }
             }
 
@@ -42,51 +42,51 @@ namespace Sophos.Commands
         /// </summary>
         /// <param name="runtimeArg">Not applicable</param>
         /// <returns>Not applicable</returns>
-        protected sealed override Object SyncExecuteImpl(Object runtimeArg)
+        protected sealed override object SyncExecuteImpl(object runtimeArg)
         {
-            doneEvent.Reset();
+            _doneEvent.Reset();
             AsyncExecuteImpl(new Listener(this), runtimeArg);
-            doneEvent.WaitOne();
+            _doneEvent.WaitOne();
 
-            if (lastException != null)
+            if (_lastException != null)
             {
-                throw lastException;
+                throw _lastException;
             }
 
-            return result;
+            return _result;
         }
 
         private class Listener : ICommandListener
         {
             public Listener(AsyncCommand command)
             {
-                this.command = command;
+                _command = command;
             }
 
-            public void CommandSucceeded(Object result)
+            public void CommandSucceeded(object result)
             {
-                command.lastException = null;
-                command.result = result;
-                command.doneEvent.Set();
+                _command._lastException = null;
+                _command._result = result;
+                _command._doneEvent.Set();
             }
 
             public void CommandAborted()
             {
-                command.lastException = new CommandAbortedException();
-                command.doneEvent.Set();
+                _command._lastException = new CommandAbortedException();
+                _command._doneEvent.Set();
             }
 
             public void CommandFailed(Exception exc)
             {
-                command.lastException = exc;
-                command.doneEvent.Set();
+                _command._lastException = exc;
+                _command._doneEvent.Set();
             }
 
-            private AsyncCommand command;
+            private readonly AsyncCommand _command;
         }
 
-        private System.Threading.ManualResetEvent doneEvent = new System.Threading.ManualResetEvent(false);
-        private Exception lastException = null;
-        private Object result = null;
+        private readonly System.Threading.ManualResetEvent _doneEvent = new System.Threading.ManualResetEvent(false);
+        private Exception _lastException;
+        private object _result;
     }
 }

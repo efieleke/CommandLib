@@ -14,68 +14,68 @@ namespace CommandLibTests
             None
         }
 
-        internal CmdListener(CallbackType expectedCallback, Object expectedResult, Comparison<Object> compare = null)
+        internal CmdListener(CallbackType expectedCallback, object expectedResult, Comparison<object> compare = null)
         {
-            this.compare = compare;
+            _compare = compare;
             Reset(expectedCallback, expectedResult);
         }
 
-        internal void Reset(CallbackType expectedCallback, Object expectedResult)
+        internal void Reset(CallbackType expectedCallback, object expectedResult)
         {
             System.Diagnostics.Debug.Assert(expectedCallback != CallbackType.None);
-            this.expectedCallback = expectedCallback;
-            this.expectedResult = expectedResult;
-            actualCallback = CallbackType.None;
-            actualResult = null;
-            error = null;
+            _expectedCallback = expectedCallback;
+            _expectedResult = expectedResult;
+            _actualCallback = CallbackType.None;
+            _actualResult = null;
+            _error = null;
         }
 
         public void CommandSucceeded(object result)
         {
-            actualResult = result;
-            actualCallback = CallbackType.Succeeded;
+            _actualResult = result;
+            _actualCallback = CallbackType.Succeeded;
         }
 
         public void CommandAborted()
         {
-            actualCallback = CallbackType.Aborted;
+            _actualCallback = CallbackType.Aborted;
         }
 
         public void CommandFailed(Exception exc)
         {
-            actualCallback = CallbackType.Failed;
-            error = exc;
+            _actualCallback = CallbackType.Failed;
+            _error = exc;
         }
 
         internal void Check()
         {
-            if (actualCallback == CallbackType.Failed)
+            if (_actualCallback == CallbackType.Failed)
             {
-                Assert.AreEqual(expectedCallback, actualCallback, error.ToString());
+                Assert.AreEqual(_expectedCallback, _actualCallback, _error.ToString());
             }
             else
             {
-                Assert.AreEqual(expectedCallback, actualCallback);
+                Assert.AreEqual(_expectedCallback, _actualCallback);
             }
 
-            if (actualCallback == CallbackType.Succeeded)
+            if (_actualCallback == CallbackType.Succeeded)
             {
-                if (compare == null)
+                if (_compare == null)
                 {
-                    Assert.AreEqual(expectedResult, actualResult);
+                    Assert.AreEqual(_expectedResult, _actualResult);
                 }
-                else if (compare(expectedResult, actualResult) != 0)
+                else if (_compare(_expectedResult, _actualResult) != 0)
                 {
-                    Assert.Fail(String.Format("expectedResult != result ({0} != {1}", expectedResult, actualResult));
+                    Assert.Fail($"expectedResult != result ({_expectedResult} != {_actualResult}");
                 }
             }
         }
 
-        private CallbackType expectedCallback;
-        private Object expectedResult;
-        private CallbackType actualCallback = CallbackType.None;
-        private Object actualResult = null;
-        private Exception error = null;
-        private Comparison<Object> compare;
+        private CallbackType _expectedCallback;
+        private object _expectedResult;
+        private CallbackType _actualCallback = CallbackType.None;
+        private object _actualResult;
+        private Exception _error;
+        private readonly Comparison<object> _compare;
     }
 }

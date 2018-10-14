@@ -13,7 +13,7 @@ namespace Sophos.Commands
     /// and the 'result' parameter of <see cref="ICommandListener.CommandSucceeded"/> will be set in similar fashion.
     /// </para>
     /// </remarks>
-    public class RetryableCommand : Commands.SyncCommand
+    public class RetryableCommand : SyncCommand
     {
         /// <summary>
         /// Interface that defines aspects of retry behavior
@@ -28,7 +28,7 @@ namespace Sophos.Commands
             /// <param name="waitTime">
             /// The amount of time to wait before retrying. This value is ignored if the method returns false.
             /// </param>
-            /// <returns>false if the command should not be retried (which will propogate the exception). Otherwise true to perform a retry after the specified wait time</returns>
+            /// <returns>false if the command should not be retried (which will propagate the exception). Otherwise true to perform a retry after the specified wait time</returns>
             bool OnCommandFailed(int failNumber, Exception reason, out TimeSpan waitTime);
         }
 
@@ -59,10 +59,10 @@ namespace Sophos.Commands
         public RetryableCommand(Command command, IRetryCallback callback, Command owner)
             : base(owner)
         {
-            this.command = command;
+            _command = command;
             TakeOwnership(command);
-            pauseCmd = new PauseCommand(TimeSpan.FromMilliseconds(0), null, this);
-            this.callback = callback;
+            _pauseCmd = new PauseCommand(TimeSpan.FromMilliseconds(0), null, this);
+            _callback = callback;
         }
 
         /// <summary>
@@ -79,7 +79,7 @@ namespace Sophos.Commands
                 try
                 {
                     CheckAbortFlag();
-                    return command.SyncExecute(runtimeArg);
+                    return _command.SyncExecute(runtimeArg);
                 }
                 catch(CommandAbortedException)
                 {
@@ -87,21 +87,19 @@ namespace Sophos.Commands
                 }
                 catch(Exception exc)
                 {
-                    TimeSpan waitTime;
-
-                    if (!callback.OnCommandFailed(++i, exc, out waitTime))
+	                if (!_callback.OnCommandFailed(++i, exc, out TimeSpan waitTime))
                     {
                         throw;
                     }
 
-                    pauseCmd.Duration = waitTime;
-                    pauseCmd.SyncExecute();
+                    _pauseCmd.Duration = waitTime;
+                    _pauseCmd.SyncExecute();
                 }
             }
         }
 
-        private Command command;
-        private PauseCommand pauseCmd;
-        private IRetryCallback callback;
+        private readonly Command _command;
+        private readonly PauseCommand _pauseCmd;
+        private readonly IRetryCallback _callback;
     }
 }

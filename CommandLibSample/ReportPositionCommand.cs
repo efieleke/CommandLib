@@ -3,21 +3,20 @@ using Sophos.Commands;
 
 namespace CommandLibSample
 {
-    class ReportPositionCommand : SyncCommand
+	internal class ReportPositionCommand : SyncCommand
     {
         internal ReportPositionCommand(RobotArm robotArm) : base(null)
         {
-            this.robotArm = robotArm;
+            _robotArm = robotArm;
         }
 
         protected override object SyncExeImpl(object runtimeArg)
         {
-            int x, y, z;
-            robotArm.GetPosition(out x, out y, out z);
-            Console.Out.WriteLine(String.Format("Robot arm is at position {0},{1},{2}", x, y, z));
+	        _robotArm.GetPosition(out int x, out int y, out int z);
+            Console.Out.WriteLine($"Robot arm is at position {x},{y},{z}");
             return null;
         }
 
-        private RobotArm robotArm;
+        private readonly RobotArm _robotArm;
     }
 }

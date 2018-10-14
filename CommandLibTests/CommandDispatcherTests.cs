@@ -7,24 +7,24 @@ namespace CommandLibTests
     [TestClass]
     public class CommandDispatcherTests
     {
-        private int completed;
-        private int aborted;
-        private int failed;
+	    private int _completed;
+        private int _aborted;
+        private int _failed;
 
-        internal void dispatcher_CommandFinishedEvent(Object sender, CommandDispatcher.CommandFinishedEventArgs e)
+        internal void dispatcher_CommandFinishedEvent(object sender, CommandDispatcher.CommandFinishedEventArgs e)
         {
-            if (e.Error == null)
-            {
-                System.Threading.Interlocked.Increment(ref completed);
-            }
-            else if (e.Error is CommandAbortedException)
-            {
-                System.Threading.Interlocked.Increment(ref aborted);
-            }
-            else
-            {
-                System.Threading.Interlocked.Increment(ref failed);
-            }
+	        switch (e.Error)
+	        {
+		        case null:
+			        System.Threading.Interlocked.Increment(ref _completed);
+			        break;
+		        case CommandAbortedException _:
+			        System.Threading.Interlocked.Increment(ref _aborted);
+			        break;
+		        default:
+			        System.Threading.Interlocked.Increment(ref _failed);
+			        break;
+	        }
         }
 
         [TestMethod]
@@ -32,9 +32,9 @@ namespace CommandLibTests
         {
             CommandDispatcher dispatcher = new CommandDispatcher(2);
             dispatcher.CommandFinishedEvent += dispatcher_CommandFinishedEvent;
-            aborted = 0;
-            completed = 0;
-            failed = 0;
+            _aborted = 0;
+            _completed = 0;
+            _failed = 0;
             dispatcher.Dispatch(new PauseCommand(TimeSpan.FromDays(1)));
             dispatcher.Dispatch(new PauseCommand(TimeSpan.FromMilliseconds(0)));
             dispatcher.Dispatch(new PauseCommand(TimeSpan.FromMilliseconds(0)));
@@ -43,9 +43,9 @@ namespace CommandLibTests
             dispatcher.Dispatch(new PauseCommand(TimeSpan.FromDays(1)));
             System.Threading.Thread.Sleep(100);
             dispatcher.AbortAndWait();
-            Assert.AreEqual(2, completed);
-            Assert.AreEqual(0, failed);
-            Assert.AreEqual(2, aborted);
+            Assert.AreEqual(2, _completed);
+            Assert.AreEqual(0, _failed);
+            Assert.AreEqual(2, _aborted);
         }
 
         [TestMethod]
@@ -54,9 +54,9 @@ namespace CommandLibTests
             using (CommandDispatcher dispatcher = new CommandDispatcher(2))
             {
                 dispatcher.CommandFinishedEvent += dispatcher_CommandFinishedEvent;
-                aborted = 0;
-                completed = 0;
-                failed = 0;
+                _aborted = 0;
+                _completed = 0;
+                _failed = 0;
                 dispatcher.Dispatch(new PauseCommand(TimeSpan.FromMilliseconds(10)));
                 dispatcher.Dispatch(new PauseCommand(TimeSpan.FromMilliseconds(0)));
                 dispatcher.Dispatch(new PauseCommand(TimeSpan.FromMilliseconds(0)));
@@ -65,9 +65,9 @@ namespace CommandLibTests
                 dispatcher.Dispatch(new PauseCommand(TimeSpan.FromMilliseconds(0)));
             }
 
-            Assert.AreEqual(5, completed);
-            Assert.AreEqual(1, failed);
-            Assert.AreEqual(0, aborted);
+            Assert.AreEqual(5, _completed);
+            Assert.AreEqual(1, _failed);
+            Assert.AreEqual(0, _aborted);
         }
 
         [TestMethod]
@@ -75,7 +75,7 @@ namespace CommandLibTests
         {
             try
             {
-                CommandDispatcher dispatcher = new CommandDispatcher(0);
+                var _ = new CommandDispatcher(0);
                 Assert.Fail("Dispatcher with 0 pool size constructed.");
             }
             catch(ArgumentException)

@@ -8,7 +8,7 @@ namespace Sophos.Commands
     /// (typically an event). 
     /// </summary>
     /// <remarks>
-    /// AbortEventedCommand objects must be top level. Any attempt by another <see cref="Command"/> to take ownership of an AbortEventedCommand
+    /// AbortSignaledCommand objects must be top level. Any attempt by another <see cref="Command"/> to take ownership of an AbortSignaledCommand
     /// will raise an exception. For example, adding this type to a <see cref="SequentialCommands"/> will raise an exception because
     /// <see cref="SequentialCommands"/> would attempt to assume ownership.
     /// <para>
@@ -20,41 +20,41 @@ namespace Sophos.Commands
     /// 'result' parameter of <see cref="ICommandListener.CommandSucceeded"/> will be set in similar fashion.
     /// </para>
     /// </remarks>
-    public sealed class AbortEventedCommand : SyncCommand
+    public sealed class AbortSignaledCommand : SyncCommand
     {
         /// <summary>
-        /// Constructs an AbortEventedCommand object as a top-level <see cref="Command"/>
+        /// Constructs an AbortSignaledCommand object as a top-level <see cref="Command"/>
         /// </summary>
         /// <param name="commandToRun">
         /// The command to run. This object takes ownership of the command, so the passed command must not already have an owner.
-        /// The passed command will be disposed when this AbortEventedCommand object is disposed.
+        /// The passed command will be disposed when this AbortSignaledCommand object is disposed.
         /// </param>
         /// <param name="abortEvent">
         /// When signaled, the command to run will be aborted. This object does not take ownership of this parameter.
         /// </param>
-        public AbortEventedCommand(Command commandToRun, System.Threading.WaitHandle abortEvent)
+        public AbortSignaledCommand(Command commandToRun, System.Threading.WaitHandle abortEvent)
             : base(null)
         {
-            this.commandToRun = commandToRun;
-            this.abortEvent = abortEvent;
+            _commandToRun = commandToRun;
+            _abortEvent = abortEvent;
             TakeOwnership(commandToRun);
         }
 
         /// <summary>
-        /// Constructs an AbortEventedCommand object as a top-level <see cref="Command"/>
+        /// Constructs an AbortSignaledCommand object as a top-level <see cref="Command"/>
         /// </summary>
         /// <param name="commandToRun">
         /// The command to run. This object takes ownership of the command, so the passed command must not already have an owner.
-        /// The passed command will be disposed when this AbortEventedCommand object is disposed.
+        /// The passed command will be disposed when this AbortSignaledCommand object is disposed.
         /// </param>
         /// <param name="commandToWatch">
         /// When this 'commandToWatch' is aborted, the command to run will also be aborted.
         /// </param>
-        public AbortEventedCommand(Command commandToRun, Command commandToWatch)
+        public AbortSignaledCommand(Command commandToRun, Command commandToWatch)
             : base(null)
         {
-            this.commandToRun = commandToRun;
-            this.commandToWatch = commandToWatch;
+            _commandToRun = commandToRun;
+            _commandToWatch = commandToWatch;
             TakeOwnership(commandToRun);
         }
 
@@ -66,7 +66,7 @@ namespace Sophos.Commands
             get
             {
                 CheckDisposed();
-                return commandToWatch;
+                return _commandToWatch;
             }
         }
 
@@ -78,40 +78,33 @@ namespace Sophos.Commands
             get
             {
                 CheckDisposed();
-                return commandToRun;
+                return _commandToRun;
             }
         }
 
-        /// <summary>
-        /// Do not call this method from a derived class. It is called by the framework.
-        /// </summary>
-        /// <param name="runtimeArg">Not applicable</param>
-        /// <returns>Not applicable</returns>
-        protected sealed override Object SyncExeImpl(Object runtimeArg)
+        /// <inheritdoc />
+        protected override object SyncExeImpl(object runtimeArg)
         {
-            commandToRun.AsyncExecute(new Listener(this), runtimeArg);
-            int waitResult = System.Threading.WaitHandle.WaitAny(new System.Threading.WaitHandle[] { commandToRun.DoneEvent, ExternalAbortEvent });
+            _commandToRun.AsyncExecute(new Listener(this), runtimeArg);
+            int waitResult = System.Threading.WaitHandle.WaitAny(new[] { _commandToRun.DoneEvent, ExternalAbortEvent });
 
             if (waitResult == 1)
             {
                 Abort();
             }
 
-            commandToRun.Wait();
+            _commandToRun.Wait();
 
-            if (lastException != null)
+            if (_lastException != null)
             {
-                throw lastException;
+                throw _lastException;
             }
 
-            return result;
+            return _result;
         }
 
-        /// <summary>
-        /// Do not call this method from a derived class. It is called by the framework.
-        /// </summary>
-        /// <returns>Not applicable</returns>
-        protected sealed override bool MustBeTopLevel()
+	    /// <inheritdoc />
+	    protected override bool MustBeTopLevel()
         {
             return true;
         }
@@ -120,45 +113,45 @@ namespace Sophos.Commands
         {
             get
             {
-                if (abortEvent == null)
+                if (_abortEvent == null)
                 {
-                    return commandToWatch.AbortEvent;
+                    return _commandToWatch.AbortEvent;
                 }
 
-                return abortEvent;
+                return _abortEvent;
             }
         }
 
         private class Listener : ICommandListener
         {
-            public Listener(AbortEventedCommand command)
+            public Listener(AbortSignaledCommand command)
             {
-                this.command = command;
+                _command = command;
             }
 
-            public void CommandSucceeded(Object result)
+            public void CommandSucceeded(object result)
             {
-                command.result = result;
-                command.lastException = null;
+                _command._result = result;
+                _command._lastException = null;
             }
 
             public void CommandAborted()
             {
-                command.lastException = new CommandAbortedException();
+                _command._lastException = new CommandAbortedException();
             }
 
             public void CommandFailed(Exception exc)
             {
-                command.lastException = exc;
+                _command._lastException = exc;
             }
 
-            private AbortEventedCommand command;
+            private readonly AbortSignaledCommand _command;
         }
 
-        private Command commandToRun;
-        private System.Threading.WaitHandle abortEvent = null;
-        private Command commandToWatch = null;
-        private Exception lastException = null;
-        private Object result = null;
+        private readonly Command _commandToRun;
+        private readonly System.Threading.WaitHandle _abortEvent;
+        private readonly Command _commandToWatch;
+        private Exception _lastException;
+        private object _result;
     }
 }

@@ -25,7 +25,7 @@ namespace Sophos.Commands
         /// The <see cref="Command"/> is in the last stage of execution when making this callback, so do not re-execute the command from within
         /// your handler. Also, do not call the executing command's <see cref="Command.Wait()"/> method from within your handler, as that will cause deadlock.
         /// </remarks>
-        void CommandSucceeded(Object result);
+        void CommandSucceeded(object result);
 
         /// <summary>
         /// Called when a <see cref="Command"/> launched via <see cref="Command.AsyncExecute(ICommandListener)"/> was aborted.

@@ -10,14 +10,14 @@ namespace CommandLibTests
 
         internal AddCommand(int amount, Command owner) : base(owner)
         {
-            this.amount = amount;
+            _amount = amount;
         }
 
         protected sealed override object SyncExeImpl(object runtimeArg)
         {
-            return (int)runtimeArg + amount;
+            return (int)runtimeArg + _amount;
         }
 
-        private int amount;
+        private readonly int _amount;
     }
 }

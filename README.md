@@ -1,7 +1,7 @@
 Commands
 =========
 
-Commands is a C# library that simplifies coordination of asynchronous and synchronous activities. Verions for C++ and Java exist at https://github.com/efieleke/CommandLibForCPP.git and https://github.com/efieleke/CommandLibForJava.git. The library is built upon class Command, which represents an action. A Command may be run synchronously or asynchronously, and may be aborted.
+Commands is a C# library that simplifies coordination of asynchronous and synchronous activities. It is available on nuget, package name Sophos.Commands. Verions for C++ and Java exist at https://github.com/efieleke/CommandLibForCPP.git and https://github.com/efieleke/CommandLibForJava.git. The library is built upon class Command, which represents an action. A Command may be run synchronously or asynchronously, and may be aborted.
 
 ParallelCommands, itself a Command, executes a collection of commands concurrently (in parallel), and SequentialCommands executes its commands in sequence. Using these classes, it's possible to create a deep nesting of coordinated actions. For example, SequentialCommands can hold instances of ParallelCommands, SequentialCommands, and any other Command-derived object.
 
@@ -12,10 +12,6 @@ PeriodicCommand repeats its action at a given interval, ScheduledCommand runs on
 RetryableCommand provides the option to keep retrying a failed command until the caller decides enough is enough, and TimeLimitedCommand fails with a timeout exception if a given duration elapses before the command finishes execution.
 
 All of the above Command classes are simply containers for other Command objects that presumably do something of interest. Commands includes a few Command classes that might be commonly useful, including PauseCommand and HttpRequestCommand, but it is expected that users of this library will create their own Command-derived classes.
-
-Help File Documentation
-----
-Documentation for Commands is provided in Commands.chm. It was generated from source code comments using Sandcastle Help File Builder (https://shfb.codeplex.com).
 
 Diagnostics
 ----

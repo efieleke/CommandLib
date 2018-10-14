@@ -1,6 +1,4 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Text;
 using System.Threading.Tasks;
 
 namespace Sophos.Commands
@@ -30,7 +28,7 @@ namespace Sophos.Commands
 		/// </param>
 		public DelegateCommand(Func<TResult> function, Command owner) : base(owner)
 		{
-			func = arg => function();
+			_func = arg => function();
 		}
 
 		/// <summary>
@@ -50,15 +48,15 @@ namespace Sophos.Commands
 		/// </param>
 		public DelegateCommand(Func<object, TResult> function, Command owner) : base(owner)
 		{
-			func = function;
+			_func = function;
 		}
 
 	    /// <inheritdoc />
-		protected sealed override Task<TResult> CreateTask(object runtimeArg)
+		protected override Task<TResult> CreateTask(object runtimeArg)
 		{
-			return new Task<TResult>(func, runtimeArg);
+			return new Task<TResult>(_func, runtimeArg);
 		}
 
-		private readonly Func<object, TResult> func;
+		private readonly Func<object, TResult> _func;
 	}
 }

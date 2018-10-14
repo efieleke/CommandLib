@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Threading.Tasks;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Sophos.Commands;
 
@@ -7,9 +8,9 @@ namespace CommandLibTests
 {
     internal static class AbortTest
     {
-        internal static void Run(Command cmd, Object runtimeArg, int maxDelayTime)
+        internal static void Run(Command cmd, object runtimeArg, int maxDelayTime)
         {
-            String tempFile = System.IO.Path.GetTempFileName();
+            string tempFile = System.IO.Path.GetTempFileName();
 
             try
             {
@@ -27,7 +28,7 @@ namespace CommandLibTests
                 cmd.AbortAndWait();
                 listener.Check();
 
-                System.Threading.Thread thread = new System.Threading.Thread(() =>
+                var thread = new System.Threading.Thread(() =>
                 {
                     try
                     {
@@ -40,7 +41,7 @@ namespace CommandLibTests
                     }
                     catch (Exception exc)
                     {
-                        String msg = "Expected aborted exception, but instead got this exception: " + exc.ToString();
+                        string msg = "Expected aborted exception, but instead got this exception: " + exc;
                         Assert.Fail(msg);
                     }
                 });
@@ -49,6 +50,33 @@ namespace CommandLibTests
                 System.Threading.Thread.Sleep(20); // give time for the command to start executing
                 cmd.AbortAndWait();
                 thread.Join();
+
+	            using (Task<object> task = cmd.AsTask<object>(runtimeArg))
+	            {
+		            try
+		            {
+						task.Start();
+						System.Threading.Thread.Sleep(20); // give time for the command to start executing
+			            cmd.Abort(); // there is no way to directly abort the task
+			            task.Wait();
+			            Assert.Fail("Command succeeded when it was expected to be aborted");
+					}
+					catch (AggregateException e)
+		            {
+			            Exception inner = e.InnerException;
+						Assert.IsNotNull(inner);
+
+			            if (inner is CommandAbortedException)
+			            {
+				            Assert.IsTrue(Command.GetAttachedErrorInfo(inner) == null);
+						}
+			            else
+			            {
+				            string msg = "Expected aborted exception, but instead got this exception: " + inner;
+				            Assert.Fail(msg);
+						}
+					}
+	            }
             }
             finally
             {

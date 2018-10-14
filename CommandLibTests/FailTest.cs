@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Threading.Tasks;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Sophos.Commands;
 
@@ -7,9 +8,9 @@ namespace CommandLibTests
 {
     internal static class FailTest
     {
-        internal static void Run<T>(Command cmd, Object runtimeArg) where T : Exception
+        internal static void Run<T>(Command cmd, object runtimeArg) where T : Exception
         {
-            String tempFile = System.IO.Path.GetTempFileName();
+            string tempFile = System.IO.Path.GetTempFileName();
 
             try
             {
@@ -32,13 +33,37 @@ namespace CommandLibTests
                 }
                 catch (T exc)
                 {
-                    String cmdContext = Command.GetAttachedErrorInfo(exc);
-                    Assert.IsFalse(String.IsNullOrWhiteSpace(cmdContext));
+                    string cmdContext = Command.GetAttachedErrorInfo(exc);
+                    Assert.IsFalse(string.IsNullOrWhiteSpace(cmdContext));
                 }
                 catch (Exception exc)
                 {
-                    Assert.Fail("Caught unexpected type of exception: " + exc.ToString());
+                    Assert.Fail("Caught unexpected type of exception: " + exc);
                 }
+
+	            using (Task<object> task = cmd.AsTask<object>(runtimeArg))
+	            {
+					task.Start();
+
+		            try
+		            {
+			            task.Wait();
+		            }
+		            catch (AggregateException e)
+		            {
+						Assert.IsNotNull(e.InnerException);
+
+						if (e.InnerException is T)
+			            {
+				            string cmdContext = Command.GetAttachedErrorInfo(e.InnerException);
+				            Assert.IsFalse(string.IsNullOrWhiteSpace(cmdContext));
+			            }
+						else
+						{
+							Assert.Fail(e.InnerException.ToString());
+						}
+					}
+	            }
             }
             finally
             {

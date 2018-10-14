@@ -11,31 +11,31 @@ namespace CommandLibTests
         {
             internal RecurCallback(TimeSpan intervalBeforeFirst, TimeSpan intervalBeforeRest, int repetitions)
             {
-                this.intervalBeforeFirst = intervalBeforeFirst;
-                this.intervalBeforeRest = intervalBeforeRest;
-                this.repetitions = repetitions;
+                _intervalBeforeFirst = intervalBeforeFirst;
+                _intervalBeforeRest = intervalBeforeRest;
+                _repetitions = repetitions;
             }
 
             public bool GetFirstExecutionTime(out DateTime time)
             {
-                time = DateTime.Now + intervalBeforeFirst;
-                return --repetitions >= 0;
+                time = DateTime.Now + _intervalBeforeFirst;
+                return --_repetitions >= 0;
             }
 
             public bool GetNextExecutionTime(ref DateTime time)
             {
-                if (--repetitions >= 0)
+                if (--_repetitions >= 0)
                 {
-                    time = DateTime.Now + intervalBeforeRest;
+                    time = DateTime.Now + _intervalBeforeRest;
                     return true;
                 }
 
                 return false;
             }
 
-            private TimeSpan intervalBeforeFirst;
-            private TimeSpan intervalBeforeRest;
-            int repetitions;
+            private readonly TimeSpan _intervalBeforeFirst;
+            private readonly TimeSpan _intervalBeforeRest;
+	        private int _repetitions;
         }
 
         [TestMethod]

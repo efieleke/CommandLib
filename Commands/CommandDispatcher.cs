@@ -1,6 +1,5 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Linq;
 
 namespace Sophos.Commands
 {
@@ -32,32 +31,28 @@ namespace Sophos.Commands
             /// This will be null if the command completed successfully. If the command was aborted, this will be a <see cref="CommandAbortedException"/>.
             /// Otherwise, this will indicate the reason for failure.
             /// </param>
-            public CommandFinishedEventArgs(Command command, Object result, Exception exc)
+            public CommandFinishedEventArgs(Command command, object result, Exception exc)
             {
-                this.command = command;
-                this.result = result;
-                this.exc = exc;
+                Cmd = command;
+                Result = result;
+                Error = exc;
             }
 
             /// <summary>
             /// The command that finished execution.
             /// </summary>
-            public Command Cmd { get { return command; } }
+            public Command Cmd { get; }
 
-            /// <summary>
+	        /// <summary>
             /// The result of the execution, if successful. Otherwise this will always be null. The actual content of this value is defined by the concrete <see cref="Command"/>.
             /// </summary>
-            public Object Result { get { return result; } }
+            public object Result { get; }
 
-            /// <summary>
+	        /// <summary>
             /// This will be null if the command completed successfully. If the command was aborted, this will be a <see cref="CommandAbortedException"/>.
             /// Otherwise, this will indicate the reason for failure.
             /// </summary>
-            public Exception Error { get { return exc; } }
-
-            private Command command;
-            private Object result;
-            private Exception exc;
+            public Exception Error { get; }
         }
 
         /// <summary>
@@ -65,7 +60,7 @@ namespace Sophos.Commands
         /// </summary>
         /// <param name="sender">The object that raised this event</param>
         /// <param name="e">Information about the finished command</param>
-        public delegate void DispatchedCommandFinished(Object sender, CommandFinishedEventArgs e);
+        public delegate void DispatchedCommandFinished(object sender, CommandFinishedEventArgs e);
 
         /// <summary>
         /// Event router for command finished events.
@@ -84,7 +79,7 @@ namespace Sophos.Commands
                 throw new ArgumentException("poolSize must be greater than 0");
             }
 
-            this.poolSize = poolSize;
+            _poolSize = poolSize;
         }
 
         /// <summary>
@@ -101,7 +96,7 @@ namespace Sophos.Commands
         /// </para>
         /// </param>
         /// <remarks>
-        /// When the command evenutally finishes execution, the <see cref="CommandFinishedEvent"/> subscribers will be notified on
+        /// When the command eventually finishes execution, the <see cref="CommandFinishedEvent"/> subscribers will be notified on
         /// a different thread.
         /// </remarks>
         public void Dispatch(Command command)
@@ -111,24 +106,24 @@ namespace Sophos.Commands
                 throw new ArgumentException("Only top-level commands can be dispatched");
             }
 
-            nothingToDoEvent.Reset();
+            _nothingToDoEvent.Reset();
 
-            lock (criticalSection)
+            lock (_criticalSection)
             {
-                foreach(Command cmd in finishedCommands)
+                foreach(Command cmd in _finishedCommands)
                 {
                     cmd.Dispose();
                 }
 
-                finishedCommands.Clear();
+                _finishedCommands.Clear();
 
-                if (runningCommands.Count() == poolSize)
+                if (_runningCommands.Count == _poolSize)
                 {
-                    commandBacklog.Enqueue(command);
+                    _commandBacklog.Enqueue(command);
                 }
                 else
                 {
-                    runningCommands.Add(command);
+                    _runningCommands.Add(command);
                     command.AsyncExecute(new Listener(this, command));
                 }
             }
@@ -139,16 +134,16 @@ namespace Sophos.Commands
         /// </summary>
         public void Abort()
         {
-            lock(criticalSection)
+            lock(_criticalSection)
             {
-                foreach(Command cmd in commandBacklog)
+                foreach(Command cmd in _commandBacklog)
                 {
                     cmd.Dispose();
                 }
 
-                commandBacklog.Clear();
+                _commandBacklog.Clear();
 
-                foreach(Command cmd in runningCommands)
+                foreach(Command cmd in _runningCommands)
                 {
                     cmd.Abort();
                 }
@@ -160,7 +155,7 @@ namespace Sophos.Commands
         /// </summary>
         public void Wait()
         {
-            nothingToDoEvent.WaitOne();
+            _nothingToDoEvent.WaitOne();
         }
 
         /// <summary>
@@ -190,54 +185,51 @@ namespace Sophos.Commands
         }
 
         /// <summary>
-        /// Derived implemenations should override if they have work to do when disposing
+        /// Derived implementations should override if they have work to do when disposing
         /// </summary>
         /// <param name="disposing">True if this was called as a result of a call to Dispose()</param>
         protected virtual void Dispose(bool disposing)
         {
-            if (!disposed)
+            if (!_disposed)
             {
                 if (disposing)
                 {
                     Wait();
 
-                    foreach (Command cmd in finishedCommands)
+                    foreach (Command cmd in _finishedCommands)
                     {
                         cmd.Dispose();
                     }
 
-                    nothingToDoEvent.Dispose();
+                    _nothingToDoEvent.Dispose();
                 }
 
-                disposed = true;
+                _disposed = true;
             }
         }
 
-        private void OnCommandFinished(Command command, Object result, Exception exc)
+        private void OnCommandFinished(Command command, object result, Exception exc)
         {
-            if (CommandFinishedEvent != null)
-            {
-                CommandFinishedEvent(this, new CommandFinishedEventArgs(command, result, exc));
-            }
+	        CommandFinishedEvent?.Invoke(this, new CommandFinishedEventArgs(command, result, exc));
 
-            lock (criticalSection)
+	        lock (_criticalSection)
             {
-                runningCommands.Remove(command);
+                _runningCommands.Remove(command);
 
                 // We cannot dispose of this command here, because it's not quite done executing yet.
-                finishedCommands.AddLast(command);
+                _finishedCommands.AddLast(command);
 
-                if (commandBacklog.Count() == 0)
+                if (_commandBacklog.Count == 0)
                 {
-                    if (runningCommands.Count == 0)
+                    if (_runningCommands.Count == 0)
                     {
-                        nothingToDoEvent.Set();
+                        _nothingToDoEvent.Set();
                     }
                 }
                 else
                 {
-                    Command nextInLine = commandBacklog.Dequeue();
-                    runningCommands.Add(nextInLine);
+                    Command nextInLine = _commandBacklog.Dequeue();
+                    _runningCommands.Add(nextInLine);
 
                     try
                     {
@@ -255,35 +247,35 @@ namespace Sophos.Commands
         {
             internal Listener(CommandDispatcher dispatcher, Command command)
             {
-                this.dispatcher = dispatcher;
-                this.command = command;
+                _dispatcher = dispatcher;
+                _command = command;
             }
 
             public void CommandSucceeded(object result)
             {
-                dispatcher.OnCommandFinished(command, result, null);
+                _dispatcher.OnCommandFinished(_command, result, null);
             }
 
             public void CommandAborted()
             {
-                dispatcher.OnCommandFinished(command, null, new CommandAbortedException());
+                _dispatcher.OnCommandFinished(_command, null, new CommandAbortedException());
             }
 
             public void CommandFailed(Exception exc)
             {
-                dispatcher.OnCommandFinished(command, null, exc);
+                _dispatcher.OnCommandFinished(_command, null, exc);
             }
 
-            private Command command;
-            private CommandDispatcher dispatcher;
+            private readonly Command _command;
+            private readonly CommandDispatcher _dispatcher;
         }
 
-        private readonly int poolSize;
-        private List<Command> runningCommands = new List<Command>();
-        private Queue<Command> commandBacklog = new Queue<Command>();
-        private LinkedList<Command> finishedCommands = new LinkedList<Command>();
-        private Object criticalSection = new Object();
-        private System.Threading.ManualResetEvent nothingToDoEvent = new System.Threading.ManualResetEvent(true);
-        private bool disposed = false;
+        private readonly int _poolSize;
+        private readonly List<Command> _runningCommands = new List<Command>();
+        private readonly Queue<Command> _commandBacklog = new Queue<Command>();
+        private readonly LinkedList<Command> _finishedCommands = new LinkedList<Command>();
+        private readonly object _criticalSection = new object();
+        private readonly System.Threading.ManualResetEvent _nothingToDoEvent = new System.Threading.ManualResetEvent(true);
+        private bool _disposed;
     }
 }

@@ -19,7 +19,7 @@ namespace Sophos.Commands
         /// Constructs a CommandAbortedException object
         /// </summary>
         /// <param name="message">See <see cref="Exception"/> documentation</param>
-        public CommandAbortedException(String message) : base(message)
+        public CommandAbortedException(string message) : base(message)
         {
         }
 
@@ -28,7 +28,7 @@ namespace Sophos.Commands
         /// </summary>
         /// <param name="message">See <see cref="Exception"/> documentation</param>
         /// <param name="innerException">>See <see cref="Exception"/> documentation</param>
-        public CommandAbortedException(String message, Exception innerException) : base(message, innerException)
+        public CommandAbortedException(string message, Exception innerException) : base(message, innerException)
         {
         }
 

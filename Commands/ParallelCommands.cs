@@ -37,7 +37,7 @@ namespace Sophos.Commands
         public ParallelCommands(bool abortUponFailure, Command owner)
             : base(owner)
         {
-            this.abortUponFailure = abortUponFailure;
+            _abortUponFailure = abortUponFailure;
 
             // We always need at least one command in the collection so that the 
             // finished callback occurs properly even if the user of the class didn't
@@ -57,19 +57,19 @@ namespace Sophos.Commands
         {
             CheckDisposed();
 
-            if (abortUponFailure)
+            if (_abortUponFailure)
             {
                 // Because we need to abort running commands in case one of them fails,
                 // and we don't want the topmost command to abort as well, we keep these commands 
-                // wrapped in topmost AbortEventedCommand objects. These top level objects will
+                // wrapped in topmost AbortSignaledCommand objects. These top level objects will
                 // still respond to abort requests to this ParallelCommands object via the
                 // 'this' pointer we pass as an argument.
-                commands.Add(CreateAbortLinkedCommand(command));
+                _commands.Add(CreateAbortLinkedCommand(command));
             }
             else
             {
                 TakeOwnership(command);
-                commands.Add(command);
+                _commands.Add(command);
             }
         }
 
@@ -79,9 +79,9 @@ namespace Sophos.Commands
         {
             CheckDisposed();
 
-            foreach (Command cmd in commands)
+            foreach (Command cmd in _commands)
             {
-                if (!abortUponFailure)
+                if (!_abortUponFailure)
                 {
                     RelinquishOwnership(cmd);
                 }
@@ -89,7 +89,7 @@ namespace Sophos.Commands
                 cmd.Dispose();
             }
 
-            commands.Clear();
+            _commands.Clear();
 
             // We always need at least one command in the collection so that the 
             // finished callback occurs properly even if the user of the class didn't
@@ -104,22 +104,22 @@ namespace Sophos.Commands
         {
             get
             {
-                if (commands.Count > 1)
+                if (_commands.Count > 1)
                 {
-                    if (abortUponFailure)
+                    if (_abortUponFailure)
                     {
-                        List<Command> result = new List<Command>(commands.Count - 1);
+                        List<Command> result = new List<Command>(_commands.Count - 1);
 
-                        for (int i = 1; i < commands.Count; ++i )
+                        for (int i = 1; i < _commands.Count; ++i )
                         {
-                            AbortEventedCommand abortEventedCmd = (AbortEventedCommand)commands[i];
-                            result.Add(abortEventedCmd.CommandToRun);
+                            AbortSignaledCommand abortSignaledCmd = (AbortSignaledCommand)_commands[i];
+                            result.Add(abortSignaledCmd.CommandToRun);
                         }
 
                         return result;
                     }
 
-                    return commands.GetRange(1, commands.Count - 1);
+                    return _commands.GetRange(1, _commands.Count - 1);
                 }
 
                 return new List<Command>(0);
@@ -134,7 +134,7 @@ namespace Sophos.Commands
         /// </returns>
         public override string ExtendedDescription()
         {
-            return String.Format("Number of commands: {0}; Abort upon failure? {1}", commands.Count - 1, abortUponFailure);
+            return $"Number of commands: {_commands.Count - 1}; Abort upon failure? {_abortUponFailure}";
         }
 
         /// <summary>
@@ -147,9 +147,9 @@ namespace Sophos.Commands
             {
                 if (disposing)
                 {
-                    if (abortUponFailure)
+                    if (_abortUponFailure)
                     {
-                        foreach (Command cmd in commands)
+                        foreach (Command cmd in _commands)
                         {
                             cmd.Wait(); // because these were top level, we must make sure they're really done
                             cmd.Dispose();
@@ -166,14 +166,14 @@ namespace Sophos.Commands
         /// </summary>
         /// <param name="listener">Not applicable</param>
         /// <param name="runtimeArg">Not applicable</param>
-        protected sealed override void AsyncExecuteImpl(ICommandListener listener, Object runtimeArg)
+        protected sealed override void AsyncExecuteImpl(ICommandListener listener, object runtimeArg)
         {
-            int startIndex = (commands.Count == 1 ? 0 : 1);
+            int startIndex = (_commands.Count == 1 ? 0 : 1);
             Listener eventHandler = new Listener(this, listener);
 
-            for (int i = startIndex; i < commands.Count; ++i)
+            for (int i = startIndex; i < _commands.Count; ++i)
             {
-                commands[i].AsyncExecute(eventHandler, runtimeArg);
+                _commands[i].AsyncExecute(eventHandler, runtimeArg);
             }
         }
 
@@ -181,36 +181,36 @@ namespace Sophos.Commands
         {
             public Listener(ParallelCommands command, ICommandListener listener)
             {
-                this.command = command;
-                this.listener = listener;
-                remaining = command.commands.Count;
+                _command = command;
+                _listener = listener;
+                _remaining = command._commands.Count;
 
-                if (remaining > 1)
+                if (_remaining > 1)
                 {
-                    --remaining; // we don't run the dummy command unless it's the only one
+                    --_remaining; // we don't run the dummy command unless it's the only one
                 }
             }
 
-            public void CommandSucceeded(Object result)
+            public void CommandSucceeded(object result)
             {
                 OnCommandFinished();
             }
 
             public void CommandAborted()
             {
-                System.Threading.Interlocked.Increment(ref abortCount);
+                System.Threading.Interlocked.Increment(ref _abortCount);
                 OnCommandFinished();
             }
 
             public void CommandFailed(Exception exc)
             {
-                if (System.Threading.Interlocked.Increment(ref failCount) == 1)
+                if (System.Threading.Interlocked.Increment(ref _failCount) == 1)
                 {
-                    error = exc;
+                    _error = exc;
 
-                    if (command.abortUponFailure)
+                    if (_command._abortUponFailure)
                     {
-                        foreach (Command cmd in command.commands)
+                        foreach (Command cmd in _command._commands)
                         {
                             cmd.Abort();
                         }
@@ -222,29 +222,29 @@ namespace Sophos.Commands
 
             private void OnCommandFinished()
             {
-                if (System.Threading.Interlocked.Decrement(ref remaining) == 0)
+                if (System.Threading.Interlocked.Decrement(ref _remaining) == 0)
                 {
-                    if (error != null)
+                    if (_error != null)
                     {
-                        listener.CommandFailed(error);
+                        _listener.CommandFailed(_error);
                     }
-                    else if (abortCount > 0)
+                    else if (_abortCount > 0)
                     {
-                        listener.CommandAborted();
+                        _listener.CommandAborted();
                     }
                     else
                     {
-                        listener.CommandSucceeded(null);
+                        _listener.CommandSucceeded(null);
                     }
                 }
             }
 
-            private ICommandListener listener;
-            private ParallelCommands command;
-            private long failCount = 0;
-            private long abortCount = 0;
-            private long remaining;
-            private Exception error = null;
+            private readonly ICommandListener _listener;
+            private readonly ParallelCommands _command;
+            private long _failCount;
+            private long _abortCount;
+            private long _remaining;
+            private Exception _error;
         }
 
         private class DummyCommand : SyncCommand
@@ -257,7 +257,7 @@ namespace Sophos.Commands
             }
         }
 
-        private System.Collections.Generic.List<Command> commands = new List<Command>();
-        bool abortUponFailure;
+        private readonly List<Command> _commands = new List<Command>();
+	    private readonly bool _abortUponFailure;
     }
 }

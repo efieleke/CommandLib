@@ -13,13 +13,13 @@ namespace CommandLibTests
 		{
 			using (var cmd = new DoNothingCommand())
 			{
-				using (Task<int> task = Command.AsTask<int>(cmd, 7))
+				using (Task<int> task = cmd.AsTask<int>(7))
 				{
 					task.Start();
 					Assert.AreEqual(7, task.Result);
 				}
 
-				using (Task<int> task = Command.AsTask<int>(cmd, 5))
+				using (Task<int> task = cmd.AsTask<int>(5))
 				{
 					task.Start();
 					Assert.AreEqual(5, task.Result);
@@ -60,46 +60,38 @@ namespace CommandLibTests
 			}
 		}
 
-		private class DoNothingListener : ICommandListener
-		{
-			internal DoNothingListener(object expectedResult) { this.expectedResult = expectedResult;  }
-			public void CommandAborted() { return; }
-			public void CommandFailed(Exception exc) { return; }
-			public void CommandSucceeded(object result)	{ Assert.AreEqual(expectedResult, result);  return; }
-			private readonly object expectedResult;
-		}
-
 		private class DoNothingCommand : TaskCommand<int>
 		{
-			internal enum Behavior {Succeed, FailUpFront, FailInTask, AbortUpFront, Abort };
+			internal enum Behavior {Succeed, FailUpFront, FailInTask, Abort };
 
 			internal DoNothingCommand() : this(Behavior.Succeed) { }
-			internal DoNothingCommand(Behavior behavior) : base(null) { this.behavior = behavior; }
+			internal DoNothingCommand(Behavior behavior) : base(null) { _behavior = behavior; }
 
 			protected override Task<int> CreateTask(object runtimeArg)
 			{
-				if (behavior == Behavior.FailUpFront) { throw new NotSupportedException(); }
+				if (_behavior == Behavior.FailUpFront) { throw new NotSupportedException(); }
 
-				return Task.Run<int>(() =>
+				return Task.Run(() =>
 				{	
-					if (behavior == Behavior.FailInTask) { throw new InvalidOperationException(); }
-
-					if (behavior == Behavior.Abort && abortEvent.WaitOne())
+					switch (_behavior)
 					{
-						throw new CommandAbortedException();
+						case Behavior.FailInTask:
+							throw new InvalidOperationException();
+						case Behavior.Abort when _abortEvent.WaitOne():
+							throw new CommandAbortedException();
+						default:
+							return (int)runtimeArg;
 					}
-
-					return (int)runtimeArg;
 				});
 			}
 
 			protected override void AbortImpl()
 			{
-				abortEvent.Set();
+				_abortEvent.Set();
 			}
 
-			private readonly Behavior behavior;
-			private readonly System.Threading.ManualResetEvent abortEvent = new System.Threading.ManualResetEvent(false);
+			private readonly Behavior _behavior;
+			private readonly System.Threading.ManualResetEvent _abortEvent = new System.Threading.ManualResetEvent(false);
 		}
 	}
 }

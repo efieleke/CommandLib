@@ -11,18 +11,18 @@ namespace CommandLibTests
         {
             internal RetryCallback(int maxRetries, TimeSpan waitTime)
             {
-                this.maxRetries = maxRetries;
-                this.waitTime = waitTime;
+                _maxRetries = maxRetries;
+                _waitTime = waitTime;
             }
 
             public bool OnCommandFailed(int failNumber, Exception reason, out TimeSpan waitTime)
             {
-                waitTime = this.waitTime;
-                return failNumber <= maxRetries;
+                waitTime = _waitTime;
+                return failNumber <= _maxRetries;
             }
 
-            private int maxRetries;
-            private TimeSpan waitTime;
+            private readonly int _maxRetries;
+            private readonly TimeSpan _waitTime;
         }
 
         [TestMethod]

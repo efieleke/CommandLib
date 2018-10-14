@@ -3,7 +3,7 @@ using Sophos.Commands;
 
 namespace CommandLibSample
 {
-    class MoveAndReportPositionCommand : SyncCommand
+	internal class MoveAndReportPositionCommand : SyncCommand
     {
         internal MoveAndReportPositionCommand(RobotArm robotArm, int x, int y, int z, Command owner) : base(owner)
         {
@@ -29,18 +29,18 @@ namespace CommandLibSample
             // Notice that 'this' is passed as the owning command to this child command.
             // If we didn't do that, abort requests would not be honored (and we'd have a
             // resource leak).
-            framedMoveAndReportCmd = new SequentialCommands(this);
-            framedMoveAndReportCmd.Add(new ReportPositionCommand(robotArm));
-            framedMoveAndReportCmd.Add(moveAndReportCmd);
-            framedMoveAndReportCmd.Add(new ReportPositionCommand(robotArm));
+            _framedMoveAndReportCmd = new SequentialCommands(this);
+            _framedMoveAndReportCmd.Add(new ReportPositionCommand(robotArm));
+            _framedMoveAndReportCmd.Add(moveAndReportCmd);
+            _framedMoveAndReportCmd.Add(new ReportPositionCommand(robotArm));
         }
 
         protected override object SyncExeImpl(object runtimeArg)
         {
-            framedMoveAndReportCmd.SyncExecute();
+            _framedMoveAndReportCmd.SyncExecute();
             return null;
         }
 
-        private readonly SequentialCommands framedMoveAndReportCmd;
+        private readonly SequentialCommands _framedMoveAndReportCmd;
     }
 }

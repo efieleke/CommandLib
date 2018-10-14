@@ -10,12 +10,12 @@ namespace CommandLibTests
 
         internal BadAsyncCommand(FinishType finishType) : base(null)
         {
-            this.finishType = finishType;
+            _finishType = finishType;
         }
 
         protected override void AsyncExecuteImpl(ICommandListener listener, object runtimeArg)
         {
-            switch(finishType)
+            switch(_finishType)
             {
                 case FinishType.Abort:
                     listener.CommandAborted();
@@ -29,7 +29,7 @@ namespace CommandLibTests
             }
         }
 
-        private FinishType finishType;
+        private readonly FinishType _finishType;
     }
 
     internal class DoublyDoneAsyncCommand : AsyncCommand
@@ -54,7 +54,7 @@ namespace CommandLibTests
                 }
                 catch (Exception exc)
                 {
-                    String msg = "Expected InvalidOperationException, but instead got this: " + exc.ToString();
+                    string msg = "Expected InvalidOperationException, but instead got this: " + exc;
                     Assert.Fail(msg);
                 }
             });

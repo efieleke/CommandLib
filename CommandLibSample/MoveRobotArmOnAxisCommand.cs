@@ -1,16 +1,15 @@
-﻿using System;
-using Sophos.Commands;
+﻿using Sophos.Commands;
 
 namespace CommandLibSample
 {
-    class MoveRobotArmOnAxisCommand : AsyncCommand
+	internal class MoveRobotArmOnAxisCommand : AsyncCommand
     {
         internal MoveRobotArmOnAxisCommand(RobotArm robotArm, int destination, RobotArm.Axis axis, Command owner)
             : base(owner)
         {
-            this.robotArm = robotArm;
-            this.destination = destination;
-            this.axis = axis;
+            _robotArm = robotArm;
+            _destination = destination;
+            _axis = axis;
 
             robotArm.MoveCompleteEvent += MoveCompleted;
         }
@@ -19,12 +18,10 @@ namespace CommandLibSample
         {
             if (disposing)
             {
-                robotArm.MoveCompleteEvent -= MoveCompleted;
+                _robotArm.MoveCompleteEvent -= MoveCompleted;
 
-                if (asyncResult != null)
-                {
-                    asyncResult.Dispose();
-                }
+	            // ReSharper disable once InconsistentlySynchronizedField
+	            _asyncResult?.Dispose();
             }
 
             base.Dispose(disposing);
@@ -32,55 +29,48 @@ namespace CommandLibSample
 
         protected override void AsyncExecuteImpl(ICommandListener listener, object runtimeArg)
         {
-            this.listener = listener;
-            RobotArm.IAbortableAsyncResult result = robotArm.Move(axis, destination, this);
+            _listener = listener;
+            RobotArm.IAbortableAsyncResult result = _robotArm.Move(_axis, _destination, this);
 
-            lock (criticalSection)
+            lock (_criticalSection)
             {
-                if (asyncResult != null)
-                {
-                    asyncResult.Dispose();
-                }
-
-                asyncResult = result;
+	            _asyncResult?.Dispose();
+	            _asyncResult = result;
             }
         }
 
         protected override void AbortImpl()
         {
-            lock (criticalSection)
+            lock (_criticalSection)
             {
-                if (asyncResult != null)
-                {
-                    asyncResult.Abort();
-                }
+	            _asyncResult?.Abort();
             }
         }
 
-        private void MoveCompleted(Object sender, RobotArm.IAbortableAsyncResult e)
+        private void MoveCompleted(object sender, RobotArm.IAbortableAsyncResult e)
         {
             if (e.UserData == this)
             {
                 if (e.Aborted)
                 {
-                    listener.CommandAborted();
+                    _listener.CommandAborted();
                 }
                 else if (e.Failure != null)
                 {
-                    listener.CommandFailed(e.Failure);
+                    _listener.CommandFailed(e.Failure);
                 }
                 else
                 {
-                    listener.CommandSucceeded(null);
+                    _listener.CommandSucceeded(null);
                 }
             }
         }
 
-        private readonly RobotArm robotArm;
-        private readonly int destination;
-        private readonly RobotArm.Axis axis;
-        private RobotArm.IAbortableAsyncResult asyncResult;
-        private ICommandListener listener;
-        private readonly Object criticalSection = new Object();
+        private readonly RobotArm _robotArm;
+        private readonly int _destination;
+        private readonly RobotArm.Axis _axis;
+        private RobotArm.IAbortableAsyncResult _asyncResult;
+        private ICommandListener _listener;
+        private readonly object _criticalSection = new object();
     }
 }

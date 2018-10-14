@@ -9,13 +9,13 @@ using Sophos.Commands;
 // SequentialCommands, PeriodicCommand, TimeLimitedCommand and RetryableCommand.
 namespace CommandLibSample
 {
-    class Program
+	internal class Program
     {
-        static void Main(string[] args)
+        static void Main()
         {
             // Output all the command activity to a file in the temp directory. This is a simple text file, and it
             // can be viewed using CommandLogViewer.
-            String tempFile = System.IO.Path.GetTempFileName();
+            string tempFile = System.IO.Path.GetTempFileName();
             Command.Monitors = new LinkedList<ICommandMonitor>();
             Command.Monitors.AddLast(new CommandTracer());
             Command.Monitors.AddLast(new CommandLogger(tempFile));
@@ -41,7 +41,7 @@ namespace CommandLibSample
                 monitor.Dispose();
             }
 
-            Console.Out.Write(String.Format("Delete generated log file ({0} (y/n)? ", tempFile));
+            Console.Out.Write($"Delete generated log file ({tempFile} (y/n)? ");
             ConsoleKeyInfo keyInfo = Console.ReadKey(false);
             Console.WriteLine("");
 

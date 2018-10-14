@@ -74,7 +74,7 @@ namespace Sophos.Commands
         /// command execution takes longer than the interval, the next repetition will start immediately).
         /// </param>
         /// <param name="stopEvent">
-        /// Optional event to indicate that the perdiodic command should stop. Raising this event is equivalent to calling <see cref="Stop"/>
+        /// Optional event to indicate that the periodic command should stop. Raising this event is equivalent to calling <see cref="Stop"/>
         /// You can specify the <see cref="Command.DoneEvent"/> of a different <see cref="Command"/> as the stop event, which will cause this
         /// periodic command to stop when the other command finishes, but be sure that the other command begins execution before this command
         /// if you choose to do this.
@@ -106,7 +106,7 @@ namespace Sophos.Commands
         /// command execution takes longer than the interval, the next repetition will start immediately).
         /// </param>
         /// <param name="stopEvent">
-        /// Optional event to indicate that the perdiodic command should stop. Raising this event is equivalent to calling <see cref="Stop"/>
+        /// Optional event to indicate that the periodic command should stop. Raising this event is equivalent to calling <see cref="Stop"/>
         /// You can specify the <see cref="Command.DoneEvent"/> of a different <see cref="Command"/> as the stop event, which will cause this
         /// periodic command to stop when the other command finishes, but be sure that the other command begins execution before this command
         /// if you choose to do this.
@@ -125,30 +125,30 @@ namespace Sophos.Commands
             Command owner)
             : base(owner)
         {
-            this.stopEvent = stopEvent;
-            initialPause = new PauseCommand(interval, stopEvent, this);
-            pause = new PauseCommand(interval, stopEvent);
+            _stopEvent = stopEvent;
+            _initialPause = new PauseCommand(interval, stopEvent, this);
+            _pause = new PauseCommand(interval, stopEvent);
 
             if (intervalIsInclusive)
             {
                 switch (intervalType)
                 {
                     case IntervalType.PauseBefore:
-                        startWithPause = true;
+                        _startWithPause = true;
                         break;
                     case IntervalType.PauseAfter:
-                        startWithPause = false;
+                        _startWithPause = false;
                         break;
                     default:
-                        initialPause.Dispose();
-                        pause.Dispose();
-                        throw new ArgumentException(String.Format("Unknown interval type {0}", intervalType), "intervalType");
+                        _initialPause.Dispose();
+                        _pause.Dispose();
+                        throw new ArgumentException($"Unknown interval type {intervalType}", nameof(intervalType));
                 }
 
-                ParallelCommands parallelCmds = new ParallelCommands(true, this);
+                var parallelCmds = new ParallelCommands(true, this);
                 parallelCmds.Add(command);
-                parallelCmds.Add(pause);
-                collectionCmd = parallelCmds;
+                parallelCmds.Add(_pause);
+                _collectionCmd = parallelCmds;
             }
             else
             {
@@ -157,23 +157,23 @@ namespace Sophos.Commands
                     case IntervalType.PauseAfter:
                         SequentialCommands seqAfter = new SequentialCommands(this);
                         seqAfter.Add(command);
-                        seqAfter.Add(pause);
-                        collectionCmd = seqAfter;
+                        seqAfter.Add(_pause);
+                        _collectionCmd = seqAfter;
                         break;
                     case IntervalType.PauseBefore:
                         SequentialCommands seqBefore = new SequentialCommands(this);
-                        seqBefore.Add(pause);
+                        seqBefore.Add(_pause);
                         seqBefore.Add(command);
-                        collectionCmd = seqBefore;
+                        _collectionCmd = seqBefore;
                         break;
                     default:
-                        initialPause.Dispose();
-                        pause.Dispose();
-                        throw new ArgumentException(String.Format("Unknown interval type {0}", intervalType), "intervalType");
+                        _initialPause.Dispose();
+                        _pause.Dispose();
+                        throw new ArgumentException($"Unknown interval type {intervalType}", nameof(intervalType));
                 }
             }
 
-            this.repeatCount = repeatCount;
+            _repeatCount = repeatCount;
         }
 
         /// <summary>
@@ -185,13 +185,13 @@ namespace Sophos.Commands
             get
             {
                 CheckDisposed();
-                return pause.Duration;
+                return _pause.Duration;
             }
             set
             {
                 CheckDisposed();
-                initialPause.Duration = value;
-                pause.Duration = value;
+                _initialPause.Duration = value;
+                _pause.Duration = value;
             }
         }
 
@@ -206,12 +206,12 @@ namespace Sophos.Commands
             get
             {
                 CheckDisposed();
-                return System.Threading.Interlocked.Read(ref repeatCount);
+                return System.Threading.Interlocked.Read(ref _repeatCount);
             }
             set
             {
                 CheckDisposed();
-                System.Threading.Interlocked.Exchange(ref repeatCount, value);
+                System.Threading.Interlocked.Exchange(ref _repeatCount, value);
             }
         }
 
@@ -234,8 +234,8 @@ namespace Sophos.Commands
         public void SkipCurrentWait()
         {
             CheckDisposed();
-            initialPause.CutShort();
-            pause.CutShort();
+            _initialPause.CutShort();
+            _pause.CutShort();
         }
 
         /// <summary>
@@ -244,8 +244,8 @@ namespace Sophos.Commands
         public void Reset()
         {
             CheckDisposed();
-            initialPause.Reset();
-            pause.Reset();
+            _initialPause.Reset();
+            _pause.Reset();
         }
 
         /// <summary>
@@ -257,7 +257,7 @@ namespace Sophos.Commands
         /// </returns>
         public override string ExtendedDescription()
         {
-            return String.Format("Repetitions: {0}; Interval: {1}; Start with pause? {2}; External stop event? {3}", RepeatCount, Interval, startWithPause, stopEvent != null);
+            return $"Repetitions: {RepeatCount}; Interval: {Interval}; Start with pause? {_startWithPause}; External stop event? {_stopEvent != null}";
         }
 
         /// <summary>
@@ -265,16 +265,16 @@ namespace Sophos.Commands
         /// </summary>
         /// <param name="runtimeArg">Not applicable</param>
         /// <returns>Not applicable</returns>
-        protected sealed override Object SyncExeImpl(Object runtimeArg)
+        protected sealed override object SyncExeImpl(object runtimeArg)
         {
-            if (startWithPause && RepeatCount > 0)
+            if (_startWithPause && RepeatCount > 0)
             {
-                initialPause.SyncExecute();
+                _initialPause.SyncExecute();
             }
 
             for (int i = 0; i < RepeatCount; ++i)
             {
-                if (stopEvent != null && stopEvent.WaitOne(0))
+                if (_stopEvent != null && _stopEvent.WaitOne(0))
                 {
                     return null;
                 }
@@ -284,32 +284,32 @@ namespace Sophos.Commands
                 if (i == RepeatCount - 1)
                 {
                     // Don't pause for the last execution
-                    TimeSpan prevInterval = pause.Duration;
-                    pause.Duration = TimeSpan.FromTicks(0);
+                    TimeSpan prevInterval = _pause.Duration;
+                    _pause.Duration = TimeSpan.FromTicks(0);
 
                     try
                     {
-                        collectionCmd.SyncExecute<Object>(runtimeArg);
+                        _collectionCmd.SyncExecute<object>(runtimeArg);
                     }
                     finally
                     {
-                        pause.Duration = prevInterval;
+                        _pause.Duration = prevInterval;
                     }
                 }
                 else
                 {
-                    collectionCmd.SyncExecute<Object>(runtimeArg);
+                    _collectionCmd.SyncExecute<object>(runtimeArg);
                 }
             }
 
             return null;
         }
 
-        private PauseCommand pause;
-        private PauseCommand initialPause;
-        private Command collectionCmd;
-        private long repeatCount;
-        private bool startWithPause;
-        private System.Threading.WaitHandle stopEvent;
+        private readonly PauseCommand _pause;
+        private readonly PauseCommand _initialPause;
+        private readonly Command _collectionCmd;
+        private long _repeatCount;
+        private readonly bool _startWithPause;
+        private readonly System.Threading.WaitHandle _stopEvent;
     }
 }

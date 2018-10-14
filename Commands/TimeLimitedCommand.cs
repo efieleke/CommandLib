@@ -51,8 +51,8 @@ namespace Sophos.Commands
         public TimeLimitedCommand(Command commandToRun, int timeoutMS, Command owner)
             : base(owner)
         {
-            this.timeoutMS = timeoutMS;
-            this.commandToRun = CreateAbortLinkedCommand(commandToRun);
+            _timeoutMS = timeoutMS;
+            _commandToRun = CreateAbortLinkedCommand(commandToRun);
         }
 
         /// <summary>
@@ -63,7 +63,7 @@ namespace Sophos.Commands
         /// </returns>
         public override string ExtendedDescription()
         {
-            return String.Format("Timeout MS: {0}", timeoutMS);
+            return $"Timeout MS: {_timeoutMS}";
         }
 
         /// <summary>
@@ -76,7 +76,7 @@ namespace Sophos.Commands
             {
                 if (disposing)
                 {
-                    commandToRun.Dispose();
+                    _commandToRun.Dispose();
                 }
             }
 
@@ -88,54 +88,54 @@ namespace Sophos.Commands
         /// </summary>
         /// <param name="runtimeArg">Not applicable</param>
         /// <returns>Not applicable</returns>
-        protected sealed override Object SyncExeImpl(Object runtimeArg)
+        protected sealed override object SyncExeImpl(object runtimeArg)
         {
-            commandToRun.AsyncExecute(new Listener(this), runtimeArg);
-            bool finished = commandToRun.DoneEvent.WaitOne(timeoutMS);
+            _commandToRun.AsyncExecute(new Listener(this), runtimeArg);
+            bool finished = _commandToRun.DoneEvent.WaitOne(_timeoutMS);
 
             if (!finished)
             {
-                commandToRun.AbortAndWait();
-                throw new TimeoutException(String.Format("Timed out after waiting {0}ms for command '{1}' to finish", timeoutMS, commandToRun.Description));
+                _commandToRun.AbortAndWait();
+                throw new TimeoutException($"Timed out after waiting {_timeoutMS}ms for command '{_commandToRun.Description}' to finish");
             }
 
-            if (lastException != null)
+            if (_lastException != null)
             {
-                throw lastException;
+                throw _lastException;
             }
 
-            return result;
+            return _result;
         }
 
         private class Listener : ICommandListener
         {
             public Listener(TimeLimitedCommand command)
             {
-                this.command = command;
+                _command = command;
             }
 
-            public void CommandSucceeded(Object result)
+            public void CommandSucceeded(object result)
             {
-                command.result = result;
-                command.lastException = null;
+                _command._result = result;
+                _command._lastException = null;
             }
 
             public void CommandAborted()
             {
-                command.lastException = new CommandAbortedException();
+                _command._lastException = new CommandAbortedException();
             }
 
             public void CommandFailed(Exception exc)
             {
-                command.lastException = exc;
+                _command._lastException = exc;
             }
 
-            private TimeLimitedCommand command;
+            private readonly TimeLimitedCommand _command;
         }
 
-        private Command commandToRun;
-        private int timeoutMS;
-        private Object result;
-        private Exception lastException;
+        private readonly Command _commandToRun;
+        private readonly int _timeoutMS;
+        private object _result;
+        private Exception _lastException;
     }
 }

@@ -5,18 +5,18 @@ using Sophos.Commands;
 namespace CommandLibTests
 {
     [TestClass]
-    public class AbortEventedCommandTests
+    public class AbortSignaledCommandTests
     {
         [TestMethod]
-        public void AbortEventedCommand_TestAbortedPause()
+        public void AbortSignaledCommand_TestAbortedPause()
         {
             using (System.Threading.ManualResetEvent abortEvent = new System.Threading.ManualResetEvent(true))
             {
-                using (AbortEventedCommand abortEventedPauseCmd = new AbortEventedCommand(new NeverEndingAsyncCommand(), abortEvent))
+                using (AbortSignaledCommand abortSignaledPauseCmd = new AbortSignaledCommand(new NeverEndingAsyncCommand(), abortEvent))
                 {
                     try
                     {
-                        abortEventedPauseCmd.SyncExecute();
+                        abortSignaledPauseCmd.SyncExecute();
                         Assert.Fail();
                     }
                     catch (CommandAbortedException)
@@ -33,7 +33,9 @@ namespace CommandLibTests
                     {
                         try
                         {
-                            abortEventedPauseCmd.SyncExecute();
+							// The thread is joined below, so this is safe.
+	                        // ReSharper disable once AccessToDisposedClosure
+	                        abortSignaledPauseCmd.SyncExecute();
                             Assert.Fail();
                         }
                         catch (CommandAbortedException)
@@ -48,83 +50,83 @@ namespace CommandLibTests
                     thread.Start();
                     System.Threading.Thread.Sleep(20); // give time for the thread to start
                     abortEvent.Set();
-                    abortEventedPauseCmd.Wait();
+                    abortSignaledPauseCmd.Wait();
                     thread.Join();
 
                     CmdListener listener = new CmdListener(CmdListener.CallbackType.Aborted, null);
-                    abortEventedPauseCmd.AsyncExecute(listener);
-                    abortEventedPauseCmd.Wait();
+                    abortSignaledPauseCmd.AsyncExecute(listener);
+                    abortSignaledPauseCmd.Wait();
                     listener.Check();
 
                     abortEvent.Reset();
                     listener.Reset(CmdListener.CallbackType.Aborted, null);
-                    abortEventedPauseCmd.AsyncExecute(listener);
+                    abortSignaledPauseCmd.AsyncExecute(listener);
                     abortEvent.Set();
-                    abortEventedPauseCmd.Wait();
+                    abortSignaledPauseCmd.Wait();
                     listener.Check();
 
                     abortEvent.Reset();
                     listener.Reset(CmdListener.CallbackType.Aborted, null);
-                    abortEventedPauseCmd.AsyncExecute(listener);
+                    abortSignaledPauseCmd.AsyncExecute(listener);
                     System.Threading.Thread.Sleep(10);
                     abortEvent.Set();
-                    abortEventedPauseCmd.Wait();
+                    abortSignaledPauseCmd.Wait();
                     listener.Check();
                 }
             }
         }
 
         [TestMethod]
-        public void AbortEventedCommand_TestAbort()
+        public void AbortSignaledCommand_TestAbort()
         {
             using (System.Threading.ManualResetEvent abortEvent = new System.Threading.ManualResetEvent(false))
             {
-                using (AbortEventedCommand abortEventedPauseCmd = new AbortEventedCommand(new NeverEndingAsyncCommand(), abortEvent))
+                using (AbortSignaledCommand abortSignaledPauseCmd = new AbortSignaledCommand(new NeverEndingAsyncCommand(), abortEvent))
                 {
-                    AbortTest.Run(abortEventedPauseCmd, null, 10);
+                    AbortTest.Run(abortSignaledPauseCmd, null, 10);
                 }
             }
         }
 
         [TestMethod]
-        public void AbortEventedCommand_TestHappyPath()
+        public void AbortSignaledCommand_TestHappyPath()
         {
             using (System.Threading.ManualResetEvent abortEvent = new System.Threading.ManualResetEvent(false))
             {
                 PauseCommand pauseCmd = new PauseCommand(TimeSpan.FromMilliseconds(10));
-                using (AbortEventedCommand abortEventedPauseCmd = new AbortEventedCommand(pauseCmd, abortEvent))
+                using (AbortSignaledCommand abortSignaledPauseCmd = new AbortSignaledCommand(pauseCmd, abortEvent))
                 {
-                    HappyPathTest.Run(abortEventedPauseCmd, null, null);
+                    HappyPathTest.Run(abortSignaledPauseCmd, null, null);
                 }
             }
         }
 
         [TestMethod]
-        public void AbortEventedCommand_TestFail()
+        public void AbortSignaledCommand_TestFail()
         {
             using (System.Threading.ManualResetEvent abortEvent = new System.Threading.ManualResetEvent(false))
             {
-                AbortEventedCommand abortEventedCmd = new AbortEventedCommand(new FailingCommand(), abortEvent);
-                FailTest.Run<FailingCommand.FailException>(abortEventedCmd, null);
-                abortEventedCmd.Dispose();
+                AbortSignaledCommand abortSignaledCmd = new AbortSignaledCommand(new FailingCommand(), abortEvent);
+                FailTest.Run<FailingCommand.FailException>(abortSignaledCmd, null);
+                abortSignaledCmd.Dispose();
             }
         }
 
         [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Usage", "CA2202:Do not dispose objects multiple times"), TestMethod]
-        public void AbortEventedCommand_TestMustBeTopLevel()
+        public void AbortSignaledCommand_TestMustBeTopLevel()
         {
             using (System.Threading.ManualResetEvent abortEvent = new System.Threading.ManualResetEvent(false))
             {
                 PauseCommand pauseCmd = new PauseCommand(TimeSpan.FromMilliseconds(10));
 
-                using (AbortEventedCommand abortEventedPauseCmd = new AbortEventedCommand(pauseCmd, abortEvent))
+                using (AbortSignaledCommand abortSignaledPauseCmd = new AbortSignaledCommand(pauseCmd, abortEvent))
                 {
                     using (SequentialCommands seqCmd = new SequentialCommands())
                     {
                         try
                         {
-                            seqCmd.Add(abortEventedPauseCmd);
-                            Assert.Fail("AbortEventedCommand was given an owner");
+                            seqCmd.Add(abortSignaledPauseCmd);
+                            Assert.Fail("AbortSignaledCommand was given an owner");
                         }
                         catch (InvalidOperationException)
                         {

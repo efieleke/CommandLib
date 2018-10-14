@@ -76,7 +76,7 @@ namespace CommandLibTests
             {
                 seqCmds.Add(new PauseCommand(TimeSpan.FromMilliseconds(0)));
                 seqCmds.Add(new AddCommand(1)); // won't get the right type passed in
-                FailTest.Run<InvalidCastException>(seqCmds, new Object());
+                FailTest.Run<InvalidCastException>(seqCmds, new object());
             }
         }
     }

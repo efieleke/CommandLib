@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Globalization;
 
 namespace Sophos.Commands
 {
@@ -63,11 +64,11 @@ namespace Sophos.Commands
             Command owner)
             : base(owner)
         {
-            this.command = command;
-            TakeOwnership(this.command);
-            this.runImmediatelyIfTimeIsPast = runImmediatelyIfTimeIsPast;
-            pauseCmd = new PauseCommand(TimeSpan.FromTicks(0), null, this);
-            this.timeOfExecution = timeOfExecution;
+            _command = command;
+            TakeOwnership(_command);
+            _runImmediatelyIfTimeIsPast = runImmediatelyIfTimeIsPast;
+            _pauseCmd = new PauseCommand(TimeSpan.FromTicks(0), null, this);
+            _timeOfExecution = timeOfExecution;
         }
 
         /// <summary>The time at which to execute the command to run</summary>
@@ -81,9 +82,9 @@ namespace Sophos.Commands
             {
                 CheckDisposed();
 
-                lock (criticalSection)
+                lock (_criticalSection)
                 {
-                    return timeOfExecution;
+                    return _timeOfExecution;
                 }
             }
 
@@ -92,24 +93,25 @@ namespace Sophos.Commands
                 CheckDisposed();
                 TimeSpan newInterval = value - DateTime.Now;
 
-                if (newInterval.Ticks < 0 && !runImmediatelyIfTimeIsPast)
+                if (newInterval.Ticks < 0 && !_runImmediatelyIfTimeIsPast)
                 {
-                    throw new InvalidOperationException(String.Format("{0} was scheduled to run at {1}, which is in the past", Description, value.ToString()));
+                    throw new InvalidOperationException(
+	                    $"{Description} was scheduled to run at {value.ToString(CultureInfo.InvariantCulture)}, which is in the past");
                 }
 
-                lock(criticalSection)
+                lock(_criticalSection)
                 {
-                    timeOfExecution = value;
+                    _timeOfExecution = value;
                 }
 
                 if (newInterval.Ticks >= 0)
                 {
-                    pauseCmd.Duration = newInterval;
-                    pauseCmd.Reset();
+                    _pauseCmd.Duration = newInterval;
+                    _pauseCmd.Reset();
                 }
                 else
                 {
-                    pauseCmd.CutShort();
+                    _pauseCmd.CutShort();
                 }
             }
         }
@@ -119,7 +121,7 @@ namespace Sophos.Commands
         public void SkipWait()
         {
             CheckDisposed();
-            pauseCmd.CutShort();
+            _pauseCmd.CutShort();
         }
 
         /// <summary>
@@ -130,7 +132,8 @@ namespace Sophos.Commands
         /// </returns>
         public override string ExtendedDescription()
         {
-            return String.Format("Time to execute: {0}; Run immediately if time is in the past? {1}", TimeOfExecution, runImmediatelyIfTimeIsPast);
+            return
+	            $"Time to execute: {TimeOfExecution}; Run immediately if time is in the past? {_runImmediatelyIfTimeIsPast}";
         }
 
         /// <summary>
@@ -138,27 +141,28 @@ namespace Sophos.Commands
         /// </summary>
         /// <param name="runtimeArg">Not applicable</param>
         /// <returns>Not applicable</returns>
-        protected sealed override Object SyncExeImpl(Object runtimeArg)
+        protected sealed override object SyncExeImpl(object runtimeArg)
         {
             TimeSpan waitTime = TimeOfExecution - DateTime.Now;
 
             if (waitTime.Ticks >= 0)
             {
-                pauseCmd.Duration = waitTime;
-                pauseCmd.SyncExecute();
+                _pauseCmd.Duration = waitTime;
+                _pauseCmd.SyncExecute();
             }
-            else if (!runImmediatelyIfTimeIsPast)
+            else if (!_runImmediatelyIfTimeIsPast)
             {
-                throw new InvalidOperationException(String.Format("{0} was scheduled to run at {1}, which is in the past", Description, TimeOfExecution.ToString()));
+                throw new InvalidOperationException(
+	                $"{Description} was scheduled to run at {TimeOfExecution.ToString(CultureInfo.InvariantCulture)}, which is in the past");
             }
 
-            return command.SyncExecute(runtimeArg);
+            return _command.SyncExecute(runtimeArg);
         }
 
-        private PauseCommand pauseCmd;
-        private Command command;
-        private bool runImmediatelyIfTimeIsPast;
-        private DateTime timeOfExecution;
-        private Object criticalSection = new Object();
+        private readonly PauseCommand _pauseCmd;
+        private readonly Command _command;
+        private readonly bool _runImmediatelyIfTimeIsPast;
+        private DateTime _timeOfExecution;
+        private readonly object _criticalSection = new object();
     }
 }

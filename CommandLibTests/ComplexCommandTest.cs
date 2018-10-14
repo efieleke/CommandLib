@@ -71,7 +71,7 @@ namespace CommandLibTests
 
         private Command GenerateComplexCommand(System.Threading.ManualResetEvent abortEvent, int maxPauseMS, bool insertFailure)
         {
-            return new AbortEventedCommand(new ComplexCommand(maxPauseMS, insertFailure), abortEvent);
+            return new AbortSignaledCommand(new ComplexCommand(maxPauseMS, insertFailure), abortEvent);
         }
 
         private class ComplexCommand : SyncCommand
@@ -87,18 +87,18 @@ namespace CommandLibTests
                 ParallelCommands combined = new ParallelCommands(false);
                 combined.Add(seq);
                 combined.Add(parallel);
-                cmd = new PeriodicCommand(
+                _cmd = new PeriodicCommand(
                     combined, 3, TimeSpan.FromMilliseconds(maxPauseMS), PeriodicCommand.IntervalType.PauseAfter, true, null, this);
 
                 // For code coverage. Also, gives us an opportunity to try the third overload of SyncExecute.
-                RelinquishOwnership(cmd);
+                RelinquishOwnership(_cmd);
             }
 
             protected override void Dispose(bool disposing)
             {
                 if (disposing)
                 {
-                    cmd.Dispose();
+                    _cmd.Dispose();
                 }
 
                 base.Dispose(disposing);
@@ -108,7 +108,7 @@ namespace CommandLibTests
             {
                 try
                 {
-                    RelinquishOwnership(cmd);
+                    RelinquishOwnership(_cmd);
                 }
                 catch (InvalidOperationException)
                 {
@@ -116,15 +116,15 @@ namespace CommandLibTests
 
                 using (PauseCommand pauseCmd = new PauseCommand(TimeSpan.FromTicks(0)))
                 {
-                    String dontCare = "test";
+                    string _ = "test";
                     
-                    if (pauseCmd.SyncExecute<String>(dontCare, this) != dontCare)
+                    if (pauseCmd.SyncExecute<string>(_, this) != _)
                     {
                         throw new Exception("Unexpected return value from pause command execution");
                     }
                 }
 
-                return cmd.SyncExecute(runtimeArg, this);
+                return _cmd.SyncExecute(runtimeArg, this);
             }
 
             private static ParallelCommands GenerateParallelCommands(int maxPauseMS, bool insertFailure)
@@ -158,14 +158,14 @@ namespace CommandLibTests
                     new PauseCommand(TimeSpan.FromMilliseconds(maxPauseMS)),
                     new NoOpCommand(),
                     new PeriodicCommand(
-                        insertFailure ? (Command)new FailingCommand() : (Command)new NoOpCommand(),
+                        insertFailure ? new FailingCommand() : (Command)new NoOpCommand(),
                         5, TimeSpan.FromMilliseconds(maxPauseMS),
                         PeriodicCommand.IntervalType.PauseBefore,
                         true)
                 };
             }
 
-            private Command cmd;
+            private readonly Command _cmd;
         }
     }
 

@@ -3,24 +3,24 @@ using Sophos.Commands;
 
 namespace CommandLibSample
 {
-    class MoveRobotArmCommand : ParallelCommands, RetryableCommand.IRetryCallback
+	internal class MoveRobotArmCommand : ParallelCommands, RetryableCommand.IRetryCallback
     {
         internal MoveRobotArmCommand(RobotArm robotArm, int x, int y, int z)
             : base(true, null)
         {
-            base.Add(
+            Add(
                 new RetryableCommand(
                     new MoveRobotArmOnAxisCommand(robotArm, x, RobotArm.Axis.X, null),
                     this)
             );
 
-            base.Add(
+            Add(
                 new RetryableCommand(
                     new MoveRobotArmOnAxisCommand(robotArm, y, RobotArm.Axis.Y, null),
                     this)
             );
 
-            base.Add(
+            Add(
                 new RetryableCommand(
                     new MoveRobotArmOnAxisCommand(robotArm, z, RobotArm.Axis.Z, null),
                     this)

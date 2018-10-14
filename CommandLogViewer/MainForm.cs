@@ -1,11 +1,5 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.ComponentModel;
-using System.Data;
-using System.Drawing;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using System.Windows.Forms;
 
 namespace CommandLogViewer
@@ -19,12 +13,11 @@ namespace CommandLogViewer
 
         private void openBtn_Click(object sender, EventArgs e)
         {
-            OpenFileDialog openFileDialog = new OpenFileDialog();
-            openFileDialog.Multiselect = false;
+	        OpenFileDialog openFileDialog = new OpenFileDialog {Multiselect = false};
 
-            if (openFileDialog.ShowDialog(this) == DialogResult.OK)
+	        if (openFileDialog.ShowDialog(this) == DialogResult.OK)
             {
-                logFileName = openFileDialog.FileName;
+                _logFileName = openFileDialog.FileName;
                 LoadLogFile();
                 reloadBtn.Enabled = true;
             }
@@ -44,45 +37,44 @@ namespace CommandLogViewer
                 childList.Items.Clear();
                 parentList.Items.Clear();
                 commandList.Items.Clear();
-                listData.Clear();
+                _listData.Clear();
 
                 // Open the selected file to read.
-                System.IO.FileStream stream = new System.IO.FileStream(logFileName, System.IO.FileMode.Open, System.IO.FileAccess.Read, System.IO.FileShare.ReadWrite);
+                System.IO.FileStream stream = new System.IO.FileStream(_logFileName, System.IO.FileMode.Open, System.IO.FileAccess.Read, System.IO.FileShare.ReadWrite);
 
                 using (System.IO.StreamReader fileStream = new System.IO.StreamReader(stream))
                 {
-                    for (String line = fileStream.ReadLine(); line != null; line = fileStream.ReadLine())
+                    for (string line = fileStream.ReadLine(); line != null; line = fileStream.ReadLine())
                     {
-                        String[] fields = line.Split(new char[] { ' ' }, int.MaxValue, StringSplitOptions.RemoveEmptyEntries);
+                        string[] fields = line.Split(new[] { ' ' }, int.MaxValue, StringSplitOptions.RemoveEmptyEntries);
                         DateTime time = DateTime.Parse(fields[0], null, System.Globalization.DateTimeStyles.RoundtripKind);
-                        String idText = fields[1];
-                        String[] ids = fields[1].Split(new char[] { '(', ')' });
+	                    string[] ids = fields[1].Split(new[] { '(', ')' });
                         long id = int.Parse(ids[0]);
                         long parentId = int.Parse(ids[1]);
-                        String action = fields[2];
-                        String type = fields[3];
-                        String details = "";
+                        string action = fields[2];
+                        string type = fields[3];
+                        string details = "";
 
-                        for (int i = 4; i < fields.Count(); ++i)
+                        for (int i = 4; i < fields.Length; ++i)
                         {
                             details += (fields[i] + " ");
                         }
 
                         if (action == "Starting")
                         {
-                            listData.Add(new ListData(type, time, DateTime.MaxValue, action, details, id, parentId));
+                            _listData.Add(new ListData(type, time, DateTime.MaxValue, action, details, id, parentId));
                         }
                         else
                         {
-                            for (int i = listData.Count - 1; i >= 0; --i)
+                            for (int i = _listData.Count - 1; i >= 0; --i)
                             {
-                                ListData data = listData[i];
+                                ListData data = _listData[i];
 
-                                if (data.id == id && data.status == "Starting") // Commands can be executed more than once
+                                if (data.Id == id && data.Status == "Starting") // Commands can be executed more than once
                                 {
-                                    data.status = action;
-                                    data.finishTime = time;
-                                    data.details = details;
+                                    data.Status = action;
+                                    data.FinishTime = time;
+                                    data.Details = details;
                                     break;
                                 }
                             }
@@ -90,19 +82,18 @@ namespace CommandLogViewer
                     }
                 }
 
-                foreach (ListData data in listData)
+                foreach (ListData data in _listData)
                 {
-                    if (data.parentId != 0)
+                    if (data.ParentId != 0)
                     {
-                        if (!childMap.ContainsKey(data.parentId))
+                        if (!_childMap.ContainsKey(data.ParentId))
                         {
-                            HashSet<long> children = new HashSet<long>();
-                            children.Add(data.id);
-                            childMap.Add(data.parentId, children);
+	                        HashSet<long> children = new HashSet<long> {data.Id};
+	                        _childMap.Add(data.ParentId, children);
                         }
                         else
                         {
-                            childMap[data.parentId].Add(data.id);
+                            _childMap[data.ParentId].Add(data.Id);
                         }
                     }
 
@@ -125,27 +116,26 @@ namespace CommandLogViewer
 
         static private void AddListItem(ListView listView, ListData data)
         {
-            ListViewItem item = new ListViewItem(data.commandType);
-            item.Tag = data;
-            item.SubItems.Add(data.id.ToString());
-            item.SubItems.Add(data.startTime.ToString("o"));
-            item.SubItems.Add(data.status == "Starting" ? "Running" : data.status + " at " + data.finishTime.ToString("o"));
-            item.SubItems.Add(data.details);
+	        ListViewItem item = new ListViewItem(data.CommandType) {Tag = data};
+	        item.SubItems.Add(data.Id.ToString());
+            item.SubItems.Add(data.StartTime.ToString("o"));
+            item.SubItems.Add(data.Status == "Starting" ? "Running" : data.Status + " at " + data.FinishTime.ToString("o"));
+            item.SubItems.Add(data.Details);
             listView.Items.Add(item);
         }
 
-        static private void ResizeColumns(ListView listView)
+        private static void ResizeColumns(ListView listView)
         {
             listView.AutoResizeColumns(listView.Items.Count > 0 ? ColumnHeaderAutoResizeStyle.ColumnContent : ColumnHeaderAutoResizeStyle.HeaderSize);
         }
 
-        private ListData FindListDataEncompassing(int upperBound, long commandId, DateTime start, DateTime finish)
+        private ListData FindListDataEncompassing(int upperBound, long commandId, DateTime finish)
         {
             for (int i = 0; i < upperBound; ++i )
             {
-                ListData data = listData[i];
+                ListData data = _listData[i];
 
-                if (data.id == commandId && data.finishTime >= finish)
+                if (data.Id == commandId && data.FinishTime >= finish)
                 {
                     return data;
                 }
@@ -154,17 +144,17 @@ namespace CommandLogViewer
             return null;
         }
 
-        private List<ListData> FindListDataWithin(int lowerBound, long commandId, DateTime start, DateTime finish)
+        private List<ListData> FindListDataWithin(int lowerBound, long commandId, DateTime finish)
         {
             List<ListData> result = new List<ListData>();
 
-            for (int i = lowerBound + 1; i < listData.Count; ++i)
+            for (int i = lowerBound + 1; i < _listData.Count; ++i)
             {
-                ListData data = listData[i];
+                ListData data = _listData[i];
 
-                if (data.id == commandId)
+                if (data.Id == commandId)
                 {
-                    if (data.finishTime > finish)
+                    if (data.FinishTime > finish)
                     {
                         break;
                     }
@@ -185,18 +175,18 @@ namespace CommandLogViewer
             {
                 int selectedIndex = commandList.SelectedItems[0].Index;
                 ListData listData = (ListData)commandList.SelectedItems[0].Tag;
-                ListData parentData = FindListDataEncompassing(selectedIndex, listData.parentId, listData.startTime, listData.finishTime);
+                ListData parentData = FindListDataEncompassing(selectedIndex, listData.ParentId, listData.FinishTime);
 
                 if (parentData != null)
                 {
                     AddListItem(parentList, parentData);
                 }
 
-                if (childMap.ContainsKey(listData.id))
+                if (_childMap.ContainsKey(listData.Id))
                 {
-                    foreach (long childId in childMap[listData.id])
+                    foreach (long childId in _childMap[listData.Id])
                     {
-                        List<ListData> childData = FindListDataWithin(selectedIndex, childId, listData.startTime, listData.finishTime);
+                        List<ListData> childData = FindListDataWithin(selectedIndex, childId, listData.FinishTime);
 
                         foreach (ListData child in childData)
                         {
@@ -254,28 +244,28 @@ namespace CommandLogViewer
 
         private class ListData
         {
-            internal ListData(String commandType, DateTime startTime, DateTime finishTime, String status, String details, long id, long parentId)
+            internal ListData(string commandType, DateTime startTime, DateTime finishTime, string status, string details, long id, long parentId)
             {
-                this.commandType = commandType;
-                this.startTime = startTime;
-                this.finishTime = finishTime;
-                this.status = status;
-                this.details = details;
-                this.id = id;
-                this.parentId = parentId;
+                CommandType = commandType;
+                StartTime = startTime;
+                FinishTime = finishTime;
+                Status = status;
+                Details = details;
+                Id = id;
+                ParentId = parentId;
             }
 
-            internal String commandType;
-            internal DateTime startTime;
-            internal DateTime finishTime;
-            internal String status;
-            internal String details;
-            internal long id;
-            internal long parentId;
+            internal readonly string CommandType;
+            internal readonly DateTime StartTime;
+            internal DateTime FinishTime;
+            internal string Status;
+            internal string Details;
+            internal readonly long Id;
+            internal readonly long ParentId;
         }
 
-        private List<ListData> listData = new List<ListData>();
-        private Dictionary<long, HashSet<long>> childMap = new Dictionary<long, HashSet<long>>();
-        private String logFileName = null;
+        private readonly List<ListData> _listData = new List<ListData>();
+        private readonly Dictionary<long, HashSet<long>> _childMap = new Dictionary<long, HashSet<long>>();
+        private string _logFileName;
     }
 }

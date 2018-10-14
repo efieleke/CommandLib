@@ -8,21 +8,14 @@ namespace Sophos.Commands
     public class CommandTracer : ICommandMonitor
     {
         /// <summary>
-        /// Constructs a CommandTracer object
-        /// </summary>
-        public CommandTracer()
-        {
-        }
-
-        /// <summary>
         /// Writes information about the command that is starting to the debug stream
         /// </summary>
         /// <param name="commandInfo">information about the command that is starting</param>
         public void CommandStarting(ICommandInfo commandInfo)
         {
-            String parentId = commandInfo.ParentInfo == null ? "none" : commandInfo.ParentInfo.Id.ToString();
-            String spaces = new String(' ', commandInfo.Depth);
-            String message = String.Format("{0}{1}({2}) started. Parent Id: {3}", spaces, commandInfo.GetType().FullName, commandInfo.Id.ToString(), parentId);
+            string parentId = commandInfo.ParentInfo == null ? "none" : commandInfo.ParentInfo.Id.ToString();
+            string spaces = new string(' ', commandInfo.Depth);
+            string message = $"{spaces}{commandInfo.GetType().FullName}({commandInfo.Id.ToString()}) started. Parent Id: {parentId}";
             PrintMessage(commandInfo, message);
         }
 
@@ -33,21 +26,21 @@ namespace Sophos.Commands
         /// <param name="exc">If the command did not succeed, this indicates the reason</param>
         public void CommandFinished(ICommandInfo commandInfo, Exception exc)
         {
-            String parentId = commandInfo.ParentInfo == null ? "none" : commandInfo.ParentInfo.Id.ToString();
-            String spaces = new String(' ', commandInfo.Depth);
-            String message;
+            string parentId = commandInfo.ParentInfo == null ? "none" : commandInfo.ParentInfo.Id.ToString();
+            string spaces = new string(' ', commandInfo.Depth);
+            string message;
 
-            if (exc == null)
+            switch (exc)
             {
-                message = String.Format("{0}{1}({2}) succeeded. Parent Id: {3}", spaces, commandInfo.GetType().FullName, commandInfo.Id.ToString(), parentId);
-            }
-            else if (exc is CommandAbortedException)
-            {
-                message = String.Format("{0}{1}({2}) aborted. Parent Id: {3}", spaces, commandInfo.GetType().FullName, commandInfo.Id.ToString(), parentId);
-            }
-            else
-            {
-                message = String.Format("{0}{1}({2}) failed. Parent Id: {3}. Reason: {4}", spaces, commandInfo.GetType().FullName, commandInfo.Id.ToString(), parentId, exc.Message);
+	            case null:
+		            message = $"{spaces}{commandInfo.GetType().FullName}({commandInfo.Id.ToString()}) succeeded. Parent Id: {parentId}";
+		            break;
+	            case CommandAbortedException _:
+		            message = $"{spaces}{commandInfo.GetType().FullName}({commandInfo.Id.ToString()}) aborted. Parent Id: {parentId}";
+		            break;
+	            default:
+		            message = $"{spaces}{commandInfo.GetType().FullName}({commandInfo.Id.ToString()}) failed. Parent Id: {parentId}. Reason: {exc.Message}";
+		            break;
             }
 
             PrintMessage(commandInfo, message);
@@ -77,16 +70,13 @@ namespace Sophos.Commands
         {
         }
 
-        static private void PrintMessage(ICommandInfo commandInfo, String message)
+        private static void PrintMessage(ICommandInfo commandInfo, string message)
         {
-            String extendedInfo = commandInfo.ExtendedDescription();
+	        // ReSharper disable once RedundantAssignment
+	        string extendedInfo = commandInfo.ExtendedDescription();
 
-            if (!String.IsNullOrWhiteSpace(extendedInfo))
-            {
-                message += " [" + extendedInfo + "]";
-            }
-
-            System.Diagnostics.Debug.Print(message);
+	        System.Diagnostics.Debug.Print(
+	            string.IsNullOrWhiteSpace(extendedInfo) ? message : $"{message}[{extendedInfo}]");
         }
     }
 }

@@ -42,8 +42,8 @@ namespace Sophos.Commands
         public PauseCommand(TimeSpan duration, System.Threading.WaitHandle stopEvent, Command owner)
             : base(owner)
         {
-            this.duration = duration;
-            this.externalCutShortEvent = stopEvent;
+            _duration = duration;
+            _externalCutShortEvent = stopEvent;
         }
 
         /// <summary>
@@ -52,7 +52,7 @@ namespace Sophos.Commands
         public void CutShort()
         {
             CheckDisposed();
-            cutShortEvent.Set();
+            _cutShortEvent.Set();
         }
 
         /// <summary>
@@ -61,7 +61,7 @@ namespace Sophos.Commands
         public void Reset()
         {
             CheckDisposed();
-            resetEvent.Set();
+            _resetEvent.Set();
         }
 
         /// <summary>
@@ -74,19 +74,19 @@ namespace Sophos.Commands
             {
                 CheckDisposed();
 
-                lock (criticalSection)
+                lock (_criticalSection)
                 {
                     // Copy for thread safety
-                    return new TimeSpan(duration.Ticks);
+                    return new TimeSpan(_duration.Ticks);
                 }
             }
             set
             {
                 CheckDisposed();
 
-                lock (criticalSection)
+                lock (_criticalSection)
                 {
-                    this.duration = value;
+                    _duration = value;
                 }
             }
         }
@@ -99,7 +99,7 @@ namespace Sophos.Commands
         /// </returns>
         public override string ExtendedDescription()
         {
-            return String.Format("Duration: {0}; External stop event? {1}", Duration, externalCutShortEvent != null);
+            return $"Duration: {Duration}; External stop event? {_externalCutShortEvent != null}";
         }
 
         /// <summary>
@@ -112,8 +112,8 @@ namespace Sophos.Commands
             {
                 if (disposing)
                 {
-                    resetEvent.Dispose();
-                    cutShortEvent.Dispose();
+                    _resetEvent.Dispose();
+                    _cutShortEvent.Dispose();
                 }
             }
 
@@ -126,8 +126,8 @@ namespace Sophos.Commands
         /// <param name="runtimeArg">Not applicable</param>
         protected sealed override void PrepareExecute(object runtimeArg)
         {
-            cutShortEvent.Reset();
-            resetEvent.Reset();
+            _cutShortEvent.Reset();
+            _resetEvent.Reset();
         }
 
         /// <summary>
@@ -135,13 +135,13 @@ namespace Sophos.Commands
         /// </summary>
         /// <param name="runtimeArg">Not applicable</param>
         /// <returns>Not applicable</returns>
-        protected sealed override Object SyncExeImpl(Object runtimeArg)
+        protected sealed override object SyncExeImpl(object runtimeArg)
         {
             int result = WaitForDuration();
 
             while (result == 1)
             {
-                resetEvent.Reset();
+                _resetEvent.Reset();
                 result = WaitForDuration();
             }
 
@@ -156,9 +156,9 @@ namespace Sophos.Commands
         private int WaitForDuration()
         {
             System.Threading.WaitHandle[] handles =
-                externalCutShortEvent == null ?
-                    new System.Threading.WaitHandle[] { AbortEvent, resetEvent, cutShortEvent } :
-                    new System.Threading.WaitHandle[] { AbortEvent, resetEvent, cutShortEvent, externalCutShortEvent };
+                _externalCutShortEvent == null ?
+                    new[] { AbortEvent, _resetEvent, _cutShortEvent } :
+                    new[] { AbortEvent, _resetEvent, _cutShortEvent, _externalCutShortEvent };
 
             double totalMilliseconds = Duration.TotalMilliseconds;
             int waitTime = totalMilliseconds >= int.MaxValue ? int.MaxValue : (int)totalMilliseconds;
@@ -175,10 +175,10 @@ namespace Sophos.Commands
             return result;
         }
 
-        private TimeSpan duration;
-        private System.Threading.ManualResetEvent resetEvent = new System.Threading.ManualResetEvent(false);
-        private System.Threading.ManualResetEvent cutShortEvent = new System.Threading.ManualResetEvent(false);
-        private readonly System.Threading.WaitHandle externalCutShortEvent = null;
-        private readonly Object criticalSection = new Object();
+        private TimeSpan _duration;
+        private readonly System.Threading.ManualResetEvent _resetEvent = new System.Threading.ManualResetEvent(false);
+        private readonly System.Threading.ManualResetEvent _cutShortEvent = new System.Threading.ManualResetEvent(false);
+        private readonly System.Threading.WaitHandle _externalCutShortEvent;
+        private readonly object _criticalSection = new object();
     }
 }

@@ -12,11 +12,10 @@ namespace Sophos.Commands
         /// Constructs a CommandLogger object
         /// </summary>
         /// <param name="filename">Name of log file. Will be overwritten if it exists</param>
-        public CommandLogger(String filename)
+        public CommandLogger(string filename)
         {
             System.IO.FileStream stream = new System.IO.FileStream(filename, System.IO.FileMode.Create, System.IO.FileAccess.Write, System.IO.FileShare.Read);
-            writer = new System.IO.StreamWriter(stream);
-            writer.AutoFlush = true;
+	        _writer = new System.IO.StreamWriter(stream) {AutoFlush = true};
         }
 
         /// <summary>
@@ -26,7 +25,7 @@ namespace Sophos.Commands
         public void CommandStarting(ICommandInfo commandInfo)
         {
             // Changing the format of this output will break the CommandLogViewer app.
-            String header = FormHeader(commandInfo, "Starting");
+            string header = FormHeader(commandInfo, "Starting");
             WriteMessage(commandInfo, header);
         }
 
@@ -38,20 +37,20 @@ namespace Sophos.Commands
         public void CommandFinished(ICommandInfo commandInfo, Exception exc)
         {
             // Changing the format of this output will break the CommandLogViewer app.
-            String message = null;
+            string message;
 
-            if (exc == null)
+            switch (exc)
             {
-                message = FormHeader(commandInfo, "Completed");
-            }
-            else if (exc is CommandAbortedException)
-            {
-                message = FormHeader(commandInfo, "Aborted");
-            }
-            else
-            {
-                message = FormHeader(commandInfo, "Failed");
-                message = String.Format("{0} Reason: {1}", message, exc.Message);
+	            case null:
+		            message = FormHeader(commandInfo, "Completed");
+		            break;
+	            case CommandAbortedException _:
+		            message = FormHeader(commandInfo, "Aborted");
+		            break;
+	            default:
+		            message = FormHeader(commandInfo, "Failed");
+		            message = $"{message} Reason: {exc.Message}";
+		            break;
             }
 
             WriteMessage(commandInfo, message);
@@ -80,42 +79,43 @@ namespace Sophos.Commands
         /// <param name="disposing">Whether this call was a result of a call to IDisposable.Dispose()</param>
         protected virtual void Dispose(bool disposing)
         {
-            if (!disposed)
+            if (!_disposed)
             {
                 if (disposing)
                 {
-                    writer.Dispose();
+	                // ReSharper disable once InconsistentlySynchronizedField
+	                _writer.Dispose();
                 }
 
-                disposed = true;
+                _disposed = true;
             }
         }
 
-        static private String FormHeader(ICommandInfo commandInfo, String action)
+        private static string FormHeader(ICommandInfo commandInfo, string action)
         {
-            long parentId = commandInfo.ParentInfo == null ? 0 : commandInfo.ParentInfo.Id;
-            String spaces = new String(' ', commandInfo.Depth);
+            long parentId = commandInfo.ParentInfo?.Id ?? 0;
+            var spaces = new string(' ', commandInfo.Depth);
             DateTime time = DateTime.SpecifyKind(DateTime.Now, DateTimeKind.Utc);                  
-            return String.Format("{0} {1}{2}({3}) {4} {5}", time.ToString("o"), spaces, commandInfo.Id, parentId, action, commandInfo.GetType().FullName);
+            return $"{time:o} {spaces}{commandInfo.Id}({parentId}) {action} {commandInfo.GetType().FullName}";
         }
 
-        private void WriteMessage(ICommandInfo commandInfo, String message)
+        private void WriteMessage(ICommandInfo commandInfo, string message)
         {
-            String extendedInfo = commandInfo.ExtendedDescription();
+            string extendedInfo = commandInfo.ExtendedDescription();
 
-            if (!String.IsNullOrWhiteSpace(extendedInfo))
+            if (!string.IsNullOrWhiteSpace(extendedInfo))
             {
                 message += " [" + extendedInfo + "]";
             }
 
-            lock (criticalSection)
+            lock (_criticalSection)
             {
-                writer.WriteLine(message);
+                _writer.WriteLine(message);
             }
         }
 
-        private bool disposed = false;
-        private System.IO.StreamWriter writer;
-        private Object criticalSection = new Object();
+        private bool _disposed;
+        private readonly System.IO.StreamWriter _writer;
+        private readonly object _criticalSection = new object();
     }
 }

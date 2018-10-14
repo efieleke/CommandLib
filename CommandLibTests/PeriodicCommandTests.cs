@@ -86,7 +86,7 @@ namespace CommandLibTests
 
             try
             {
-                using (PeriodicCommand periodicCmd = new PeriodicCommand(
+                using (var _ = new PeriodicCommand(
                     new AddCommand(1),
                     0,
                     TimeSpan.FromDays(1),

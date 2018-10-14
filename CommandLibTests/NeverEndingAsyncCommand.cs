@@ -16,17 +16,17 @@ namespace CommandLibTests
         {
             new System.Threading.Thread(() =>
             {
-                abortEvent.WaitOne();
-                abortEvent.Reset();
+                _abortEvent.WaitOne();
+                _abortEvent.Reset();
                 listener.CommandAborted();
             }).Start();
         }
 
         protected sealed override void AbortImpl()
         {
-            abortEvent.Set();
+            _abortEvent.Set();
         }
 
-        private System.Threading.ManualResetEvent abortEvent = new System.Threading.ManualResetEvent(false);
+        private readonly System.Threading.ManualResetEvent _abortEvent = new System.Threading.ManualResetEvent(false);
     }
 }

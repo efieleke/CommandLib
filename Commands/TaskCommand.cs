@@ -9,10 +9,10 @@ namespace Sophos.Commands
 	/// that creates the Task.
 	/// </summary>
 	/// <remarks>
-    /// <see cref="Command.SyncExecute(object)"/> and <see cref="Command.AsyncExecute(ICommandListener, object)"/> will accept 
-    /// an object for the'runtimeArg'. This is passed on to the abstract <see cref="CreateTask(object)"/> method.
+	/// <see cref="Command.SyncExecute(object)"/> and <see cref="Command.AsyncExecute(ICommandListener, object)"/> will accept 
+	/// an object for the 'runtimeArg'. This is passed on to the abstract <see cref="CreateTask" /> method.
 	/// <para>
-	/// This command returns from synchronous execution the value of type TResult that the undering Task returns. The 'result' parameter of
+	/// This command returns from synchronous execution the value of type TResult that the underlying Task returns. The 'result' parameter of
 	/// <see cref="ICommandListener.CommandSucceeded"/> will be set in similar fashion. It is the caller's responsibility to dispose of this
 	/// response object if needed.
 	/// </para>
@@ -22,7 +22,7 @@ namespace Sophos.Commands
 		/// <summary>
 		/// Constructor
 		/// </summary>
-		public TaskCommand() : this(null)
+		protected TaskCommand() : this(null)
 		{
 		}
 
@@ -33,7 +33,7 @@ namespace Sophos.Commands
 		/// Specify null to indicate a top-level command. Otherwise, this command will be owned by 'owner'. Owned commands respond to
 		/// abort requests made of their owner. Also, owned commands are disposed of when the owner is disposed.
 		/// </param>
-		public TaskCommand(Command owner) : base(owner)
+		protected TaskCommand(Command owner) : base(owner)
 		{
 		}
 
@@ -43,16 +43,10 @@ namespace Sophos.Commands
 		/// <param name="disposing">Will be true if this was called as a direct result of the object being explicitly disposed.</param>
 		protected override void Dispose(bool disposing)
 		{
-			if (!Disposed)
+			if (!Disposed && disposing && _task != null)
 			{
-				if (disposing)
-				{
-					if (task != null)
-					{
-						task.Dispose();
-						task = null;
-					}
-				}
+				_task.Dispose();
+				_task = null;
 			}
 
 			base.Dispose(disposing);
@@ -67,21 +61,21 @@ namespace Sophos.Commands
 		{
 			int startingThreadId = Thread.CurrentThread.ManagedThreadId;
 
-			if (task != null) { task.Dispose(); }
+			_task?.Dispose();
 
 			try
 			{
-				task = CreateTask(runtimeArg);
+				_task = CreateTask(runtimeArg);
 			}
 			catch(Exception e)
 			{
 				// We failed synchronously. This is most likely due to an exception occuring before
 				// the first await. Let's be consistent about this and make the callback on the listener.
 				// That must be done on a different thread.
-				task = new Task<TResult>(() => { throw e; });
+				_task = new Task<TResult>(() => throw e);
 			}
 
-			task.ContinueWith(t =>
+			_task.ContinueWith(t =>
 			{
 				// Check to see if CreateTask() returned a Task that executed synchronously.
 				// That would be poor usage of this class, but it is supported.
@@ -123,9 +117,9 @@ namespace Sophos.Commands
 			},
 			TaskContinuationOptions.ExecuteSynchronously);
 
-			if (task.Status == TaskStatus.Created)
+			if (_task.Status == TaskStatus.Created)
 			{
-				task.Start();
+				_task.Start();
 			}
 		}
 
@@ -148,21 +142,21 @@ namespace Sophos.Commands
 			internal Exception Exception { get; }
 		}
 
-		private void ExecuteAsyncRoutine(Object arg)
+		private void ExecuteAsyncRoutine(object arg)
 		{
 			AsyncThreadArg threadArg = (AsyncThreadArg)arg;
 
-			if (threadArg.Exception == null)
+			switch (threadArg.Exception)
 			{
-				threadArg.Listener.CommandSucceeded(threadArg.Result);
-			}
-			else if (threadArg.Exception is CommandAbortedException)
-			{
-				threadArg.Listener.CommandAborted();
-			}
-			else
-			{
-				threadArg.Listener.CommandFailed(threadArg.Exception);
+				case null:
+					threadArg.Listener.CommandSucceeded(threadArg.Result);
+					break;
+				case CommandAbortedException _:
+					threadArg.Listener.CommandAborted();
+					break;
+				default:
+					threadArg.Listener.CommandFailed(threadArg.Exception);
+					break;
 			}
 		}
 
@@ -175,9 +169,12 @@ namespace Sophos.Commands
 		/// Concrete implementations decide what to do with this. This value is passed on from the runtimeArg
 		/// that was provided to the synchronous or asynchronous execution methods.
 		/// </param>
-		/// <returns></returns>
+		/// <returns>
+		/// This value is passed along as the return value of synchronous execution routines, or the 'result' parameter
+		/// of <see cref="ICommandListener.CommandSucceeded"/> for asynchronous execution routines.
+		/// </returns>
 		protected abstract Task<TResult> CreateTask(object runtimeArg);
 
-		private Task<TResult> task;
+		private Task<TResult> _task;
 	}
 }

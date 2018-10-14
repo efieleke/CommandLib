@@ -76,8 +76,8 @@ namespace Sophos.Commands
         public RecurringCommand(Command command, IExecutionTimeCallback callback, Command owner)
             : base(owner)
         {
-            this.callback = callback;
-            scheduledCmd = new ScheduledCommand(command, DateTime.Now, true, this);
+            _callback = callback;
+            _scheduledCmd = new ScheduledCommand(command, DateTime.Now, true, this);
         }
 
         /// <summary>If currently waiting until the time to next execute the command to run, skip the wait and execute the command right away.</summary>
@@ -85,7 +85,7 @@ namespace Sophos.Commands
         public void SkipCurrentWait()
         {
             CheckDisposed();
-            scheduledCmd.SkipWait();
+            _scheduledCmd.SkipWait();
         }
 
         /// <summary>
@@ -100,7 +100,7 @@ namespace Sophos.Commands
         public void SetNextExecutionTime(DateTime time)
         {
             CheckDisposed();
-            scheduledCmd.TimeOfExecution = time;
+            _scheduledCmd.TimeOfExecution = time;
         }
 
         /// <summary>
@@ -108,24 +108,23 @@ namespace Sophos.Commands
         /// </summary>
         /// <param name="runtimeArg">Not applicable</param>
         /// <returns>Not applicable</returns>
-        protected sealed override Object SyncExeImpl(Object runtimeArg)
+        protected sealed override object SyncExeImpl(object runtimeArg)
         {
-            DateTime executionTime;
-            bool keepGoing = callback.GetFirstExecutionTime(out executionTime);
+	        bool keepGoing = _callback.GetFirstExecutionTime(out DateTime executionTime);
 
             while (keepGoing)
             {
-                scheduledCmd.TimeOfExecution = executionTime;
+                _scheduledCmd.TimeOfExecution = executionTime;
                 CheckAbortFlag();
-                scheduledCmd.SyncExecute(runtimeArg);
-                executionTime = scheduledCmd.TimeOfExecution; // in case it was changed
-                keepGoing = callback.GetNextExecutionTime(ref executionTime);
+                _scheduledCmd.SyncExecute(runtimeArg);
+                executionTime = _scheduledCmd.TimeOfExecution; // in case it was changed
+                keepGoing = _callback.GetNextExecutionTime(ref executionTime);
             }
 
             return null;
         }
 
-        private ScheduledCommand scheduledCmd;
-        private IExecutionTimeCallback callback;
+        private readonly ScheduledCommand _scheduledCmd;
+        private readonly IExecutionTimeCallback _callback;
     }
 }

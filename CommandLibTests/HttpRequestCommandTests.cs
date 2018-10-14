@@ -9,36 +9,36 @@ namespace CommandLibTests
     {
         internal class TestRequestGenerator : HttpRequestCommand.IRequestGenerator
         {
-            internal TestRequestGenerator(System.Net.Http.HttpMethod method, String url)
+            internal TestRequestGenerator(System.Net.Http.HttpMethod method, string url)
                 : this(method, url, null)
             {
             }
 
-            internal TestRequestGenerator(System.Net.Http.HttpMethod method, String url, byte[] body)
+            internal TestRequestGenerator(System.Net.Http.HttpMethod method, string url, byte[] body)
             {
-                this.method = method;
-                uri = new Uri(url);
-                this.body = body;
+                _method = method;
+                _uri = new Uri(url);
+                _body = body;
             }
 
             public System.Net.Http.HttpRequestMessage GenerateRequest()
             {
-                System.Net.Http.HttpRequestMessage msg = new System.Net.Http.HttpRequestMessage(method, uri);
+                System.Net.Http.HttpRequestMessage msg = new System.Net.Http.HttpRequestMessage(_method, _uri);
 
-                if (body != null)
+                if (_body != null)
                 {
-                    msg.Content = new System.Net.Http.ByteArrayContent(body);
+                    msg.Content = new System.Net.Http.ByteArrayContent(_body);
                 }
 
                 return msg;
             }
 
-            System.Net.Http.HttpMethod method;
-            private Uri uri;
-            private byte[] body;
+	        readonly System.Net.Http.HttpMethod _method;
+            private readonly Uri _uri;
+            private readonly byte[] _body;
         }
 
-        private const String TEST_SERVER = "http://httpbin.org";
+        private const string TestServer = "http://httpbin.org";
 
         private int CompareResults(object expected, object actual)
         {
@@ -52,7 +52,7 @@ namespace CommandLibTests
         {
             using (System.Net.Http.HttpResponseMessage response = (System.Net.Http.HttpResponseMessage)actual)
             {
-                String outputFileName = System.IO.Path.GetTempFileName();
+                string outputFileName = System.IO.Path.GetTempFileName();
                 System.IO.File.Delete(outputFileName);
                 HttpRequestCommand.WriteContentToFile(response.Content, outputFileName).Wait();
                 System.IO.File.Delete(outputFileName);
@@ -67,20 +67,20 @@ namespace CommandLibTests
             {
                 HappyPathTest.Run(
                     cmd,
-                    new TestRequestGenerator(System.Net.Http.HttpMethod.Get, TEST_SERVER + "/get"),
-                    "http://httpbin.org/get", new Comparison<object>(CompareResults));
+                    new TestRequestGenerator(System.Net.Http.HttpMethod.Get, TestServer + "/get"),
+                    "http://httpbin.org/get", CompareResults);
             }
 
             using (HttpRequestCommand cmd = new HttpRequestCommand(
-                new TestRequestGenerator(System.Net.Http.HttpMethod.Get, TEST_SERVER + "/get"), new HttpRequestCommand.EnsureSuccessStatusCodeResponseChecker()))
+                new TestRequestGenerator(System.Net.Http.HttpMethod.Get, TestServer + "/get"), new HttpRequestCommand.EnsureSuccessStatusCodeResponseChecker()))
             {
-                HappyPathTest.Run(cmd, null, "http://httpbin.org/get", new Comparison<object>(CompareResults));
+                HappyPathTest.Run(cmd, null, "http://httpbin.org/get", CompareResults);
             }
 
             using (HttpRequestCommand cmd = new HttpRequestCommand(
-                new TestRequestGenerator(System.Net.Http.HttpMethod.Get, TEST_SERVER + "/get"), new HttpRequestCommand.EnsureSuccessStatusCodeResponseChecker()))
+                new TestRequestGenerator(System.Net.Http.HttpMethod.Get, TestServer + "/get"), new HttpRequestCommand.EnsureSuccessStatusCodeResponseChecker()))
             {
-                HappyPathTest.Run(cmd, null, "http://httpbin.org/get", new Comparison<object>(CompareFileResults));
+                HappyPathTest.Run(cmd, null, "http://httpbin.org/get", CompareFileResults);
             }
         }
 
@@ -91,7 +91,7 @@ namespace CommandLibTests
             {
                 FailTest.Run<System.Net.Http.HttpRequestException>(
                     cmd,
-                    new TestRequestGenerator(System.Net.Http.HttpMethod.Get, TEST_SERVER + "/status/404"));
+                    new TestRequestGenerator(System.Net.Http.HttpMethod.Get, TestServer + "/status/404"));
             }
         }
 
@@ -100,7 +100,7 @@ namespace CommandLibTests
         {
             using (HttpRequestCommand cmd = new HttpRequestCommand(null, new HttpRequestCommand.EnsureSuccessStatusCodeResponseChecker()))
             {
-                AbortTest.Run(cmd, new TestRequestGenerator(System.Net.Http.HttpMethod.Get, TEST_SERVER + "/delay/5"), 100);
+                AbortTest.Run(cmd, new TestRequestGenerator(System.Net.Http.HttpMethod.Get, TestServer + "/delay/5"), 100);
             }
         }
 
@@ -110,8 +110,8 @@ namespace CommandLibTests
             {
                 byte[] inBytes = (byte[])expected;
                 byte[] outBytes = response.Content.ReadAsByteArrayAsync().Result;
-                String actualText = System.Text.Encoding.UTF8.GetString(outBytes);
-                String searchFor = String.Format("\"Content-Length\": \"{0}\"", inBytes.Length);
+                string actualText = System.Text.Encoding.UTF8.GetString(outBytes);
+                string searchFor = $"\"Content-Length\": \"{inBytes.Length}\"";
                 return actualText.Contains(searchFor) ? 0 : 1;
             }
         }
@@ -123,11 +123,11 @@ namespace CommandLibTests
 
             using (HttpRequestCommand cmd = new HttpRequestCommand(null, new HttpRequestCommand.EnsureSuccessStatusCodeResponseChecker()))
             {
-                HappyPathTest.Run(cmd, new TestRequestGenerator(System.Net.Http.HttpMethod.Put, TEST_SERVER + "/put", data), data, CompareUploadResults);
+                HappyPathTest.Run(cmd, new TestRequestGenerator(System.Net.Http.HttpMethod.Put, TestServer + "/put", data), data, CompareUploadResults);
             }
 
             using (HttpRequestCommand cmd = new HttpRequestCommand(
-                new TestRequestGenerator(System.Net.Http.HttpMethod.Put, TEST_SERVER + "/put", data),
+                new TestRequestGenerator(System.Net.Http.HttpMethod.Put, TestServer + "/put", data),
                 new HttpRequestCommand.EnsureSuccessStatusCodeResponseChecker()))
             {
                 HappyPathTest.Run(cmd, null, data, CompareUploadResults);
@@ -135,11 +135,11 @@ namespace CommandLibTests
 
             using (HttpRequestCommand cmd = new HttpRequestCommand(null, new HttpRequestCommand.EnsureSuccessStatusCodeResponseChecker()))
             {
-                HappyPathTest.Run(cmd, new TestRequestGenerator(System.Net.Http.HttpMethod.Post, TEST_SERVER + "/post", data), data, CompareUploadResults);
+                HappyPathTest.Run(cmd, new TestRequestGenerator(System.Net.Http.HttpMethod.Post, TestServer + "/post", data), data, CompareUploadResults);
             }
 
             using (HttpRequestCommand cmd = new HttpRequestCommand(
-                new TestRequestGenerator(System.Net.Http.HttpMethod.Post, TEST_SERVER + "/post", data),
+                new TestRequestGenerator(System.Net.Http.HttpMethod.Post, TestServer + "/post", data),
                 new HttpRequestCommand.EnsureSuccessStatusCodeResponseChecker()))
             {
                 HappyPathTest.Run(cmd, null, data, CompareUploadResults);
@@ -152,7 +152,7 @@ namespace CommandLibTests
             using (HttpRequestCommand cmd = new HttpRequestCommand(null, new HttpRequestCommand.EnsureSuccessStatusCodeResponseChecker()))
             {
                 FailTest.Run<System.Net.Http.HttpRequestException>(
-                    cmd, new TestRequestGenerator(System.Net.Http.HttpMethod.Put, TEST_SERVER, new byte[] { 0xa, 0xb }));
+                    cmd, new TestRequestGenerator(System.Net.Http.HttpMethod.Put, TestServer, new byte[] { 0xa, 0xb }));
             }
         }
         
@@ -163,7 +163,7 @@ namespace CommandLibTests
 
             using (HttpRequestCommand cmd = new HttpRequestCommand(null, new HttpRequestCommand.EnsureSuccessStatusCodeResponseChecker()))
             {
-                AbortTest.Run(cmd, new TestRequestGenerator(System.Net.Http.HttpMethod.Put, TEST_SERVER + "/put", data), 5);
+                AbortTest.Run(cmd, new TestRequestGenerator(System.Net.Http.HttpMethod.Put, TestServer + "/put", data), 5);
             }
         }
     }
