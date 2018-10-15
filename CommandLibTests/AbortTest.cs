@@ -51,11 +51,10 @@ namespace CommandLibTests
                 cmd.AbortAndWait();
                 thread.Join();
 
-	            using (Task<object> task = cmd.AsTask<object>(runtimeArg))
+	            using (Task<object> task = cmd.AsTask<object>(true, runtimeArg))
 	            {
 		            try
 		            {
-						task.Start();
 						System.Threading.Thread.Sleep(20); // give time for the command to start executing
 			            cmd.Abort(); // there is no way to directly abort the task
 			            task.Wait();

@@ -15,7 +15,7 @@ namespace Sophos.Commands
 	/// because they are <see cref="Command"/> objects), so it's possible to create a deep nesting of coordinated activities.
 	/// </para>
 	/// <para>
-	/// <see cref="TaskCommand{TResult}"/>, <see cref="DelegateCommand{TResult}"/> and <see cref="Command.AsTask{TResult}(object, Command)"/>,
+	/// <see cref="TaskCommand{TResult}"/>, <see cref="DelegateCommand{TResult}"/> and <see cref="Command.AsTask{TResult}(bool, object, Command)"/>,
 	/// offer easy integration with Tasks and delegates.
 	/// </para>
 	/// <para>
@@ -273,12 +273,17 @@ namespace Sophos.Commands
 		/// <summary>
 		/// Returns a task that, when run, will execute this command passed as an argument. Note that this command must
 		/// not be disposed before the task is disposed. Also, note that behavior is undefined if this command is executing
-		/// at the time the task is run.
+		/// at the time the task is run. This method is meant as a potential convenience. The more natural
+		/// way to execute commands is via the various Execute* methods.
 		/// </summary>
 		/// <typeparam name="TResult">
 		/// The type the command returns from SynExecute. If you don't care about the return value, it is safe to
 		/// specify Object as the type.
 		/// </typeparam>
+		/// <param name="startTask">
+		/// If true, the task will be started before it is returned. Otherwise, the caller must
+		/// start the task in order for it to run (via its Start method, for example).
+		/// </param>
 		/// <returns>
 		/// The Task, which will not be running.
 		/// </returns>
@@ -286,20 +291,25 @@ namespace Sophos.Commands
 		/// The returned Task may only be aborted during its execution if this Command is aborted. The Task will be in the Faulted state
 		/// in that case (not the Canceled state, unfortunately). The underlying exception that the Task will report is CommandAbortedException.
 		/// </remarks>
-		public Task<TResult> AsTask<TResult>()
+		public Task<TResult> AsTask<TResult>(bool startTask)
 		{
-			return AsTask<TResult>(null);
+			return AsTask<TResult>(startTask, null);
 		}
 
 		/// <summary>
 		/// Returns a task that, when run, will execute this command passed as an argument. Note that this command must
 		/// not be disposed before the task is disposed. Also, note that behavior is undefined if this command is executing
-		/// at the time the task is run.
+		/// at the time the task is run. This method is meant as a potential convenience. The more natural
+		/// way to execute commands is via the various Execute* methods.
 		/// </summary>
 		/// <typeparam name="TResult">
 		/// The type the command returns from SynExecute. If you don't care about the return value, it is safe to
 		/// specify Object as the type.
 		/// </typeparam>
+		/// <param name="startTask">
+		/// If true, the task will be started before it is returned. Otherwise, the caller must
+		/// start the task in order for it to run (via its Start method, for example).
+		/// </param>
 		/// <param name="runtimeArg">
 		/// Some commands may expect some sort of argument at the time of execution, and some commands do not.
 		/// See the concrete command class of interest for details.
@@ -311,20 +321,25 @@ namespace Sophos.Commands
 		/// The returned Task may only be aborted during its execution if this Command is aborted. The Task will be in the Faulted state
 		/// in that case (not the Canceled state, unfortunately). The underlying exception that the Task will report is CommandAbortedException.
 		/// </remarks>
-		public Task<TResult> AsTask<TResult>(object runtimeArg)
+		public Task<TResult> AsTask<TResult>(bool startTask, object runtimeArg)
 		{
-			return AsTask<TResult>(runtimeArg, null);
+			return AsTask<TResult>(startTask, runtimeArg, null);
 		}
 
 		/// <summary>
 		/// Returns a task that, when run, will execute this command passed as an argument. Note that this command must
 		/// not be disposed before the task is disposed. Also, note that behavior is undefined if this command is executing
-		/// at the time the task is run.
-		/// </summary>
+		/// at the time the task is run. This method is meant as a potential convenience. The more natural
+		/// way to execute commands is via the various Execute* methods.
+	    /// </summary>
 		/// <typeparam name="TResult">
 		/// The type the command returns from SynExecute. If you don't care about the return value, it is safe to
 		/// specify Object as the type.
 		/// </typeparam>
+		/// <param name="startTask">
+		/// If true, the task will be started before it is returned. Otherwise, the caller must
+		/// start the task in order for it to run (via its Start method, for example).
+		/// </param>
 		/// <param name="runtimeArg">
 		/// Some commands may expect some sort of argument at the time of execution, and some commands do not.
 		/// See the concrete command class of interest for details.
@@ -334,7 +349,7 @@ namespace Sophos.Commands
 		/// set this value to that command. Note that if this Command is already assigned an owner, passing a non-null value will
 		/// raise an exception. Also note that the owner assignment is only in effect during the scope of this call. Upon return,
 		/// this command will revert to having no owner.
-	    /// </param>
+		/// </param>
 		/// <returns>
 		/// The Task, which will not be running.
 		/// </returns>
@@ -342,9 +357,16 @@ namespace Sophos.Commands
 		/// The returned Task may only be aborted during its execution if this Command is aborted. The Task will be in the Faulted state
 		/// in that case (not the Canceled state, unfortunately). The underlying exception that the Task will report is CommandAbortedException.
 		/// </remarks>
-		public virtual Task<TResult> AsTask<TResult>(object runtimeArg, Command owner)
+		public virtual Task<TResult> AsTask<TResult>(bool startTask, object runtimeArg, Command owner)
 	    {
-		    return new Task<TResult>(() => SyncExecute<TResult>(runtimeArg, owner));
+		    var task = new Task<TResult>(() => SyncExecute<TResult>(runtimeArg, owner));
+
+		    if (startTask)
+		    {
+			    task.Start();
+		    }
+
+		    return task;
 	    }
 #endregion
 

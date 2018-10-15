@@ -104,7 +104,7 @@
             because they are <see cref="T:Sophos.Commands.Command"/> objects), so it's possible to create a deep nesting of coordinated activities.
             </para>
             <para>
-            <see cref="T:Sophos.Commands.TaskCommand`1"/>, <see cref="T:Sophos.Commands.DelegateCommand`1"/> and <see cref="M:Sophos.Commands.Command.AsTask``1(System.Object,Sophos.Commands.Command)"/>,
+            <see cref="T:Sophos.Commands.TaskCommand`1"/>, <see cref="T:Sophos.Commands.DelegateCommand`1"/> and <see cref="M:Sophos.Commands.Command.AsTask``1(System.Boolean,System.Object,Sophos.Commands.Command)"/>,
             offer easy integration with Tasks and delegates.
             </para>
             <para>
@@ -292,16 +292,21 @@
             </para>
             </remarks>
         </member>
-        <member name="M:Sophos.Commands.Command.AsTask``1">
+        <member name="M:Sophos.Commands.Command.AsTask``1(System.Boolean)">
             <summary>
             Returns a task that, when run, will execute this command passed as an argument. Note that this command must
             not be disposed before the task is disposed. Also, note that behavior is undefined if this command is executing
-            at the time the task is run.
+            at the time the task is run. This method is meant as a potential convenience. The more natural
+            way to execute commands is via the various Execute* methods.
             </summary>
             <typeparam name="TResult">
             The type the command returns from SynExecute. If you don't care about the return value, it is safe to
             specify Object as the type.
             </typeparam>
+            <param name="startTask">
+            If true, the task will be started before it is returned. Otherwise, the caller must
+            start the task in order for it to run (via its Start method, for example).
+            </param>
             <returns>
             The Task, which will not be running.
             </returns>
@@ -310,16 +315,21 @@
             in that case (not the Canceled state, unfortunately). The underlying exception that the Task will report is CommandAbortedException.
             </remarks>
         </member>
-        <member name="M:Sophos.Commands.Command.AsTask``1(System.Object)">
+        <member name="M:Sophos.Commands.Command.AsTask``1(System.Boolean,System.Object)">
             <summary>
             Returns a task that, when run, will execute this command passed as an argument. Note that this command must
             not be disposed before the task is disposed. Also, note that behavior is undefined if this command is executing
-            at the time the task is run.
+            at the time the task is run. This method is meant as a potential convenience. The more natural
+            way to execute commands is via the various Execute* methods.
             </summary>
             <typeparam name="TResult">
             The type the command returns from SynExecute. If you don't care about the return value, it is safe to
             specify Object as the type.
             </typeparam>
+            <param name="startTask">
+            If true, the task will be started before it is returned. Otherwise, the caller must
+            start the task in order for it to run (via its Start method, for example).
+            </param>
             <param name="runtimeArg">
             Some commands may expect some sort of argument at the time of execution, and some commands do not.
             See the concrete command class of interest for details.
@@ -332,16 +342,21 @@
             in that case (not the Canceled state, unfortunately). The underlying exception that the Task will report is CommandAbortedException.
             </remarks>
         </member>
-        <member name="M:Sophos.Commands.Command.AsTask``1(System.Object,Sophos.Commands.Command)">
+        <member name="M:Sophos.Commands.Command.AsTask``1(System.Boolean,System.Object,Sophos.Commands.Command)">
             <summary>
             Returns a task that, when run, will execute this command passed as an argument. Note that this command must
             not be disposed before the task is disposed. Also, note that behavior is undefined if this command is executing
-            at the time the task is run.
+            at the time the task is run. This method is meant as a potential convenience. The more natural
+            way to execute commands is via the various Execute* methods.
             </summary>
             <typeparam name="TResult">
             The type the command returns from SynExecute. If you don't care about the return value, it is safe to
             specify Object as the type.
             </typeparam>
+            <param name="startTask">
+            If true, the task will be started before it is returned. Otherwise, the caller must
+            start the task in order for it to run (via its Start method, for example).
+            </param>
             <param name="runtimeArg">
             Some commands may expect some sort of argument at the time of execution, and some commands do not.
             See the concrete command class of interest for details.

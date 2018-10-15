@@ -41,10 +41,8 @@ namespace CommandLibTests
                     Assert.Fail("Caught unexpected type of exception: " + exc);
                 }
 
-	            using (Task<object> task = cmd.AsTask<object>(runtimeArg))
+	            using (Task<object> task = cmd.AsTask<object>(true, runtimeArg))
 	            {
-					task.Start();
-
 		            try
 		            {
 			            task.Wait();
