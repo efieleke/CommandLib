@@ -16,7 +16,10 @@ namespace CommandLibSample
 			Command.Monitors.AddLast(new CommandTracer());
 			Command.Monitors.AddLast(new CommandLogger(tempFile));
 
-			new PrepareDinnerCmd().SyncExecute();
+			using (var prepareDinnerCmd = new PrepareDinnerCmd())
+			{
+				prepareDinnerCmd.SyncExecute();
+			}
 
 			foreach (ICommandMonitor monitor in Command.Monitors)
 			{
