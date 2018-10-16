@@ -11,7 +11,17 @@ PeriodicCommand repeats its action at a given interval, ScheduledCommand runs on
 
 RetryableCommand provides the option to keep retrying a failed command until the caller decides enough is enough, and TimeLimitedCommand fails with a timeout exception if a given duration elapses before the command finishes execution.
 
-All of the above Command classes are simply containers for other Command objects that presumably do something of interest. Commands includes a few Command classes that might be commonly useful, including PauseCommand and HttpRequestCommand, but it is expected that users of this library will create their own Command-derived classes.
+All of the above Command classes are simply containers for other Command objects that presumably do something of interest. They can be combined in ways that offer a lot of customization. For example, to make an HttpRequest at a given time, with a timeout and a configurable number of retries, you could create a ScheduledCommand containing a RetryableCommand which contains a TimeLimitedCommand which contains an HttpRequestCommand.
+
+Guidelines for developing your own Command-derived class:
+
+- If the implementation of your command is naturally synchronous, inherit from SyncCommand
+
+- If the implementation of your command is naturally asynchronous and makes use of await, inherit from TaskCommand
+
+- If the implementation of your command is naturally asynchronous but does not make use of await, inherit from AsyncCommand
+
+- Make your implementation responsive to abort requests. To do this, make ocassional calls to Command.CheckAbortFlag() or Command.AbortRequested.
 
 Diagnostics
 ----
@@ -19,7 +29,7 @@ The Command class allows registration of ICommandMonitor objects. CommandTracer 
 
 Build
 ----
-Included is a solution file that contains four projects: Commands itself, a unit test project, a log file viewer (for logs generated using CommandLogger) and a project demonstrating example usage. All projects target .NET 4.5. The solution and project files were created using Microsoft Visual Studio 2017.
+Included is a solution file that contains four projects: Commands itself, a unit test project, a log file viewer (for logs generated using CommandLogger) and a project demonstrating example usage. The solution and project files were created using Microsoft Visual Studio 2017.
 
 Example Usage
 ----

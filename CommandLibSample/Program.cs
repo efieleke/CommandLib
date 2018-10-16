@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Runtime.InteropServices;
 using Sophos.Commands;
 
 // This application prepares a spaghetti and salad dinner with a chef who is an expert multitasker.
@@ -7,18 +8,28 @@ namespace CommandLibSample
 {
 	internal class Program
 	{
+		private static readonly PrepareDinnerCmd MakeDinnerCmd = new PrepareDinnerCmd();
+
 		private static void Main()
 		{
-			// Output all the command activity to a file in the temp directory. This is a simple text file, and it
-			// can be viewed using CommandLogViewer.
+			// Trap Ctrl-C in to provide an example of aborting a command
+			SetConsoleCtrlHandler(ConsoleCtrlCheck, true);
+
+			// Output all the command activity to a file in the temp directory. This is a simple text file,
+			// and it can be viewed using CommandLogViewer.
 			string tempFile = System.IO.Path.GetTempFileName();
 			Command.Monitors = new LinkedList<ICommandMonitor>();
 			Command.Monitors.AddLast(new CommandTracer());
 			Command.Monitors.AddLast(new CommandLogger(tempFile));
 
-			using (var prepareDinnerCmd = new PrepareDinnerCmd())
+			try
 			{
-				prepareDinnerCmd.SyncExecute();
+				MakeDinnerCmd.SyncExecute();
+				Console.Out.WriteLine("Dinner is ready!");
+			}
+			catch (CommandAbortedException)
+			{
+				Console.Out.WriteLine("Dinner preparation aborted. Let's order pizza instead.");
 			}
 
 			foreach (ICommandMonitor monitor in Command.Monitors)
@@ -141,5 +152,22 @@ namespace CommandLibSample
 			private readonly string _desc;
 		}
 
+		[DllImport("Kernel32")]
+		public static extern bool SetConsoleCtrlHandler(HandlerRoutine handler, bool add);
+
+		// A delegate type to be used as the handler routine 
+		// for SetConsoleCtrlHandler.
+		public delegate bool HandlerRoutine(int ctrlType);
+
+		private static bool ConsoleCtrlCheck(int ctrlType)
+		{
+			if (ctrlType == 0) // Ctrl-C
+			{
+				MakeDinnerCmd.AbortAndWait();
+				return true;
+			}
+
+			return false;
+		}
 	}
 }
