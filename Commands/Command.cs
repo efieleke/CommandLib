@@ -709,7 +709,11 @@ namespace Sophos.Commands
             }
         }
 
-        internal System.Threading.WaitHandle AbortEvent
+		/// <summary>
+		/// Signaled when an abort request has been made. The state of this handle must not be altered
+		/// by anything but the framework.
+		/// </summary>
+		public System.Threading.WaitHandle AbortEvent
         {
             get
             {
@@ -726,6 +730,7 @@ namespace Sophos.Commands
 
         /// <summary>
         /// Signaled when this command has finished execution, regardless of whether it succeeded, failed or was aborted.
+        /// The state of this handle must not be altered by anything but the framework.
         /// </summary>
         public System.Threading.WaitHandle DoneEvent
         {

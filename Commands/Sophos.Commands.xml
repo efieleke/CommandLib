@@ -611,6 +611,12 @@
             Returns the owner, or the command that an <see cref="T:Sophos.Commands.AbortSignaledCommand"/> is linked to (if any).
             </summary>
         </member>
+        <member name="P:Sophos.Commands.Command.AbortEvent">
+            <summary>
+            Signaled when an abort request has been made. The state of this handle must not be altered
+            by anything but the framework.
+            </summary>
+        </member>
         <member name="P:Sophos.Commands.Command.AbortRequested">
             <summary>
             Returns whether an abort request has been made
@@ -620,6 +626,7 @@
         <member name="P:Sophos.Commands.Command.DoneEvent">
             <summary>
             Signaled when this command has finished execution, regardless of whether it succeeded, failed or was aborted.
+            The state of this handle must not be altered by anything but the framework.
             </summary>
         </member>
         <member name="M:Sophos.Commands.Command.SyncExecuteImpl(System.Object)">

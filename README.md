@@ -23,7 +23,7 @@ Included is a solution file that contains four projects: Commands itself, a unit
 
 Example Usage
 ----
-A sample project is included that moves a simulated robot arm that tries to pick up a toy and drop it down the chute. It demonstrates how to author a naturally asynchronous Command, and makes use of ParallelCommands, SequentialCommands, PeriodicCommand and RetryableCommand.
+A sample project is included that prepares dinner.
 
 Author
 ----

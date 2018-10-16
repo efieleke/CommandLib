@@ -25,12 +25,11 @@ All of the above Command classes are simply containers for other Command objects
       
 Commands includes a few Command classes that might be commonly useful, including PauseCommand and HttpRequestCommand, but it is expected that users of this library will create their own Command-derived classes.
 
-
 Guidelines for developing your own Command-derived class:
 
 - If the implementation of your command is naturally synchronous, inherit from SyncCommand
 
-- If the implementation of your command is naturally asynronous and makes use of await, inherit from TaskCommand
+- If the implementation of your command is naturally asynchronous and makes use of await, inherit from TaskCommand
 
 - If the implementation of your command is naturally asynchronous but does not make use of await, inherit from AsyncCommand
 
