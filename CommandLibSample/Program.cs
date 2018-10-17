@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using System.Runtime.InteropServices;
 using Sophos.Commands;
 
-// This application prepares a spaghetti and salad dinner with a chef who is an expert multitasker.
+// This application prepares a spaghetti and salad dinner.
 namespace CommandLibSample
 {
 	internal class Program
@@ -12,7 +12,8 @@ namespace CommandLibSample
 
 		private static void Main()
 		{
-			// Trap Ctrl-C in to provide an example of aborting a command
+			// Trap Ctrl-C in to provide an example of aborting a command (see implementation
+			// of ConsoleCtrlCheck below)
 			SetConsoleCtrlHandler(ConsoleCtrlCheck, true);
 
 			// Output all the command activity to a file in the temp directory. This is a simple text file,
@@ -51,32 +52,48 @@ namespace CommandLibSample
 		{
 			internal PrepareDinnerCmd() : base(abortUponFailure: true)
 			{
-				var sauteGarlicAndHeatSauceCmd = new ParallelCommands(abortUponFailure: true);
-				sauteGarlicAndHeatSauceCmd.Add(new SauteGarlicCmd());
-				sauteGarlicAndHeatSauceCmd.Add(new HeatSauceCmd());
-
-				var prepareSauceCmd = new SequentialCommands();
-				prepareSauceCmd.Add(sauteGarlicAndHeatSauceCmd);
-				prepareSauceCmd.Add(new AddGarlicToHeatingSauceCmd());
-
+				// Preparing the noodles consists of three operations that must be performed in sequence.
 				var prepareNoodlesCmd = new SequentialCommands();
 				prepareNoodlesCmd.Add(new BoilWaterCmd());
 				prepareNoodlesCmd.Add(new BoilNoodlesCmd());
 				prepareNoodlesCmd.Add(new DrainNoodlesCmd());
 
+				// The garlic must be sauteed before being added to the sauce, thus these
+				// operations are placed into a SequentialCommands instance.
+				var prepareGarlicCmd = new SequentialCommands();
+				prepareGarlicCmd.Add(new SauteGarlicCmd());
+				prepareGarlicCmd.Add(new AddGarlicToHeatingSauceCmd());
+
+				// The following operations can be done in tandem (none are dependent upon any
+				// of the others being complete before they are initiated), so they are placed into a
+				// ParallelCommands instance.
 				var prepareNoodlesAndSauceCmd = new ParallelCommands(abortUponFailure: true);
-				prepareNoodlesAndSauceCmd.Add(prepareSauceCmd);
+				prepareNoodlesAndSauceCmd.Add(new HeatSauceCmd());
+				prepareNoodlesAndSauceCmd.Add(prepareGarlicCmd);
 				prepareNoodlesAndSauceCmd.Add(prepareNoodlesCmd);
 
+				// The noodles and sauce preparation must be complete before the sauce is
+				// added to the noodles.
 				var prepareSpaghettiCmd = new SequentialCommands();
 				prepareSpaghettiCmd.Add(prepareNoodlesAndSauceCmd);
 				prepareSpaghettiCmd.Add(new AddSauceToNoodlesCmd());
 
+				// The lettuce doesn't have to be rinsed before the veggies are chopped. (Perhaps
+				// there are two chefs in the kitchen, or the one chef likes to alternate rinsing
+				// and chopping until both tasks are done.)
+				var rinseLettuceAndChopVeggiesCmd = new ParallelCommands(abortUponFailure: true);
+				rinseLettuceAndChopVeggiesCmd.Add(new RinseLettuceCmd());
+				rinseLettuceAndChopVeggiesCmd.Add(new ChopVeggiesCmd());
+
+				// The salad ingredients need to be ready before it is tossed, so these operations
+				// are sequential.
 				var prepareSaladCmd = new SequentialCommands();
-				prepareSaladCmd.Add(new RinseLettuceCmd());
-				prepareSaladCmd.Add(new ChopVeggiesCmd());
+				prepareSaladCmd.Add(rinseLettuceAndChopVeggiesCmd);
 				prepareSaladCmd.Add(new TossSaladCmd());
 
+				// This class inherits from ParallelCommands. We now call its Add() method to prepare
+				// the spaghetti and prepare the salad. Neither task has operations that the other
+				// depends upon, so they can be done in parallel.
 				Add(prepareSpaghettiCmd);
 				Add(prepareSaladCmd);
 			}
