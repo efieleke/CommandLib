@@ -3,19 +3,21 @@ using System.Collections.Generic;
 
 namespace Sophos.Commands
 {
-    /// <summary>
-    /// Dispatches <see cref="Command"/> objects to a pool for asynchronous execution.
-    /// </summary>
-    /// <remarks>
-    /// This class can be useful when commands are dynamically generated at runtime, and must be dynamically executed upon generation.
-    /// (for example, asynchronous handling of requests sent over a data stream).
-    /// <para>
-    /// Users of the class should remember to call Dispose() when they are done with this object. That will wait until all dispatched
-    /// commands finish execution, and also clean up the <see cref="Command"/> objects. For a faster shutdown, you may wish to call
-    /// <see cref="CommandDispatcher.Abort()"/> before disposing the dispatcher.
-    /// </para>
-    /// </remarks>
-    public class CommandDispatcher : IDisposable
+	/// <summary>
+	/// Dispatches <see cref="Command"/> objects to a pool for asynchronous execution.
+	/// </summary>
+	/// <remarks>
+	/// <para>
+	/// This class can be useful when commands are dynamically generated at runtime, and must be dynamically executed upon generation.
+	/// (for example, asynchronous handling of requests sent over a data stream).
+	/// </para>
+	/// <para>
+	/// Users of the class should remember to call Dispose() when they are done with this object. That will wait until all dispatched
+	/// commands finish execution, and also clean up the <see cref="Command"/> objects. For a faster shutdown, you may wish to call
+	/// <see cref="CommandDispatcher.Abort()"/> before disposing the dispatcher.
+	/// </para>
+	/// </remarks>
+	public class CommandDispatcher : IDisposable
     {
         /// <summary>
         /// Defines the event callback parameter for dispatched commands that finish execution.

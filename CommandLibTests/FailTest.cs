@@ -62,8 +62,25 @@ namespace CommandLibTests
 						}
 					}
 	            }
-            }
-            finally
+
+	            bool succeeded = false;
+	            Exception failure = null;
+	            bool aborted = false;
+	            bool failed = false;
+
+	            cmd.AsyncExecute(
+		            r => succeeded = true,
+		            () => aborted = true,
+		            e => { failed = true; failure = e; },
+		            runtimeArg);
+
+	            cmd.Wait();
+	            Assert.IsFalse(succeeded);
+	            Assert.IsFalse(aborted);
+	            Assert.IsTrue(failed);
+	            Assert.IsTrue(failure is T);
+			}
+			finally
             {
                 foreach (ICommandMonitor monitor in Command.Monitors)
                 {

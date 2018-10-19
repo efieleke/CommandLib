@@ -47,7 +47,7 @@ namespace CommandLibTests
                 });
 
                 thread.Start();
-                System.Threading.Thread.Sleep(20); // give time for the command to start executing
+                System.Threading.Thread.Sleep(maxDelayTime); // give time for the command to start executing
                 cmd.AbortAndWait();
                 thread.Join();
 
@@ -55,8 +55,8 @@ namespace CommandLibTests
 	            {
 		            try
 		            {
-						System.Threading.Thread.Sleep(20); // give time for the command to start executing
-			            cmd.Abort(); // there is no way to directly abort the task
+						System.Threading.Thread.Sleep(maxDelayTime); // give time for the command to start executing
+			            cmd.Abort(); // there is no way to directly abort the task other than by aborting the underlying command
 			            task.Wait();
 			            Assert.Fail("Command succeeded when it was expected to be aborted");
 					}
@@ -76,8 +76,18 @@ namespace CommandLibTests
 						}
 					}
 	            }
-            }
-            finally
+
+	            bool succeeded = false;
+	            bool aborted = false;
+	            bool failed = false;
+	            cmd.AsyncExecute(r => succeeded = true, () => aborted = true, e => failed = true, runtimeArg);
+	            System.Threading.Thread.Sleep(maxDelayTime); // give time for the command to start executing
+	            cmd.AbortAndWait();
+				Assert.IsFalse(succeeded);
+	            Assert.IsTrue(aborted);
+				Assert.IsFalse(failed);
+			}
+			finally
             {
                 foreach (ICommandMonitor monitor in Command.Monitors)
                 {

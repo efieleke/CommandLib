@@ -44,7 +44,7 @@ namespace CommandLibTests
         {
             using (System.Net.Http.HttpResponseMessage response = (System.Net.Http.HttpResponseMessage)actual)
             {
-                return HttpRequestCommand.ContentAsString(response.Content).Result.Contains(expected.ToString()) ? 0 : 1;
+				return response.Content.ReadAsStringAsync().Result.Contains(expected.ToString()) ? 0 : 1;
             }
         }
 
@@ -53,9 +53,13 @@ namespace CommandLibTests
             using (System.Net.Http.HttpResponseMessage response = (System.Net.Http.HttpResponseMessage)actual)
             {
                 string outputFileName = System.IO.Path.GetTempFileName();
-                System.IO.File.Delete(outputFileName);
-                HttpRequestCommand.WriteContentToFile(response.Content, outputFileName).Wait();
-                System.IO.File.Delete(outputFileName);
+
+	            using (var fileStream = System.IO.File.Create(outputFileName))
+	            {
+					response.Content.CopyToAsync(fileStream).Wait();
+	            }
+
+				System.IO.File.Delete(outputFileName);
                 return 0;
             }
         }

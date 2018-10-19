@@ -2,16 +2,18 @@
 
 namespace Sophos.Commands
 {
-    /// <summary>A <see cref="Command"/> that efficiently does nothing for a specified duration.</summary>
-    /// <remarks>
-    /// <see cref="Command.SyncExecute(object)"/> and <see cref="Command.AsyncExecute(ICommandListener, object)"/>
-    /// ignore the 'runtimeArg' value that is passed in (except that it is used for the return value)
-    /// <para>
-    /// Synchronous execution will return the same runtimeArg value as was passed in, and the
-    /// 'result' parameter of <see cref="ICommandListener.CommandSucceeded"/> will also be set to the same runtimeArg value.
-    /// </para>
-    /// </remarks>
-    public class PauseCommand : SyncCommand
+	/// <summary>A <see cref="Command"/> that efficiently does nothing for a specified duration.</summary>
+	/// <remarks>
+	/// <para>
+	/// <see cref="Command.SyncExecute(object)"/> and <see cref="Command.AsyncExecute(ICommandListener, object)"/>
+	/// ignore the 'runtimeArg' value that is passed in (except that it is used for the return value)
+	/// </para>
+	/// <para>
+	/// Synchronous execution will return the same runtimeArg value as was passed in, and the
+	/// 'result' parameter of <see cref="ICommandListener.CommandSucceeded"/> will also be set to the same runtimeArg value.
+	/// </para>
+	/// </remarks>
+	public class PauseCommand : SyncCommand
     {
         /// <summary>Constructs a PauseCommand object as a top-level <see cref="Command"/></summary>
         /// <param name="duration">The amount of time to pause</param>

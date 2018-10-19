@@ -54,6 +54,32 @@ namespace CommandLibTests
 			            Assert.Fail($"expectedResult != result ({expectedResult} != {result}");
 		            }
 	            }
+
+	            bool succeeded = false;
+	            result = null;
+	            bool aborted = false;
+	            bool failed = false;
+
+	            cmd.AsyncExecute(
+		            r => { succeeded = true; result = r; },
+		            () => aborted = true,
+		            e => failed = true,
+		            runtimeArg);
+
+	            cmd.Wait();
+	            Assert.IsTrue(succeeded);
+
+	            if (compare == null)
+	            {
+		            Assert.AreEqual(expectedResult, result);
+	            }
+	            else if (compare(expectedResult, result) != 0)
+	            {
+		            Assert.Fail($"expectedResult != result ({expectedResult} != {result}");
+	            }
+
+	            Assert.IsFalse(aborted);
+	            Assert.IsFalse(failed);
             }
 			finally
             {

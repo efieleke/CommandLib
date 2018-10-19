@@ -2,14 +2,16 @@
 
 namespace Sophos.Commands
 {
-    /// <summary>
-    /// This is a callback interface for <see cref="Command"/> starting and finishing events. Its intended use is for logging and diagnostics.
-    /// </summary>
-    /// <remarks>
-    /// <see cref="CommandTracer"/> and <see cref="CommandLogger"/> are available implementations.
-    /// You may add a monitor via the static <see cref="Command.Monitors"/> property of <see cref="Command"/>.
-    /// </remarks>
-    public interface ICommandMonitor : IDisposable
+	/// <summary>
+	/// This is a callback interface for <see cref="Command"/> starting and finishing events. Its intended use is for logging and diagnostics.
+	/// </summary>
+	/// <remarks>
+	/// <para>
+	/// <see cref="CommandTracer"/> and <see cref="CommandLogger"/> are available implementations.
+	/// You may add a monitor via the static <see cref="Command.Monitors"/> property of <see cref="Command"/>.
+	/// </para>
+	/// </remarks>
+	public interface ICommandMonitor : IDisposable
     {
         /// <summary>
         /// Invoked by the framework whenever a <see cref="Command"/> (including owned commands) starts execution

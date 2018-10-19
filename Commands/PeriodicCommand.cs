@@ -2,19 +2,21 @@
 
 namespace Sophos.Commands
 {
-    /// <summary>Represents a <see cref="Command"/> that repeats periodically at a specified interval</summary>
-    /// <remarks>
-    /// The runtimeArg passed to the execution methods will be passed to the command that executes, every time that it executes.
-    /// The runtimeArg should be of the same type required as the underlying command to run.
-    /// <para>
-    /// This command returns null from synchronous execution, and sets the 'result' parameter of 
-    /// <see cref="ICommandListener.CommandSucceeded"/> to null.
-    /// </para>
-    /// <para>
-    /// If more dynamic control is needed around the period of time between executions, use <see cref="RecurringCommand"/> instead.
-    /// </para>
-    /// </remarks>
-    public class PeriodicCommand : SyncCommand
+	/// <summary>Represents a <see cref="Command"/> that repeats periodically at a specified interval</summary>
+	/// <remarks>
+	/// <para>
+	/// The runtimeArg passed to the execution methods will be passed to the command that executes, every time that it executes.
+	/// The runtimeArg should be of the same type required as the underlying command to run.
+	/// </para>
+	/// <para>
+	/// This command returns null from synchronous execution, and sets the 'result' parameter of 
+	/// <see cref="ICommandListener.CommandSucceeded"/> to null.
+	/// </para>
+	/// <para>
+	/// If more dynamic control is needed around the period of time between executions, use <see cref="RecurringCommand"/> instead.
+	/// </para>
+	/// </remarks>
+	public class PeriodicCommand : SyncCommand
     {
         /// <summary>
         /// Defines how the interval between command executions is performed within a <see cref="PeriodicCommand"/>

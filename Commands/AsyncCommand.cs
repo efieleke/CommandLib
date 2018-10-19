@@ -5,6 +5,7 @@ namespace Sophos.Commands
     /// <summary>
     /// Represents a <see cref="Command"/> which is most naturally asynchronous in its implementation. If you inherit from this class, you
     /// are responsible for implementing <see cref="Command.AsyncExecuteImpl"/>. This class  implements <see cref="SyncExecuteImpl"/>.
+    /// If your implementation makes use of asynchronous Tasks (i.e. the Task class), inherit from TaskCommand instead.
     /// </summary>
     public abstract class AsyncCommand : Command
     {

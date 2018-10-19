@@ -2,22 +2,24 @@
 
 namespace Sophos.Commands
 {
-    /// <summary>
-    /// This <see cref="Command"/> wraps another <see cref="Command"/>, throwing a <see cref="TimeoutException"/> if a
-    /// specified interval elapses before the underlying command finishes execution.
-    /// </summary>
-    /// <remarks>
-    /// The underlying command to execute must be responsive to abort requests in order for the timeout interval to be honored.
-    /// <para>
-    /// The 'runtimeArg' value to pass to <see cref="Command.SyncExecute(object)"/> and <see cref="Command.AsyncExecute(ICommandListener, object)"/>
-    /// should be of the same type required by the underlying command to run.
-    /// </para>
-    /// <para>
-    /// This command returns from synchronous execution the same value that the underlying command to run returns,
-    /// and the 'result' parameter of <see cref="ICommandListener.CommandSucceeded"/> will be set in similar fashion.
-    /// </para>
-    /// </remarks>
-    public class TimeLimitedCommand : SyncCommand
+	/// <summary>
+	/// This <see cref="Command"/> wraps another <see cref="Command"/>, throwing a <see cref="TimeoutException"/> if a
+	/// specified interval elapses before the underlying command finishes execution.
+	/// </summary>
+	/// <remarks>
+	/// <para>
+	/// The underlying command to execute must be responsive to abort requests in order for the timeout interval to be honored.
+	/// </para>
+	/// <para>
+	/// The 'runtimeArg' value to pass to <see cref="Command.SyncExecute(object)"/> and <see cref="Command.AsyncExecute(ICommandListener, object)"/>
+	/// should be of the same type required by the underlying command to run.
+	/// </para>
+	/// <para>
+	/// This command returns from synchronous execution the same value that the underlying command to run returns,
+	/// and the 'result' parameter of <see cref="ICommandListener.CommandSucceeded"/> will be set in similar fashion.
+	/// </para>
+	/// </remarks>
+	public class TimeLimitedCommand : SyncCommand
     {
         /// <summary>
         /// Constructs a TimeLimitedCommand object as a top-level <see cref="Command"/>

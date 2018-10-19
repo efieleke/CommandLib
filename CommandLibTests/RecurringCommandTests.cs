@@ -43,21 +43,21 @@ namespace CommandLibTests
         {
             using (RecurringCommand recurringCmd = new RecurringCommand(
                 new AddCommand(0),
-                new RecurCallback(TimeSpan.FromDays(1), TimeSpan.FromDays(1), 7)))
+                new RecurCallback(TimeSpan.FromDays(1), TimeSpan.FromDays(1), 99)))
             {
                 AbortTest.Run(recurringCmd, 2, 20);
             }
 
             using (RecurringCommand recurringCmd = new RecurringCommand(
                 new AddCommand(0),
-                new RecurCallback(TimeSpan.FromDays(1).Negate(), TimeSpan.FromDays(1), 7)))
+                new RecurCallback(TimeSpan.FromDays(1).Negate(), TimeSpan.FromDays(1), 99)))
             {
                 AbortTest.Run(recurringCmd, 3, 20);
             }
 
             using (RecurringCommand recurringCmd = new RecurringCommand(
                 new PauseCommand(TimeSpan.FromDays(1)),
-                new RecurCallback(TimeSpan.FromDays(1).Negate(), TimeSpan.FromDays(1).Negate(), 7)))
+                new RecurCallback(TimeSpan.FromDays(1).Negate(), TimeSpan.FromDays(1).Negate(), 99)))
             {
                 AbortTest.Run(recurringCmd, 1, 20);
             }

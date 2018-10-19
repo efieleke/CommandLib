@@ -46,10 +46,8 @@ namespace Sophos.Commands
             PrintMessage(commandInfo, message);
         }
 
-        /// <summary>
-        /// 
-        /// </summary>
-        public void Dispose()
+	    /// <inheritdoc />
+	    public void Dispose()
         {
             Dispose(true);
         }

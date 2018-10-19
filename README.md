@@ -17,9 +17,9 @@ Guidelines for developing your own Command-derived class:
 
 - If the implementation of your command is naturally synchronous, inherit from SyncCommand
 
-- If the implementation of your command is naturally asynchronous and makes use of await, inherit from TaskCommand
+- If the implementation of your command is naturally asynchronous and makes use of Tasks (i.e. the Tasl class), inherit from TaskCommand
 
-- If the implementation of your command is naturally asynchronous but does not make use of await, inherit from AsyncCommand
+- If the implementation of your command is naturally asynchronous but does not make use of tasks, inherit from AsyncCommand
 
 - Make your implementation responsive to abort requests. To do this, make ocassional calls to Command.CheckAbortFlag() or Command.AbortRequested.
 

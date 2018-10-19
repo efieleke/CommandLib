@@ -2,25 +2,27 @@
 
 namespace Sophos.Commands
 {
-    /// <summary>
-    /// A <see cref="Command"/> wrapper that, in addition to responding to normal <see cref="Command.Abort"/> requests, also aborts in response to either
-    /// 1) a request to abort a different, specified <see cref="Command"/> instance, or 2) the signaling  of a specified wait handle
-    /// (typically an event). 
-    /// </summary>
-    /// <remarks>
-    /// AbortSignaledCommand objects must be top level. Any attempt by another <see cref="Command"/> to take ownership of an AbortSignaledCommand
-    /// will raise an exception. For example, adding this type to a <see cref="SequentialCommands"/> will raise an exception because
-    /// <see cref="SequentialCommands"/> would attempt to assume ownership.
-    /// <para>
-    /// The 'runtimeArg' value to pass to <see cref="Command.SyncExecute(object)"/> and <see cref="Command.AsyncExecute(ICommandListener, object)"/>
-    /// should be of the same type required as the underlying command to run.
-    /// </para>
-    /// <para>
-    /// This command returns from synchronous execution the same value that the underlying command to run returns, and the
-    /// 'result' parameter of <see cref="ICommandListener.CommandSucceeded"/> will be set in similar fashion.
-    /// </para>
-    /// </remarks>
-    public sealed class AbortSignaledCommand : SyncCommand
+	/// <summary>
+	/// A <see cref="Command"/> wrapper that, in addition to responding to normal <see cref="Command.Abort"/> requests, also aborts in response to either
+	/// 1) a request to abort a different, specified <see cref="Command"/> instance, or 2) the signaling  of a specified wait handle
+	/// (typically an event). 
+	/// </summary>
+	/// <remarks>
+	/// <para>
+	/// AbortSignaledCommand objects must be top level. Any attempt by another <see cref="Command"/> to take ownership of an AbortSignaledCommand
+	/// will raise an exception. For example, adding this type to a <see cref="SequentialCommands"/> will raise an exception because
+	/// <see cref="SequentialCommands"/> would attempt to assume ownership.
+	/// </para>
+	/// <para>
+	/// The 'runtimeArg' value to pass to <see cref="Command.SyncExecute(object)"/> and <see cref="Command.AsyncExecute(ICommandListener, object)"/>
+	/// should be of the same type required as the underlying command to run.
+	/// </para>
+	/// <para>
+	/// This command returns from synchronous execution the same value that the underlying command to run returns, and the
+	/// 'result' parameter of <see cref="ICommandListener.CommandSucceeded"/> will be set in similar fashion.
+	/// </para>
+	/// </remarks>
+	public sealed class AbortSignaledCommand : SyncCommand
     {
         /// <summary>
         /// Constructs an AbortSignaledCommand object as a top-level <see cref="Command"/>

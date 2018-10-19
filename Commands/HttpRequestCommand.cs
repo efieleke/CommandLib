@@ -5,20 +5,22 @@ using System.Threading.Tasks;
 
 namespace Sophos.Commands
 {
-    /// <summary>
-    /// A <see cref="Command"/> wrapper for <see cref="HttpClient.SendAsync(HttpRequestMessage)"/>
-    /// </summary>
-    /// <remarks>
-    /// <see cref="Command.SyncExecute(object)"/> and <see cref="Command.AsyncExecute(ICommandListener, object)"/> will accept 
-    /// an object of type IHttpRequestGenerator for the 'runtimeArg', If not null, that will be used instead of the
-    /// IHttpRequestGenerator passed to the constructor.
-    /// <para>
-    /// This command returns from synchronous execution a .HttpResponseMessage that represents the server response from  the HTTP
-    /// operation. The 'result' parameter of <see cref="ICommandListener.CommandSucceeded"/> will be set in similar fashion. It is the caller's
-    /// responsibility to dispose of this response object.
-    /// </para>
-    /// </remarks>
-    public class HttpRequestCommand : TaskCommand<HttpResponseMessage>
+	/// <summary>
+	/// A <see cref="Command"/> wrapper for <see cref="HttpClient.SendAsync(HttpRequestMessage)"/>
+	/// </summary>
+	/// <remarks>
+	/// <para>
+	/// <see cref="Command.SyncExecute(object)"/> and <see cref="Command.AsyncExecute(ICommandListener, object)"/> will accept 
+	/// an object of type IHttpRequestGenerator for the 'runtimeArg', If not null, that will be used instead of the
+	/// IHttpRequestGenerator passed to the constructor.
+	/// </para>
+	/// <para>
+	/// This command returns from synchronous execution a .HttpResponseMessage that represents the server response from  the HTTP
+	/// operation. The 'result' parameter of <see cref="ICommandListener.CommandSucceeded"/> will be set in similar fashion. It is the caller's
+	/// responsibility to dispose of this response object.
+	/// </para>
+	/// </remarks>
+	public class HttpRequestCommand : TaskCommand<HttpResponseMessage>
     {
         /// <summary>
         /// Users of HttpRequestCommand must implement this interface and pass an instance to either the constructor or SyncExecute.
@@ -41,6 +43,7 @@ namespace Sophos.Commands
             /// Throw an exception from this method if the response is deemed to be a failure that should cause the command to fail.
             /// </summary>
             /// <param name="response">The response to evaluate. Note that implementors must *not* dispose this parameter.</param>
+            /// <returns>the task</returns>
             Task CheckResponse(HttpResponseMessage response);
         }
 
@@ -134,7 +137,10 @@ namespace Sophos.Commands
                     {
                         try
                         {
-                            reason.ResponseBody = await ContentAsString(response.Content);
+	                        using (Task<string> t = response.Content.ReadAsStringAsync())
+	                        {
+		                        reason.ResponseBody = await t;
+	                        }
                         }
                         catch(Exception)
                         {
@@ -146,32 +152,6 @@ namespace Sophos.Commands
 
                     throw new HttpRequestException(response.ReasonPhrase, reason);
                 }
-            }
-        }
-
-        /// <summary>
-        /// Helper method to convert an HttpContent object to a String. This can be used on the Content
-        /// property of the HttpResponseMessage object that is returned from the HttpGetCommand's execution.
-        /// </summary>
-        /// <param name="content">The content to covert</param>
-        /// <returns>The content as a string</returns>
-        public static Task<string> ContentAsString(HttpContent content)
-        {
-			return content.ReadAsStringAsync();
-        }
-
-        /// <summary>
-        /// Helper method to write an HttpContent object to a file. This can be used on the Content
-        /// property of the HttpResponseMessage object that is returned from the HttpGetCommand's execution.
-        /// The file will be either created or overwritten.
-        /// </summary>
-        /// <param name="content"></param>
-        /// <param name="fileName"></param>
-        public static async Task WriteContentToFile(HttpContent content, string fileName)
-        {
-            using (var fileStream = System.IO.File.Create(fileName))
-            {
-				await content.CopyToAsync(fileStream);
             }
         }
 
@@ -285,7 +265,7 @@ namespace Sophos.Commands
 		/// Do not call this method from a derived class. It is called by the framework.
 		/// </summary>
 		/// <param name="runtimeArg"></param>
-		/// <returns></returns>
+		/// <returns>the task</returns>
 		protected sealed override async Task<HttpResponseMessage> CreateTask(object runtimeArg)
 		{
 			// Dispose of the prior cancel token source after the request is performed. We need to keep
@@ -294,43 +274,46 @@ namespace Sophos.Commands
 			{
 				_cancelTokenSource = new System.Threading.CancellationTokenSource();
 				_aborted = false;
-				IRequestGenerator generator = runtimeArg == null ? _requestGenerator : (IRequestGenerator)runtimeArg;
+				IRequestGenerator generator = runtimeArg == null ? _requestGenerator : (IRequestGenerator) runtimeArg;
 
 				using (HttpRequestMessage request = generator.GenerateRequest())
 				{
 					// The same request message cannot be sent more than once, so we have to construct a new one every time.
-					Task<HttpResponseMessage> task = Client.SendAsync(request, HttpCompletionOption.ResponseContentRead, _cancelTokenSource.Token);
-
-					try
+					using (Task<HttpResponseMessage> task = Client.SendAsync(request, HttpCompletionOption.ResponseContentRead, _cancelTokenSource.Token))
 					{
-						HttpResponseMessage message = await task;
-
-						if (_responseChecker != null)
+						try
 						{
-							try
-							{
-								await _responseChecker.CheckResponse(message);
-							}
-							catch (Exception)
-							{
-								message.Dispose();
-								task.Dispose();
-								throw;
-							}
-						}
+							HttpResponseMessage message = await task;
 
-						return message;
-					}
-					catch (OperationCanceledException)
-					{
-						if (_aborted)
+							if (_responseChecker != null)
+							{
+								try
+								{
+									using (Task t = _responseChecker.CheckResponse(message))
+									{
+										await t;
+									}
+								}
+								catch (Exception)
+								{
+									message.Dispose();
+									throw;
+								}
+							}
+
+							return message;
+						}
+						catch (OperationCanceledException)
 						{
-							// We got here because Abort() was called
-							throw new CommandAbortedException();
-						}
+							if (_aborted)
+							{
+								// We got here because Abort() was called
+								throw new CommandAbortedException();
+							}
 
-						// We got here because the request timed out
-						throw new TimeoutException();
+							// We got here because the request timed out
+							throw new TimeoutException();
+						}
 					}
 				}
 			}

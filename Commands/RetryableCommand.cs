@@ -2,18 +2,20 @@
 
 namespace Sophos.Commands
 {
-    /// <summary>
-    /// This <see cref="Command"/> wraps another command, allowing the command to be retried upon failure, up to any number of times.
-    /// </summary>
-    /// <remarks>
-    /// The 'runtimeArg' value to pass to <see cref="Command.SyncExecute(object)"/> and <see cref="Command.AsyncExecute(ICommandListener, object)"/>
-    /// should be of the same type required as the underlying command to run.
-    /// <para>
-    /// This command returns from synchronous execution the same value that the underlying command to run returns,
-    /// and the 'result' parameter of <see cref="ICommandListener.CommandSucceeded"/> will be set in similar fashion.
-    /// </para>
-    /// </remarks>
-    public class RetryableCommand : SyncCommand
+	/// <summary>
+	/// This <see cref="Command"/> wraps another command, allowing the command to be retried upon failure, up to any number of times.
+	/// </summary>
+	/// <remarks>
+	/// <para>
+	/// The 'runtimeArg' value to pass to <see cref="Command.SyncExecute(object)"/> and <see cref="Command.AsyncExecute(ICommandListener, object)"/>
+	/// should be of the same type required as the underlying command to run.
+	/// </para>
+	/// <para>
+	/// This command returns from synchronous execution the same value that the underlying command to run returns,
+	/// and the 'result' parameter of <see cref="ICommandListener.CommandSucceeded"/> will be set in similar fashion.
+	/// </para>
+	/// </remarks>
+	public class RetryableCommand : SyncCommand
     {
         /// <summary>
         /// Interface that defines aspects of retry behavior

@@ -3,15 +3,17 @@ using System.Collections.Generic;
 
 namespace Sophos.Commands
 {
-    /// <summary>Represents a collection of <see cref="Command"/> objects that execute in parallel, wrapped in a <see cref="Command"/> object</summary>
-    /// <remarks>
-    /// The 'runtimeArg' parameter passed to <see cref="Command.SyncExecute(object)"/> and <see cref="Command.AsyncExecute(ICommandListener, object)"/>
-    /// will be passed to every command in the collection when it executes.
-    /// <para>
-    /// Synchronous execution will return null, and the 'result' parameter of <see cref="ICommandListener.CommandSucceeded"/> will also be set to null.
-    /// </para>
-    /// </remarks>
-    public class ParallelCommands : AsyncCommand
+	/// <summary>Represents a collection of <see cref="Command"/> objects that execute in parallel, wrapped in a <see cref="Command"/> object</summary>
+	/// <remarks>
+	/// <para>
+	/// The 'runtimeArg' parameter passed to <see cref="Command.SyncExecute(object)"/> and <see cref="Command.AsyncExecute(ICommandListener, object)"/>
+	/// will be passed to every command in the collection when it executes.
+	/// </para>
+	/// <para>
+	/// Synchronous execution will return null, and the 'result' parameter of <see cref="ICommandListener.CommandSucceeded"/> will also be set to null.
+	/// </para>
+	/// </remarks>
+	public class ParallelCommands : AsyncCommand
     {
         /// <summary>
         /// Constructs a ParallelCommands object as a top-level <see cref="Command"/>

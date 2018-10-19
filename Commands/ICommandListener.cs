@@ -2,16 +2,18 @@
 
 namespace Sophos.Commands
 {
-    /// <summary>
-    /// An object implementing this interface is required as a parameter to <see cref="Command.AsyncExecute(ICommandListener)"/>.
-    /// Exactly one of its methods will eventually be called when a command is executed asynchronously, and it is guaranteed that the
-    /// call will be on a thread different from the thread AsyncExecute was called from.
-    /// </summary>
-    /// <remarks>
-    /// The <see cref="Command"/> is in the last stage of execution when making these callbacks, so do not re-execute the command from within
-    /// your handler. Also, do not call the executing command's <see cref="Command.Wait()"/> from within your handler, as that will cause deadlock.
-    /// </remarks>
-    public interface ICommandListener
+	/// <summary>
+	/// An object implementing this interface is required as a parameter to <see cref="Command.AsyncExecute(ICommandListener)"/>.
+	/// Exactly one of its methods will eventually be called when a command is executed asynchronously, and it is guaranteed that the
+	/// call will be on a thread different from the thread AsyncExecute was called from.
+	/// </summary>
+	/// <remarks>
+	/// <para>
+	/// The <see cref="Command"/> is in the last stage of execution when making these callbacks, so do not re-execute the command from within
+	/// your handler. Also, do not call the executing command's <see cref="Command.Wait()"/> from within your handler, as that will cause deadlock.
+	/// </para>
+	/// </remarks>
+	public interface ICommandListener
     {
         /// <summary>
         /// Called when a <see cref="Command"/> launched via <see cref="Command.AsyncExecute(ICommandListener)"/> succeeds.

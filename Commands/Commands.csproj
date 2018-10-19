@@ -16,7 +16,7 @@
 
       ParallelCommands, itself a Command, executes a collection of commands concurrently, and SequentialCommands executes its commands in sequence. Using these classes, it's possible to create a deep nesting of coordinated actions. For example, SequentialCommands can hold instances of ParallelCommands, which in turn could hold SequentialCommands, and any other Command-derived object.
 
-      TaskCommand, DelegateCommand and Command.AsTask() offer easy integration with Tasks and delegates.
+      Command extends the notion of a Task, in that it works both with tasks and with non-task-based asynchronous operations. It also offers features not readily available with tasks. TaskCommand, DelegateCommand and Command.AsTask() offer easy integration with Tasks and delegates.
 
       PeriodicCommand repeats its action at a given interval, ScheduledCommand runs once at a specific time, and RecurringCommand runs at times that are provided via a callback.
 
@@ -30,11 +30,11 @@
 
       - If the implementation of your command is naturally synchronous, inherit from SyncCommand
 
-      - If the implementation of your command is naturally asynchronous and makes use of await, inherit from TaskCommand
+      - If the implementation of your command is naturally asynchronous and makes use of Tasks (i.e. the Task class), inherit from TaskCommand
 
-      - If the implementation of your command is naturally asynchronous but does not make use of await, inherit from AsyncCommand
+      - If the implementation of your command is naturally asynchronous but does not make use of tasks, inherit from AsyncCommand
 
-      - Make your implementation responsive to abort requests. To do this, make ocassional calls to Command.CheckAbortFlag() or Command.AbortRequested.
+      - Make your implementation responsive to abort requests if it could take more than a trivial amount of time. To do this, make ocassional calls to Command.CheckAbortFlag() or Command.AbortRequested
 
 
       Versions for C++ and Java exist at https://github.com/efieleke/CommandLibForCPP.git and https://github.com/efieleke/CommandLibForJava.git.</Description>

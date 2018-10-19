@@ -3,19 +3,21 @@ using System.Globalization;
 
 namespace Sophos.Commands
 {
-    /// <summary>
-    /// Represents a <see cref="Command"/> that executes at a given time. When a ScheduledCommand is executed, it will enter an
-    /// efficient wait state until the time arrives at which to execute the underlying command.
-    /// </summary>
-    /// <remarks>
-    /// The 'runtimeArg' value to pass to <see cref="Command.SyncExecute(object)"/> and <see cref="Command.AsyncExecute(ICommandListener, object)"/>
-    /// should be of the same type required as the underlying command to run.
-    /// <para>
-    /// This command returns from synchronous execution the same value that the underlying command to run returns,
-    /// and the 'result' parameter of <see cref="ICommandListener.CommandSucceeded"/> will be set in similar fashion.
-    /// </para>
-    /// </remarks>
-    public class ScheduledCommand : SyncCommand
+	/// <summary>
+	/// Represents a <see cref="Command"/> that executes at a given time. When a ScheduledCommand is executed, it will enter an
+	/// efficient wait state until the time arrives at which to execute the underlying command.
+	/// </summary>
+	/// <remarks>
+	/// <para>
+	/// The 'runtimeArg' value to pass to <see cref="Command.SyncExecute(object)"/> and <see cref="Command.AsyncExecute(ICommandListener, object)"/>
+	/// should be of the same type required as the underlying command to run.
+	/// </para>
+	/// <para>
+	/// This command returns from synchronous execution the same value that the underlying command to run returns,
+	/// and the 'result' parameter of <see cref="ICommandListener.CommandSucceeded"/> will be set in similar fashion.
+	/// </para>
+	/// </remarks>
+	public class ScheduledCommand : SyncCommand
     {
         /// <summary>
         /// Constructs a ScheduledCommand as a top-level <see cref="Command"/>

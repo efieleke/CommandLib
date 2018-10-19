@@ -2,19 +2,21 @@
 
 namespace Sophos.Commands
 {
-    /// <summary>
-    /// SequentialCommands is a <see cref="Command"/> object which contains a collection of commands which are run in sequence
-    /// </summary>
-    /// <remarks>
-    /// The 'runtimeArg' parameter passed to <see cref="Command.SyncExecute(object)"/> and <see cref="Command.AsyncExecute(ICommandListener, object)"/>
-    /// will be passed to the first command in the collection when it executes. The return value of the first command is passed as
-    /// 'runtimeArg' to the next command in the collection, and so on.
-    /// <para>
-    /// Synchronous execution will return the value the last command in the collection returned, and the 'result'
-    /// parameter of <see cref="ICommandListener.CommandSucceeded"/> will be set in similar fashion.
-    /// </para>
-    /// </remarks>
-    public class SequentialCommands : SyncCommand
+	/// <summary>
+	/// SequentialCommands is a <see cref="Command"/> object which contains a collection of commands which are run in sequence
+	/// </summary>
+	/// <remarks>
+	/// <para>
+	/// The 'runtimeArg' parameter passed to <see cref="Command.SyncExecute(object)"/> and <see cref="Command.AsyncExecute(ICommandListener, object)"/>
+	/// will be passed to the first command in the collection when it executes. The return value of the first command is passed as
+	/// 'runtimeArg' to the next command in the collection, and so on.
+	/// </para>
+	/// <para>
+	/// Synchronous execution will return the value the last command in the collection returned, and the 'result'
+	/// parameter of <see cref="ICommandListener.CommandSucceeded"/> will be set in similar fashion.
+	/// </para>
+	/// </remarks>
+	public class SequentialCommands : SyncCommand
     {
         /// <summary>
         /// Constructs a SequentialCommands object as a top-level <see cref="Command"/>
