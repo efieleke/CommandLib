@@ -33,7 +33,7 @@ namespace CommandLibTests
                 return msg;
             }
 
-	        readonly System.Net.Http.HttpMethod _method;
+	        private readonly System.Net.Http.HttpMethod _method;
             private readonly Uri _uri;
             private readonly byte[] _body;
         }
@@ -45,22 +45,6 @@ namespace CommandLibTests
             using (System.Net.Http.HttpResponseMessage response = (System.Net.Http.HttpResponseMessage)actual)
             {
 				return response.Content.ReadAsStringAsync().Result.Contains(expected.ToString()) ? 0 : 1;
-            }
-        }
-
-        private int CompareFileResults(object expected, object actual)
-        {
-            using (System.Net.Http.HttpResponseMessage response = (System.Net.Http.HttpResponseMessage)actual)
-            {
-                string outputFileName = System.IO.Path.GetTempFileName();
-
-	            using (var fileStream = System.IO.File.Create(outputFileName))
-	            {
-					response.Content.CopyToAsync(fileStream).Wait();
-	            }
-
-				System.IO.File.Delete(outputFileName);
-                return 0;
             }
         }
 
@@ -79,12 +63,6 @@ namespace CommandLibTests
                 new TestRequestGenerator(System.Net.Http.HttpMethod.Get, TestServer + "/get"), new HttpRequestCommand.EnsureSuccessStatusCodeResponseChecker()))
             {
                 HappyPathTest.Run(cmd, null, "http://httpbin.org/get", CompareResults);
-            }
-
-            using (HttpRequestCommand cmd = new HttpRequestCommand(
-                new TestRequestGenerator(System.Net.Http.HttpMethod.Get, TestServer + "/get"), new HttpRequestCommand.EnsureSuccessStatusCodeResponseChecker()))
-            {
-                HappyPathTest.Run(cmd, null, "http://httpbin.org/get", CompareFileResults);
             }
         }
 

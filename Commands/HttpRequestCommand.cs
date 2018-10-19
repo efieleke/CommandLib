@@ -35,7 +35,8 @@ namespace Sophos.Commands
         }
 
         /// <summary>
-        /// Implement this interface if you wish to force command execution to fail depending upon the response (e.g. error status codes)
+        /// Implement this interface if you wish to force command execution to fail depending upon the response (e.g. error status codes).
+        /// <see cref="EnsureSuccessStatusCodeResponseChecker"/> provides am implementation.
         /// </summary>
         public interface IResponseChecker
         {
@@ -57,24 +58,6 @@ namespace Sophos.Commands
             /// Constructs a HttpStatusException object
             /// </summary>
             public HttpStatusException()
-            {
-            }
-
-            /// <summary>
-            /// Constructs a HttpStatusException object
-            /// </summary>
-            /// <param name="message">See <see cref="Exception"/> documentation</param>
-            public HttpStatusException(string message) : base(message)
-            {
-            }
-
-            /// <summary>
-            /// Constructs a HttpStatusException object
-            /// </summary>
-            /// <param name="message">See <see cref="Exception"/> documentation</param>
-            /// <param name="innerException">>See <see cref="Exception"/> documentation</param>
-            public HttpStatusException(string message, Exception innerException)
-                : base(message, innerException)
             {
             }
 
@@ -131,7 +114,7 @@ namespace Sophos.Commands
             {
                 if (!response.IsSuccessStatusCode)
                 {
-                    HttpStatusException reason = new HttpStatusException { StatusCode = response.StatusCode };
+                    var reason = new HttpStatusException { StatusCode = response.StatusCode };
 
                     if (response.Content != null)
                     {
@@ -193,8 +176,7 @@ namespace Sophos.Commands
         /// is provided as an implementation.
         /// </param>
         /// <param name="httpClient">
-        /// The HttpClient instance to use for the operation. Be careful how that object is shared with other code (including
-        /// passing it to multiple instances of this class, or other Command objects that accept a HttpClient object).
+        /// The HttpClient instance to use for the operation.
         /// </param>
         public HttpRequestCommand(IRequestGenerator requestGenerator, IResponseChecker responseChecker, HttpClient httpClient)
             : this(requestGenerator, responseChecker, httpClient, null)
@@ -210,8 +192,7 @@ namespace Sophos.Commands
         /// is provided as an implementation.
         /// </param>
         /// <param name="httpClient">
-        /// The HttpClient instance to use for the operation. Be careful how that object is shared with other code (including
-        /// passing it to multiple instances of this class, or other Command objects that accept a HttpClient object).
+        /// The HttpClient instance to use for the operation.
         /// </param>
         /// <param name="owner">
         /// Specify null to indicate a top-level command. Otherwise, this command will be owned by 'owner'. Owned commands respond to

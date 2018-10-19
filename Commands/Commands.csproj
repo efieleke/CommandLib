@@ -6,38 +6,38 @@
     <OutputType>Library</OutputType>
     <StartupObject />
     <PackageId>Sophos.Commands</PackageId>
-    <Version>1.2.4</Version>
+    <Version>1.3.1</Version>
     <Authors>Eric Fieleke</Authors>
     <Title>Commands Library, for coordination of synchronous and asynchronous actions</Title>
     <AssemblyName>Sophos.Commands</AssemblyName>
     <RootNamespace>Sophos.Commands</RootNamespace>
-    <Description>
-      Commands simplifies coordination of asynchronous and synchronous activities. The library is built upon class Command, which represents an action. A Command may be run synchronously or asynchronously, and may be aborted.
+    <Description>Commands simplifies coordination of asynchronous and synchronous activities. The library is built upon class Command, which represents an action. A Command may be run synchronously or asynchronously, and may be aborted.
 
-      ParallelCommands, itself a Command, executes a collection of commands concurrently, and SequentialCommands executes its commands in sequence. Using these classes, it's possible to create a deep nesting of coordinated actions. For example, SequentialCommands can hold instances of ParallelCommands, which in turn could hold SequentialCommands, and any other Command-derived object.
+A help file containing complete documentation exists within this package, as well as a diagnostic utility for examining logged command execution. 
 
-      Command extends the notion of a Task, in that it works both with tasks and with non-task-based asynchronous operations. It also offers features not readily available with tasks. TaskCommand, DelegateCommand and Command.AsTask() offer easy integration with Tasks and delegates.
+ParallelCommands, itself a Command, executes a collection of commands concurrently, and SequentialCommands executes its commands in sequence. Using these classes, it's possible to create a deep nesting of coordinated actions. For example, SequentialCommands can hold instances of ParallelCommands, which in turn could hold SequentialCommands, and any other Command-derived object.
 
-      PeriodicCommand repeats its action at a given interval, ScheduledCommand runs once at a specific time, and RecurringCommand runs at times that are provided via a callback.
+Command extends the notion of a Task, in that it works both with tasks and with non-task-based asynchronous operations. It also offers features not readily available with tasks. TaskCommand, DelegateCommand and Command.AsTask() offer easy integration with Tasks and delegates.
 
-      RetryableCommand offers the option to keep retrying a failed command until the caller has had enough, and TimeLimitedCommand fails with a timeout exception if a given duration elapses before the command finishes execution.
+PeriodicCommand repeats its action at a given interval, ScheduledCommand runs once at a specific time, and RecurringCommand runs at times that are provided via a callback.
 
-      All of the above Command classes are simply containers for other Command objects that presumably do something of interest. They can be combined in ways that offer a lot of customization. For example, to make an HttpRequest at a given time, with a timeout and a configurable number of retries, you could create a ScheduledCommand containing a RetryableCommand which contains a TimeLimitedCommand which contains an HttpRequestCommand.
+RetryableCommand offers the option to keep retrying a failed command until the caller has had enough, and TimeLimitedCommand fails with a timeout exception if a given duration elapses before the command finishes execution.
 
-      The Command class allows registration of ICommandMonitor objects. CommandTracer will write diagnostic output to the debug stream, and CommandLogger will write diagnostic output to file. Using the provided CommandLogViewer app (source available in GitHub), it is possible to see the status of all command executions, including their parent/child relationships.
+All of the above Command classes are simply containers for other Command objects that presumably do something of interest. They can be combined in ways that offer a lot of customization. For example, to make an HttpRequest at a given time, with a timeout and a configurable number of retries, you could create a ScheduledCommand containing a RetryableCommand which contains a TimeLimitedCommand which contains an HttpRequestCommand.
 
-      Guidelines for developing your own Command-derived class:
+The Command class allows registration of ICommandMonitor objects. CommandTracer will write diagnostic output to the debug stream, and CommandLogger will write diagnostic output to file. Using the provided CommandLogViewer app (source available in GitHub), it is possible to see the status of all command executions, including their parent/child relationships.
 
-      - If the implementation of your command is naturally synchronous, inherit from SyncCommand
+Guidelines for developing your own Command-derived class:
 
-      - If the implementation of your command is naturally asynchronous and makes use of Tasks (i.e. the Task class), inherit from TaskCommand
+- If the implementation of your command is naturally synchronous, inherit from SyncCommand
 
-      - If the implementation of your command is naturally asynchronous but does not make use of tasks, inherit from AsyncCommand
+- If the implementation of your command is naturally asynchronous and makes use of Tasks (i.e. the Task class), inherit from TaskCommand
 
-      - Make your implementation responsive to abort requests if it could take more than a trivial amount of time. To do this, make ocassional calls to Command.CheckAbortFlag() or Command.AbortRequested
+- If the implementation of your command is naturally asynchronous but does not make use of tasks, inherit from AsyncCommand
 
+- Make your implementation responsive to abort requests if it could take more than a trivial amount of time. To do this, make ocassional calls to Command.CheckAbortFlag() or Command.AbortRequested
 
-      Versions for C++ and Java exist at https://github.com/efieleke/CommandLibForCPP.git and https://github.com/efieleke/CommandLibForJava.git.</Description>
+Versions for C++ and Java exist at https://github.com/efieleke/CommandLibForCPP.git and https://github.com/efieleke/CommandLibForJava.git.</Description>
     <Copyright>
 The MIT License (MIT)
 
@@ -114,6 +114,14 @@ The MIT License (MIT)
     <GenerateSerializationAssemblies>Auto</GenerateSerializationAssemblies>
   </PropertyGroup>
 
+  <ItemGroup>
+    <Content Include="Commands.chm">
+      <IncludeInPackage>true</IncludeInPackage>
+    </Content>
+    <Content Include="..\CommandLogViewer\bin\Release\CommandLogViewer.exe">
+      <IncludeInPackage>true</IncludeInPackage>
+    </Content>
+  </ItemGroup>
   <ItemGroup Condition=" '$(TargetFramework)' == 'net45' ">
     <Reference Include="System.Net.Http" />
     <Reference Include="System.Threading.Tasks" />
@@ -158,9 +166,4 @@ The MIT License (MIT)
     <Reference Include="System.Net.Http" />
     <Reference Include="System.Threading.Tasks" />
   </ItemGroup>
-
-  <ItemGroup>
-    <None Remove="CommandLib.chm" />
-  </ItemGroup>
-
 </Project>

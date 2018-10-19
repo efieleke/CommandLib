@@ -1105,7 +1105,8 @@
         </member>
         <member name="T:Sophos.Commands.HttpRequestCommand.IResponseChecker">
             <summary>
-            Implement this interface if you wish to force command execution to fail depending upon the response (e.g. error status codes)
+            Implement this interface if you wish to force command execution to fail depending upon the response (e.g. error status codes).
+            <see cref="T:Sophos.Commands.HttpRequestCommand.EnsureSuccessStatusCodeResponseChecker"/> provides am implementation.
             </summary>
         </member>
         <member name="M:Sophos.Commands.HttpRequestCommand.IResponseChecker.CheckResponse(System.Net.Http.HttpResponseMessage)">
@@ -1124,19 +1125,6 @@
             <summary>
             Constructs a HttpStatusException object
             </summary>
-        </member>
-        <member name="M:Sophos.Commands.HttpRequestCommand.HttpStatusException.#ctor(System.String)">
-            <summary>
-            Constructs a HttpStatusException object
-            </summary>
-            <param name="message">See <see cref="T:System.Exception"/> documentation</param>
-        </member>
-        <member name="M:Sophos.Commands.HttpRequestCommand.HttpStatusException.#ctor(System.String,System.Exception)">
-            <summary>
-            Constructs a HttpStatusException object
-            </summary>
-            <param name="message">See <see cref="T:System.Exception"/> documentation</param>
-            <param name="innerException">>See <see cref="T:System.Exception"/> documentation</param>
         </member>
         <member name="M:Sophos.Commands.HttpRequestCommand.HttpStatusException.#ctor(System.Runtime.Serialization.SerializationInfo,System.Runtime.Serialization.StreamingContext)">
             <summary>
@@ -1205,8 +1193,7 @@
             is provided as an implementation.
             </param>
             <param name="httpClient">
-            The HttpClient instance to use for the operation. Be careful how that object is shared with other code (including
-            passing it to multiple instances of this class, or other Command objects that accept a HttpClient object).
+            The HttpClient instance to use for the operation.
             </param>
         </member>
         <member name="M:Sophos.Commands.HttpRequestCommand.#ctor(Sophos.Commands.HttpRequestCommand.IRequestGenerator,Sophos.Commands.HttpRequestCommand.IResponseChecker,System.Net.Http.HttpClient,Sophos.Commands.Command)">
@@ -1219,8 +1206,7 @@
             is provided as an implementation.
             </param>
             <param name="httpClient">
-            The HttpClient instance to use for the operation. Be careful how that object is shared with other code (including
-            passing it to multiple instances of this class, or other Command objects that accept a HttpClient object).
+            The HttpClient instance to use for the operation.
             </param>
             <param name="owner">
             Specify null to indicate a top-level command. Otherwise, this command will be owned by 'owner'. Owned commands respond to
