@@ -51,6 +51,33 @@ namespace Sophos.Commands
         }
 
         /// <summary>
+        /// Called when a <see cref="RecurringCommand"/> needs to know the first time to execute its underlying command to run.
+        /// </summary>
+        /// <param name="time">
+        /// Implementations should set this to the first time to execute. If a time in the past is specified, the command to run
+        /// will execute immediately. However, if this method returns false, the value set here will be ignored.
+        /// </param>
+        /// <returns>
+        /// Implementations should return true to indicate that the command to run should be executed at the provided time. Returning false causes the
+        /// RecurringCommand to finish execution.
+        /// </returns>
+        public delegate bool GetFirstExecutionTime(out DateTime time);
+
+        /// <summary>
+        /// Called when a <see cref="RecurringCommand"/> needs to know the next time to execute its underlying command to run.
+        /// </summary>
+        /// <param name="time">
+        /// This will be initialized to the last time the command to run was set to begin execution. Implementations
+        /// should set this to the next time to execute. If a time in the past is specified, the command to run will execute
+        /// immediately. However, if this method returns false, the value set here will be ignored.
+        /// </param>
+        /// <returns>
+        /// Implementations should return true to indicate that the command to run should be executed at the provided time.
+        /// Returning false causes the RecurringCommand to finish execution.
+        /// </returns>
+        public delegate bool GetNextExecutionTime(ref DateTime time);
+
+        /// <summary>
         /// Constructs a RecurringCommand object as a top-level <see cref="Command"/>
         /// </summary>
         /// <param name="command">
@@ -60,6 +87,25 @@ namespace Sophos.Commands
         /// <param name="callback">Defines at what times the underlying command executes</param>
         public RecurringCommand(Command command, IExecutionTimeCallback callback)
             : this(command, callback, null)
+        {
+        }
+
+        /// <summary>
+        /// Constructs a RecurringCommand object as a top-level <see cref="Command"/>
+        /// </summary>
+        /// <param name="command">
+        /// The command to run. This object takes ownership of the command, so the passed command must not already have
+        /// an owner. The passed command will be disposed when this RecurringCommand object is disposed.
+        /// </param>
+        /// <param name="getFirstExecutionTime">
+        /// Defines if and when the underlying command will first execute
+        /// </param>
+        /// <param name="getNextExecutionTime">
+        /// Defines if and when the underlying command will next execute. This is called after
+        /// every completion of the underlying command.
+        /// </param>
+        public RecurringCommand(Command command, GetFirstExecutionTime getFirstExecutionTime, GetNextExecutionTime getNextExecutionTime)
+            : this(command, getFirstExecutionTime, getNextExecutionTime, null)
         {
         }
 
@@ -80,6 +126,29 @@ namespace Sophos.Commands
         {
             _callback = callback;
             _scheduledCmd = new ScheduledCommand(command, DateTime.Now, true, this);
+        }
+
+        /// <summary>
+        /// Constructs a RecurringCommand object
+        /// </summary>
+        /// <param name="command">
+        /// The command to run. This object takes ownership of the command, so the passed command must not already have
+        /// an owner. The passed command will be disposed when this RecurringCommand object is disposed.
+        /// </param>
+        /// <param name="getFirstExecutionTime">
+        /// Defines if and when the underlying command will first execute
+        /// </param>
+        /// <param name="getNextExecutionTime">
+        /// Defines if and when the underlying command will next execute. This is called after
+        /// every completion of the underlying command.
+        /// </param>
+        /// <param name="owner">
+        /// Specify null to indicate a top-level command. Otherwise, this command will be owned by 'owner'. Owned commands respond to
+        /// abort requests made of their owner. Also, owned commands are disposed of when the owner is disposed.
+        /// </param>
+        public RecurringCommand(Command command, GetFirstExecutionTime getFirstExecutionTime, GetNextExecutionTime getNextExecutionTime, Command owner)
+            : this(command, new ExecutionTimeCallbackFromDelegates(getFirstExecutionTime, getNextExecutionTime), owner)
+        {
         }
 
         /// <summary>If currently waiting until the time to next execute the command to run, skip the wait and execute the command right away.</summary>
@@ -128,5 +197,28 @@ namespace Sophos.Commands
 
         private readonly ScheduledCommand _scheduledCmd;
         private readonly IExecutionTimeCallback _callback;
+
+        private class ExecutionTimeCallbackFromDelegates : IExecutionTimeCallback
+        {
+            internal ExecutionTimeCallbackFromDelegates(
+                GetFirstExecutionTime getFirstExecutionTime, GetNextExecutionTime getNextExecutionTime)
+            {
+                _getFirstExecutionTime = getFirstExecutionTime ?? throw new ArgumentNullException(nameof(getFirstExecutionTime));
+                _getNextExecutionTime = getNextExecutionTime ?? throw new ArgumentNullException(nameof(getNextExecutionTime));
+            }
+
+            public bool GetFirstExecutionTime(out DateTime time)
+            {
+                return _getFirstExecutionTime(out time);
+            }
+
+            public bool GetNextExecutionTime(ref DateTime time)
+            {
+                return _getNextExecutionTime(ref time);
+            }
+
+            private readonly GetFirstExecutionTime _getFirstExecutionTime;
+            private readonly GetNextExecutionTime _getNextExecutionTime;
+        }
     }
 }

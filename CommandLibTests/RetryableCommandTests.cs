@@ -41,6 +41,16 @@ namespace CommandLibTests
             {
                 AbortTest.Run(retryableCmd, null, 10);
             }
+
+            var retryCallback = new RetryCallback(int.MaxValue, TimeSpan.FromMilliseconds(1));
+
+            using (var retryableCmd = new RetryableCommand(
+                new FailingCommand(),
+                (int failNumber, Exception reason, out TimeSpan waitTime) =>
+                    retryCallback.OnCommandFailed(failNumber, reason, out waitTime)))
+            {
+                AbortTest.Run(retryableCmd, null, 10);
+            }
         }
 
         [TestMethod]
@@ -52,6 +62,16 @@ namespace CommandLibTests
             {
                 HappyPathTest.Run(retryableCmd, 2, 8);
             }
+
+            var retryCallback = new RetryCallback(int.MaxValue, TimeSpan.FromMilliseconds(1));
+
+            using (var retryableCmd = new RetryableCommand(
+                new AddCommand(6),
+                (int failNumber, Exception reason, out TimeSpan waitTime) =>
+                    retryCallback.OnCommandFailed(failNumber, reason, out waitTime)))
+            {
+                HappyPathTest.Run(retryableCmd, 2, 8);
+            }
         }
 
         [TestMethod]
@@ -60,6 +80,16 @@ namespace CommandLibTests
             using (RetryableCommand retryableCmd = new RetryableCommand(
                 new FailingCommand(),
                 new RetryCallback(5, TimeSpan.FromMilliseconds(1))))
+            {
+                FailTest.Run<FailingCommand.FailException>(retryableCmd, null);
+            }
+
+            var retryCallback = new RetryCallback(5, TimeSpan.FromMilliseconds(1));
+
+            using (var retryableCmd = new RetryableCommand(
+                new FailingCommand(),
+                (int failNumber, Exception reason, out TimeSpan waitTime) =>
+                    retryCallback.OnCommandFailed(failNumber, reason, out waitTime)))
             {
                 FailTest.Run<FailingCommand.FailException>(retryableCmd, null);
             }

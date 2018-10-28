@@ -61,6 +61,16 @@ namespace CommandLibTests
             {
                 AbortTest.Run(recurringCmd, 1, 20);
             }
+
+            var recurCallback = new RecurCallback(TimeSpan.FromDays(1), TimeSpan.FromDays(1), 99);
+
+            using (RecurringCommand recurringCmd = new RecurringCommand(
+                new AddCommand(0),
+                (out DateTime d) => recurCallback.GetFirstExecutionTime(out d),
+                (ref DateTime d) => recurCallback.GetNextExecutionTime(ref d)))
+            {
+                AbortTest.Run(recurringCmd, 2, 20);
+            }
         }
 
         [TestMethod]
@@ -79,6 +89,16 @@ namespace CommandLibTests
             {
                 HappyPathTest.Run(recurringCmd, 2, null);
             }
+
+            var recurCallback = new RecurCallback(TimeSpan.FromMilliseconds(5), TimeSpan.FromMilliseconds(5), 7);
+
+            using (RecurringCommand recurringCmd = new RecurringCommand(
+                new AddCommand(0),
+                (out DateTime d) => recurCallback.GetFirstExecutionTime(out d),
+                (ref DateTime d) => recurCallback.GetNextExecutionTime(ref d)))
+            {
+                HappyPathTest.Run(recurringCmd, 2, null);
+            }
         }
 
         [TestMethod]
@@ -87,6 +107,16 @@ namespace CommandLibTests
             using (RecurringCommand recurringCmd = new RecurringCommand(
                 new FailingCommand(),
                 new RecurCallback(TimeSpan.FromMilliseconds(5), TimeSpan.FromMilliseconds(5), 7)))
+            {
+                FailTest.Run<FailingCommand.FailException>(recurringCmd, 2);
+            }
+
+            var recurCallback = new RecurCallback(TimeSpan.FromMilliseconds(5), TimeSpan.FromMilliseconds(5), 7);
+
+            using (RecurringCommand recurringCmd = new RecurringCommand(
+                new FailingCommand(),
+                (out DateTime d) => recurCallback.GetFirstExecutionTime(out d),
+                (ref DateTime d) => recurCallback.GetNextExecutionTime(ref d)))
             {
                 FailTest.Run<FailingCommand.FailException>(recurringCmd, 2);
             }

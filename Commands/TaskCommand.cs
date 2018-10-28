@@ -4,22 +4,23 @@ using System.Threading.Tasks;
 
 namespace Sophos.Commands
 {
-	/// <summary>
-	/// This Command encapsulates a Task. Concrete classes must implement the abstract method
-	/// that creates the Task. If your implementation is naturally asynchronous but does not make use
-	/// of Tasks (i.e. the Task class), inherit directly from AsyncCommand instead.
-	/// </summary>
-	/// <remarks>
-	/// <para>
-	/// <see cref="Command.SyncExecute(object)"/> and <see cref="Command.AsyncExecute(ICommandListener, object)"/> will accept 
-	/// an object for the 'runtimeArg'. This is passed on to the abstract <see cref="CreateTask" /> method.
-	/// </para>
-	/// <para>
-	/// This command returns from synchronous execution the value of type TResult that the underlying Task returns. The 'result' parameter of
-	/// <see cref="ICommandListener.CommandSucceeded"/> will be set in similar fashion. It is the caller's responsibility to dispose of this
-	/// response object if needed.
-	/// </para>
-	/// </remarks>
+    /// <summary>
+    /// This Command encapsulates a Task. Concrete classes must implement the abstract method
+    /// that creates the Task. If your implementation is naturally asynchronous but does not make use
+    /// of Tasks (i.e. the Task class), inherit directly from AsyncCommand instead.
+    /// </summary>
+    /// <remarks>
+    /// <para>
+    /// <see cref="Command.SyncExecute(object)"/> and <see cref="Command.AsyncExecute(ICommandListener, object)"/> will accept 
+    /// an object for the 'runtimeArg'. This is passed on to the abstract <see cref="CreateTask" /> method.
+    /// </para>
+    /// <para>
+    /// This command returns from synchronous execution the value of type TResult that the underlying Task returns. The 'result' parameter of
+    /// <see cref="ICommandListener.CommandSucceeded"/> will be set in similar fashion. It is the caller's responsibility to dispose of this
+    /// response object if needed.
+    /// </para>
+    /// </remarks>
+    /// <typeparam name="TResult">The type returned with the Task</typeparam>
 	public abstract class TaskCommand<TResult> : AsyncCommand
 	{
 		/// <summary>

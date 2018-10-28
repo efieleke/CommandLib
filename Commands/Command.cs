@@ -4,62 +4,62 @@ using System.Threading.Tasks;
 
 namespace Sophos.Commands
 {
-	/// <summary>
-	/// This library contains a set of classes that can be used to easily coordinate synchronous and asynchronous activities in
-	/// complex ways. Most classes in this library inherit from <see cref="Command"/>, which represents an action. Any
-	/// <see cref="Command"/> can be run synchronously or asynchronously, and may be aborted.
-	/// <para></para>
-	/// <para>
-	/// Using <see cref="ParallelCommands"/>, you can run a collection of <see cref="Command"/> objects concurrently, and using
-	/// <see cref="SequentialCommands"/>, you can run a collection of <see cref="Command"/> objects in sequence. Any command
-	/// can be added to these two types (including <see cref="ParallelCommands"/> and <see cref="SequentialCommands"/> themselves,
-	/// because they are <see cref="Command"/> objects), so it's possible to create a deep nesting of coordinated activities.
-	/// </para>
-	/// <para>
-	/// Command extends the notion of a Task, in that it works both with tasks and with non-task-based asynchronous operations.
-	/// It also offers features not readily available with tasks. <see cref="TaskCommand{TResult}"/>, <see cref="DelegateCommand{TResult}"/>
-	/// and <see cref="Command.AsTask{TResult}(bool, object, Command)"/> offer easy integration with Tasks and delegates.
-	/// </para>
-	/// <para>
-	/// <see cref="PeriodicCommand"/> repeats its action at a given interval, <see cref="ScheduledCommand"/> runs once at a specific
-	/// time, and <see cref="RecurringCommand"/> runs at times that are provided via a callback.
-	/// </para>
-	/// <para>
-	/// <see cref="RetryableCommand"/> provides the option to keep retrying a failed command until the caller decides enough is enough,
-	/// and <see cref="TimeLimitedCommand"/> fails with a timeout exception if a given duration elapses before the command finishes
-	/// execution.
-	/// </para>
-	/// <para>
-	/// <see cref="CommandDispatcher"/> provides the capability to set up a pool for command execution.
-	/// </para>
-	/// <para>
-	/// All of the above <see cref="Command"/> classes are simply containers for <see cref="Command"/> objects that presumably do
-	/// something of interest. Commands includes a few <see cref="Command"/> classes that might be commonly useful, including
-	/// <see cref="PauseCommand"/> and <see cref="HttpRequestCommand"/>, but it is expected that users of this library will
-	/// create their own <see cref="Command"/>-derived classes.
-	/// </para>
-	/// <para>
-	/// Guidelines for developing your own Command-derived class:
-	/// </para>
-	/// <para>
-	/// - If the implementation of your command is naturally synchronous, inherit from <see cref="SyncCommand"/>
-	/// </para>
-	/// <para>
-	/// - If the implementation of your command is naturally asynchronous and makes use of Tasks (i.e. the Task class), inherit from <see cref="TaskCommand{TResult}"/>
-	/// </para>
-	/// <para>
-	/// - If the implementation of your command is naturally asynchronous but does not make use of tasks, inherit from <see cref="AsyncCommand"/>
-	/// </para>
-	/// <para>
-	/// - Make your implementation responsive to abort requests if it could take more than a trivial amount of time. To do this, make occasional calls to Command.CheckAbortFlag() or Command.AbortRequested.
-	/// </para>
-	/// <para>
-	/// At a minimum, documentation for <see cref="Command"/>, <see cref="AsyncCommand"/> and <see cref="SyncCommand"/> and <see cref="TaskCommand{TResult}"/> should be read
-	/// before developing a <see cref="Command"/>-derived class.
-	/// </para>
-	/// </summary>
-	[System.Runtime.CompilerServices.CompilerGeneratedAttribute]
-	internal class NamespaceDoc
+    /// <summary>
+    /// This library contains a set of classes that can be used to easily coordinate synchronous and asynchronous activities in
+    /// complex ways. Most classes in this library inherit from <see cref="Command"/>, which represents an action. Any
+    /// <see cref="Command"/> can be run synchronously or asynchronously, and may be aborted.
+    /// <para></para>
+    /// <para>
+    /// Using <see cref="ParallelCommands"/>, you can run a collection of <see cref="Command"/> objects concurrently, and using
+    /// <see cref="SequentialCommands"/>, you can run a collection of <see cref="Command"/> objects in sequence. Any command
+    /// can be added to these two types (including <see cref="ParallelCommands"/> and <see cref="SequentialCommands"/> themselves,
+    /// because they are <see cref="Command"/> objects), so it's possible to create a deep nesting of coordinated activities.
+    /// </para>
+    /// <para>
+    /// Command extends the notion of a Task, in that it works both with tasks and with non-task-based asynchronous operations.
+    /// It also offers features not readily available with tasks. <see cref="TaskCommand{TResult}"/>, <see cref="DelegateCommand{TResult}"/>
+    /// and <see cref="Command.AsTask{TResult}(bool, object, Command)"/> offer easy integration with Tasks and delegates.
+    /// </para>
+    /// <para>
+    /// <see cref="PeriodicCommand"/> repeats its action at a given interval, <see cref="ScheduledCommand"/> runs once at a specific
+    /// time, and <see cref="RecurringCommand"/> runs at times that are provided via a callback.
+    /// </para>
+    /// <para>
+    /// <see cref="RetryableCommand"/> provides the option to keep retrying a failed command until the caller decides enough is enough,
+    /// and <see cref="TimeLimitedCommand"/> fails with a timeout exception if a given duration elapses before the command finishes
+    /// execution.
+    /// </para>
+    /// <para>
+    /// <see cref="CommandDispatcher"/> provides the capability to set up a pool for command execution.
+    /// </para>
+    /// <para>
+    /// All of the above <see cref="Command"/> classes are simply containers for <see cref="Command"/> objects that presumably do
+    /// something of interest. Commands includes a few <see cref="Command"/> classes that might be commonly useful, including
+    /// <see cref="PauseCommand"/> and <see cref="HttpRequestCommand"/>, but it is expected that users of this library will
+    /// create their own <see cref="Command"/>-derived classes.
+    /// </para>
+    /// <para>
+    /// Guidelines for developing your own Command-derived class:
+    /// </para>
+    /// <para>
+    /// - If the implementation of your command is naturally synchronous, inherit from <see cref="SyncCommand"/>
+    /// </para>
+    /// <para>
+    /// - If the implementation of your command is naturally asynchronous and makes use of Tasks (i.e. the Task class), inherit from <see cref="TaskCommand{TResult}"/>
+    /// </para>
+    /// <para>
+    /// - If the implementation of your command is naturally asynchronous but does not make use of tasks, inherit from <see cref="AsyncCommand"/>
+    /// </para>
+    /// <para>
+    /// - Make your implementation responsive to abort requests if it could take more than a trivial amount of time. To do this, make occasional calls to Command.CheckAbortFlag() or Command.AbortRequested.
+    /// </para>
+    /// <para>
+    /// At a minimum, documentation for <see cref="Command"/>, <see cref="AsyncCommand"/> and <see cref="SyncCommand"/> and <see cref="TaskCommand{TResult}"/> should be read
+    /// before developing a <see cref="Command"/>-derived class.
+    /// </para>
+    /// </summary>
+    [System.Runtime.CompilerServices.CompilerGeneratedAttribute]
+    internal class NamespaceDoc
     {
     }
 
@@ -199,17 +199,17 @@ namespace Sophos.Commands
 
             return null;
         }
-	
-		#region ICommandInfo
-		/// <inheritdoc />
-		public long Id { get; }
 
-		/// <summary>
-		/// Returns the owner, or the command that an <see cref="AbortSignaledCommand"/> is linked to (if any).
-		/// </summary>
-		public ICommandInfo ParentInfo => Parent;
+        #region ICommandInfo
+        /// <inheritdoc />
+        public long Id { get; }
 
-	    /// <summary>
+        /// <summary>
+        /// Returns the owner, or the command that an <see cref="AbortSignaledCommand"/> is linked to (if any).
+        /// </summary>
+        public ICommandInfo ParentInfo => Parent;
+
+        /// <summary>
         /// Counts the number of parents until the top level command is reached
         /// </summary>
         /// <remarks>A parent is considered an owner, or the command that an <see cref="AbortSignaledCommand"/> is linked to (if any).</remarks>
@@ -279,113 +279,113 @@ namespace Sophos.Commands
         {
             return "";
         }
-		#endregion
+        #endregion
 
-		#region Tasks
-		/// <summary>
-		/// Returns a task that, when run, will execute this command passed as an argument. Note that this command must
-		/// not be disposed before the task is disposed. Also, note that behavior is undefined if this command is executing
-		/// at the time the task is run. This method is meant as a potential convenience. The more natural
-		/// way to execute commands is via the various Execute* methods.
-		/// </summary>
-		/// <typeparam name="TResult">
-		/// The type the command returns from SynExecute. If you don't care about the return value, it is safe to
-		/// specify Object as the type.
-		/// </typeparam>
-		/// <param name="startTask">
-		/// If true, the task will be started before it is returned. Otherwise, the caller must
-		/// start the task in order for it to run (via its Start method, for example).
-		/// </param>
-		/// <returns>
-		/// The Task, which will have been started if 'startTask' was set to true.
-		/// </returns>
-		/// <remarks>
-		/// The returned Task may only be aborted during its execution if this Command is aborted. The Task will be in the Faulted state
-		/// in that case (not the Canceled state). The underlying exception that the Task will report is CommandAbortedException.
-		/// </remarks>
-		public Task<TResult> AsTask<TResult>(bool startTask)
-		{
-			return AsTask<TResult>(startTask, null);
-		}
+        #region Tasks
+        /// <summary>
+        /// Returns a task that, when run, will execute this command passed as an argument. Note that this command must
+        /// not be disposed before the task is disposed. Also, note that behavior is undefined if this command is executing
+        /// at the time the task is run. This method is meant as a potential convenience. The more natural
+        /// way to execute commands is via the various Execute* methods.
+        /// </summary>
+        /// <typeparam name="TResult">
+        /// The type the command returns from SynExecute. If you don't care about the return value, it is safe to
+        /// specify Object as the type.
+        /// </typeparam>
+        /// <param name="startTask">
+        /// If true, the task will be started before it is returned. Otherwise, the caller must
+        /// start the task in order for it to run (via its Start method, for example).
+        /// </param>
+        /// <returns>
+        /// The Task, which will have been started if 'startTask' was set to true.
+        /// </returns>
+        /// <remarks>
+        /// The returned Task may only be aborted during its execution if this Command is aborted. The Task will be in the Faulted state
+        /// in that case (not the Canceled state). The underlying exception that the Task will report is CommandAbortedException.
+        /// </remarks>
+        public Task<TResult> AsTask<TResult>(bool startTask)
+        {
+            return AsTask<TResult>(startTask, null);
+        }
 
-		/// <summary>
-		/// Returns a task that, when run, will execute this command passed as an argument. Note that this command must
-		/// not be disposed before the task is disposed. Also, note that behavior is undefined if this command is executing
-		/// at the time the task is run. This method is meant as a potential convenience. The more natural
-		/// way to execute commands is via the various Execute* methods.
-		/// </summary>
-		/// <typeparam name="TResult">
-		/// The type the command returns from SynExecute. If you don't care about the return value, it is safe to
-		/// specify Object as the type.
-		/// </typeparam>
-		/// <param name="startTask">
-		/// If true, the task will be started before it is returned. Otherwise, the caller must
-		/// start the task in order for it to run (via its Start method, for example).
-		/// </param>
-		/// <param name="runtimeArg">
-		/// Some commands may expect some sort of argument at the time of execution, and some commands do not.
-		/// See the concrete command class of interest for details.
-		/// </param>
-		/// <returns>
-		/// The Task, which will have been started if 'startTask' was set to true.
-		/// </returns>
-		/// <remarks>
-		/// The returned Task may only be aborted during its execution if this Command is aborted. The Task will be in the Faulted state
-		/// in that case (not the Canceled state). The underlying exception that the Task will report is CommandAbortedException.
-		/// </remarks>
-		public Task<TResult> AsTask<TResult>(bool startTask, object runtimeArg)
-		{
-			return AsTask<TResult>(startTask, runtimeArg, null);
-		}
+        /// <summary>
+        /// Returns a task that, when run, will execute this command passed as an argument. Note that this command must
+        /// not be disposed before the task is disposed. Also, note that behavior is undefined if this command is executing
+        /// at the time the task is run. This method is meant as a potential convenience. The more natural
+        /// way to execute commands is via the various Execute* methods.
+        /// </summary>
+        /// <typeparam name="TResult">
+        /// The type the command returns from SynExecute. If you don't care about the return value, it is safe to
+        /// specify Object as the type.
+        /// </typeparam>
+        /// <param name="startTask">
+        /// If true, the task will be started before it is returned. Otherwise, the caller must
+        /// start the task in order for it to run (via its Start method, for example).
+        /// </param>
+        /// <param name="runtimeArg">
+        /// Some commands may expect some sort of argument at the time of execution, and some commands do not.
+        /// See the concrete command class of interest for details.
+        /// </param>
+        /// <returns>
+        /// The Task, which will have been started if 'startTask' was set to true.
+        /// </returns>
+        /// <remarks>
+        /// The returned Task may only be aborted during its execution if this Command is aborted. The Task will be in the Faulted state
+        /// in that case (not the Canceled state). The underlying exception that the Task will report is CommandAbortedException.
+        /// </remarks>
+        public Task<TResult> AsTask<TResult>(bool startTask, object runtimeArg)
+        {
+            return AsTask<TResult>(startTask, runtimeArg, null);
+        }
 
-		/// <summary>
-		/// Returns a task that, when run, will execute this command passed as an argument. Note that this command must
-		/// not be disposed before the task is disposed. Also, note that behavior is undefined if this command is executing
-		/// at the time the task is run. This method is meant as a potential convenience. The more natural
-		/// way to execute commands is via the various Execute* methods.
-		/// </summary>
-		/// <typeparam name="TResult">
-		/// The type the command returns from SynExecute. If you don't care about the return value, it is safe to
-		/// specify Object as the type.
-		/// </typeparam>
-		/// <param name="startTask">
-		/// If true, the task will be started before it is returned. Otherwise, the caller must
-		/// start the task in order for it to run (via its Start method, for example).
-		/// </param>
-		/// <param name="runtimeArg">
-		/// Some commands may expect some sort of argument at the time of execution, and some commands do not.
-		/// See the concrete command class of interest for details.
-		/// </param>
-		/// <param name="owner">
-		/// If you want this Command to pay attention to abort requests of a different command while running the returned Task,
-		/// set this value to that command. Note that if this Command is already assigned an owner, passing a non-null value will
-		/// raise an exception. Also note that the owner assignment is only in effect during the scope of this call. Upon return,
-		/// this command will revert to having no owner.
-		/// </param>
-		/// <returns>
-		/// The Task, which will have been started if 'startTask' was set to true.
-		/// </returns>
-		/// <remarks>
-		/// The returned Task may only be aborted during its execution if this Command is aborted. The Task will be in the Faulted state
-		/// in that case (not the Canceled state). The underlying exception that the Task will report is CommandAbortedException.
-		/// </remarks>
-		public virtual Task<TResult> AsTask<TResult>(bool startTask, object runtimeArg, Command owner)
-	    {
-		    var task = new Task<TResult>(() => SyncExecute<TResult>(runtimeArg, owner));
+        /// <summary>
+        /// Returns a task that, when run, will execute this command passed as an argument. Note that this command must
+        /// not be disposed before the task is disposed. Also, note that behavior is undefined if this command is executing
+        /// at the time the task is run. This method is meant as a potential convenience. The more natural
+        /// way to execute commands is via the various Execute* methods.
+        /// </summary>
+        /// <typeparam name="TResult">
+        /// The type the command returns from SynExecute. If you don't care about the return value, it is safe to
+        /// specify Object as the type.
+        /// </typeparam>
+        /// <param name="startTask">
+        /// If true, the task will be started before it is returned. Otherwise, the caller must
+        /// start the task in order for it to run (via its Start method, for example).
+        /// </param>
+        /// <param name="runtimeArg">
+        /// Some commands may expect some sort of argument at the time of execution, and some commands do not.
+        /// See the concrete command class of interest for details.
+        /// </param>
+        /// <param name="owner">
+        /// If you want this Command to pay attention to abort requests of a different command while running the returned Task,
+        /// set this value to that command. Note that if this Command is already assigned an owner, passing a non-null value will
+        /// raise an exception. Also note that the owner assignment is only in effect during the scope of this call. Upon return,
+        /// this command will revert to having no owner.
+        /// </param>
+        /// <returns>
+        /// The Task, which will have been started if 'startTask' was set to true.
+        /// </returns>
+        /// <remarks>
+        /// The returned Task may only be aborted during its execution if this Command is aborted. The Task will be in the Faulted state
+        /// in that case (not the Canceled state). The underlying exception that the Task will report is CommandAbortedException.
+        /// </remarks>
+        public virtual Task<TResult> AsTask<TResult>(bool startTask, object runtimeArg, Command owner)
+        {
+            var task = new Task<TResult>(() => SyncExecute<TResult>(runtimeArg, owner));
 
-		    if (startTask)
-		    {
-			    task.Start();
-		    }
+            if (startTask)
+            {
+                task.Start();
+            }
 
-		    return task;
-	    }
-#endregion
+            return task;
+        }
+        #endregion
 
-		/// <summary>
-		/// Call to dispose this command and release any resources that it holds. Only call this on top-level commands (i.e. commands that have no owner)
-		/// </summary>
-		public void Dispose()
+        /// <summary>
+        /// Call to dispose this command and release any resources that it holds. Only call this on top-level commands (i.e. commands that have no owner)
+        /// </summary>
+        public void Dispose()
         {
             if (!Disposed)
             {
@@ -443,32 +443,32 @@ namespace Sophos.Commands
         }
 
 
-		/// <summary>Executes the command and does not return until it finishes.</summary>
-		/// <param name="runtimeArg">
-		/// Some commands may expect some sort of argument at the time of execution, and some commands may ignore this parameter.
-		/// See the concrete command class of interest for details.
-		/// </param>
-		/// <param name="owner">
-		/// If you want this command to pay attention to abort requests of a different command, set this value to that command.
-		/// Note that if this Command is already assigned an owner, passing a non-null value will raise an exception. Also note
-		/// that the owner assignment is only in effect during the scope of this call. Upon return, this command will revert to
-		/// having no owner.
+        /// <summary>Executes the command and does not return until it finishes.</summary>
+        /// <param name="runtimeArg">
+        /// Some commands may expect some sort of argument at the time of execution, and some commands may ignore this parameter.
+        /// See the concrete command class of interest for details.
         /// </param>
-		/// <returns>
-		/// Concrete commands may return a value of interest. See the concrete command class for details.
-		/// Generic methods are also provided to automatically cast the return value to the expected type.
-		/// </returns>
-		/// <exception cref="Commands.CommandAbortedException">Thrown when execution is aborted</exception>
-		/// <exception cref="System.ObjectDisposedException">Thrown if called after this object has been disposed</exception>
-		/// <exception cref="System.Exception">
-		/// Thrown if execution does not complete successfully. Call <see cref="GetAttachedErrorInfo"/> to retrieve context information
-		/// about the command that was running at the time the exception was thrown.
-		/// </exception>
-		/// <remarks>
-		/// It is safe to call this any number of times, but it will cause undefined behavior to re-execute a
-		/// command that is already executing.
-		/// </remarks>
-		public object SyncExecute(object runtimeArg, Command owner)
+        /// <param name="owner">
+        /// If you want this command to pay attention to abort requests of a different command, set this value to that command.
+        /// Note that if this Command is already assigned an owner, passing a non-null value will raise an exception. Also note
+        /// that the owner assignment is only in effect during the scope of this call. Upon return, this command will revert to
+        /// having no owner.
+        /// </param>
+        /// <returns>
+        /// Concrete commands may return a value of interest. See the concrete command class for details.
+        /// Generic methods are also provided to automatically cast the return value to the expected type.
+        /// </returns>
+        /// <exception cref="Commands.CommandAbortedException">Thrown when execution is aborted</exception>
+        /// <exception cref="System.ObjectDisposedException">Thrown if called after this object has been disposed</exception>
+        /// <exception cref="System.Exception">
+        /// Thrown if execution does not complete successfully. Call <see cref="GetAttachedErrorInfo"/> to retrieve context information
+        /// about the command that was running at the time the exception was thrown.
+        /// </exception>
+        /// <remarks>
+        /// It is safe to call this any number of times, but it will cause undefined behavior to re-execute a
+        /// command that is already executing.
+        /// </remarks>
+        public object SyncExecute(object runtimeArg, Command owner)
         {
             return BaseSyncExecute(runtimeArg, owner);
         }
@@ -521,115 +521,115 @@ namespace Sophos.Commands
             return (TResult)BaseSyncExecute(runtimeArg, null);
         }
 
-		/// <summary>Executes the command and does not return until it finishes.</summary>
-		/// <typeparam name="TResult">The expected return type. An exception will be thrown if the actual return type cannot be cast to this type.</typeparam>
-		/// <param name="runtimeArg">
-		/// Some commands may expect some sort of argument at the time of execution, and some commands may ignore this parameter.
-		/// See the concrete command class of interest for details.
-		/// </param>
-		/// <param name="owner">
-		/// If you want this command to pay attention to abort requests of a different command, set this value to that command.
-		/// Note that if this Command is already assigned an owner, passing a non-null value will raise an exception. Also note
-		/// that the owner assignment is only in effect during the scope of this call. Upon return, this command will revert to
-		/// having no owner.
+        /// <summary>Executes the command and does not return until it finishes.</summary>
+        /// <typeparam name="TResult">The expected return type. An exception will be thrown if the actual return type cannot be cast to this type.</typeparam>
+        /// <param name="runtimeArg">
+        /// Some commands may expect some sort of argument at the time of execution, and some commands may ignore this parameter.
+        /// See the concrete command class of interest for details.
         /// </param>
-		/// <returns>
-		/// Concrete commands may return a value of interest. See the concrete command class for details.
-		/// </returns>
-		/// <exception cref="Commands.CommandAbortedException">Thrown when execution is aborted</exception>
-		/// <exception cref="System.ObjectDisposedException">Thrown if called after this object has been disposed</exception>
-		/// <exception cref="System.Exception">
-		/// Thrown if execution does not complete successfully. Call <see cref="GetAttachedErrorInfo"/> to retrieve context information
-		/// about the command that was running at the time the exception was thrown.
-		/// </exception>
-		/// <remarks>
-		/// It is safe to call this any number of times, but it will cause undefined behavior to re-execute a
-		/// command that is already executing.
-		/// </remarks>
-		public TResult SyncExecute<TResult>(object runtimeArg, Command owner)
+        /// <param name="owner">
+        /// If you want this command to pay attention to abort requests of a different command, set this value to that command.
+        /// Note that if this Command is already assigned an owner, passing a non-null value will raise an exception. Also note
+        /// that the owner assignment is only in effect during the scope of this call. Upon return, this command will revert to
+        /// having no owner.
+        /// </param>
+        /// <returns>
+        /// Concrete commands may return a value of interest. See the concrete command class for details.
+        /// </returns>
+        /// <exception cref="Commands.CommandAbortedException">Thrown when execution is aborted</exception>
+        /// <exception cref="System.ObjectDisposedException">Thrown if called after this object has been disposed</exception>
+        /// <exception cref="System.Exception">
+        /// Thrown if execution does not complete successfully. Call <see cref="GetAttachedErrorInfo"/> to retrieve context information
+        /// about the command that was running at the time the exception was thrown.
+        /// </exception>
+        /// <remarks>
+        /// It is safe to call this any number of times, but it will cause undefined behavior to re-execute a
+        /// command that is already executing.
+        /// </remarks>
+        public TResult SyncExecute<TResult>(object runtimeArg, Command owner)
         {
             return (TResult)BaseSyncExecute(runtimeArg, owner);
         }
 
-	    /// <summary>
-	    /// Starts executing the command and returns immediately.
-	    /// </summary>
-	    /// <remarks>
-	    /// Call <see cref="Wait()"/> if you need to block until the command finishes.
-	    /// <para>
-	    /// It is safe to call this any number of times, but it will cause undefined behavior to re-execute a
-	    /// command that is already executing.
-	    /// </para>
-	    /// </remarks>
-	    /// <param name="onSuccess">
-	    /// This delegate will be called upon successful completion, on a separate thread. This delegate
-	    /// corresponds exactly with ICommandListener.CommandSucceeded(). See the <see cref="ICommandListener"/>
-	    /// documentation for details.
-	    /// </param>
-	    /// <param name="onAbort">
-	    /// This delegate will be called if this command is aborted, on a separate thread. This delegate
-	    /// corresponds exactly with ICommandListener.CommandAborted(). See the <see cref="ICommandListener"/>
-	    /// documentation for details.
-	    /// </param>
-	    /// <param name="onFail">
-	    /// This delegate will be called if this command fails, on a separate thread. This delegate
-	    /// corresponds exactly with ICommandListener.CommandFailed(). See the <see cref="ICommandListener"/>
-	    /// documentation for details.
-	    /// </param>
-	    public void AsyncExecute(Action<object> onSuccess, Action onAbort, Action<Exception> onFail)
-	    {
-		    AsyncExecute(onSuccess, onAbort, onFail, null);
-	    }
+        /// <summary>
+        /// Starts executing the command and returns immediately.
+        /// </summary>
+        /// <remarks>
+        /// Call <see cref="Wait()"/> if you need to block until the command finishes.
+        /// <para>
+        /// It is safe to call this any number of times, but it will cause undefined behavior to re-execute a
+        /// command that is already executing.
+        /// </para>
+        /// </remarks>
+        /// <param name="onSuccess">
+        /// This delegate will be called upon successful completion, on a separate thread. This delegate
+        /// corresponds exactly with ICommandListener.CommandSucceeded(). See the <see cref="ICommandListener"/>
+        /// documentation for details.
+        /// </param>
+        /// <param name="onAbort">
+        /// This delegate will be called if this command is aborted, on a separate thread. This delegate
+        /// corresponds exactly with ICommandListener.CommandAborted(). See the <see cref="ICommandListener"/>
+        /// documentation for details.
+        /// </param>
+        /// <param name="onFail">
+        /// This delegate will be called if this command fails, on a separate thread. This delegate
+        /// corresponds exactly with ICommandListener.CommandFailed(). See the <see cref="ICommandListener"/>
+        /// documentation for details.
+        /// </param>
+        public void AsyncExecute(Action<object> onSuccess, Action onAbort, Action<Exception> onFail)
+        {
+            AsyncExecute(onSuccess, onAbort, onFail, null);
+        }
 
-	    /// <summary>
-	    /// Starts executing the command and returns immediately.
-	    /// </summary>
-	    /// <remarks>
-	    /// Call <see cref="Wait()"/> if you need to block until the command finishes.
-	    /// <para>
-	    /// It is safe to call this any number of times, but it will cause undefined behavior to re-execute a
-	    /// command that is already executing.
-	    /// </para>
-	    /// </remarks>
-	    /// <param name="listener">
-	    /// One of the methods of this interface will be called upon completion, on a separate thread. See the
-	    /// <see cref="ICommandListener"/> documentation for details.
-	    /// </param>
-	    public void AsyncExecute(ICommandListener listener)
-	    {
-		    AsyncExecute(listener, null);
-	    }
+        /// <summary>
+        /// Starts executing the command and returns immediately.
+        /// </summary>
+        /// <remarks>
+        /// Call <see cref="Wait()"/> if you need to block until the command finishes.
+        /// <para>
+        /// It is safe to call this any number of times, but it will cause undefined behavior to re-execute a
+        /// command that is already executing.
+        /// </para>
+        /// </remarks>
+        /// <param name="listener">
+        /// One of the methods of this interface will be called upon completion, on a separate thread. See the
+        /// <see cref="ICommandListener"/> documentation for details.
+        /// </param>
+        public void AsyncExecute(ICommandListener listener)
+        {
+            AsyncExecute(listener, null);
+        }
 
-		/// <summary>
-		/// Starts executing the command and returns immediately.
-		/// </summary>
-		/// <remarks>
-		/// Call <see cref="Wait()"/> if you need to block until the command finishes.
-		/// <para>
-		/// It is safe to call this any number of times, but it will cause undefined behavior to re-execute a
-		/// command that is already executing.
-		/// </para>
-		/// </remarks>
-		/// <param name="onSuccess">
-		/// This delegate will be called upon successful completion, on a separate thread. This delegate
-		/// corresponds exactly with ICommandListener.CommandSucceeded(). See the <see cref="ICommandListener"/>
-		/// documentation for details.
-		/// </param>
-		/// <param name="onAbort">
-		/// This delegate will be called if this command is aborted, on a separate thread. This delegate
-		/// corresponds exactly with ICommandListener.CommandAborted(). See the <see cref="ICommandListener"/>
-		/// documentation for details.
-		/// </param>
-		/// <param name="onFail">
-		/// This delegate will be called if this command fails, on a separate thread. This delegate
-		/// corresponds exactly with ICommandListener.CommandFailed(). See the <see cref="ICommandListener"/>
-		/// documentation for details.
-		/// </param>
-		/// <param name="runtimeArg">
-		/// Some commands may expect some sort of argument at the time of execution, and some commands may ignore this.
-		/// See the concrete command class of interest for details.
-		/// </param>
-		public void AsyncExecute(Action<object> onSuccess, Action onAbort, Action<Exception> onFail, object runtimeArg)
+        /// <summary>
+        /// Starts executing the command and returns immediately.
+        /// </summary>
+        /// <remarks>
+        /// Call <see cref="Wait()"/> if you need to block until the command finishes.
+        /// <para>
+        /// It is safe to call this any number of times, but it will cause undefined behavior to re-execute a
+        /// command that is already executing.
+        /// </para>
+        /// </remarks>
+        /// <param name="onSuccess">
+        /// This delegate will be called upon successful completion, on a separate thread. This delegate
+        /// corresponds exactly with ICommandListener.CommandSucceeded(). See the <see cref="ICommandListener"/>
+        /// documentation for details.
+        /// </param>
+        /// <param name="onAbort">
+        /// This delegate will be called if this command is aborted, on a separate thread. This delegate
+        /// corresponds exactly with ICommandListener.CommandAborted(). See the <see cref="ICommandListener"/>
+        /// documentation for details.
+        /// </param>
+        /// <param name="onFail">
+        /// This delegate will be called if this command fails, on a separate thread. This delegate
+        /// corresponds exactly with ICommandListener.CommandFailed(). See the <see cref="ICommandListener"/>
+        /// documentation for details.
+        /// </param>
+        /// <param name="runtimeArg">
+        /// Some commands may expect some sort of argument at the time of execution, and some commands may ignore this.
+        /// See the concrete command class of interest for details.
+        /// </param>
+        public void AsyncExecute(Action<object> onSuccess, Action onAbort, Action<Exception> onFail, object runtimeArg)
         {
             AsyncExecute(new DelegateCommandListener(onSuccess, onAbort, onFail), runtimeArg);
         }
@@ -655,7 +655,7 @@ namespace Sophos.Commands
         public void AsyncExecute(ICommandListener listener, object runtimeArg)
         {
             CheckDisposed();
-            
+
             if (listener == null)
             {
                 throw new ArgumentNullException(nameof(listener));
@@ -782,11 +782,11 @@ namespace Sophos.Commands
             }
         }
 
-		/// <summary>
-		/// Signaled when an abort request has been made. The state of this handle must not be altered
-		/// by anything but the framework.
-		/// </summary>
-		public System.Threading.WaitHandle AbortEvent
+        /// <summary>
+        /// Signaled when an abort request has been made. The state of this handle must not be altered
+        /// by anything but the framework.
+        /// </summary>
+        public System.Threading.WaitHandle AbortEvent
         {
             get
             {
@@ -795,11 +795,11 @@ namespace Sophos.Commands
             }
         }
 
-		/// <summary>
-		/// Returns whether an abort request has been made
-		/// </summary>
-		/// <returns>true, if an abort request has been made.</returns>
-		protected bool AbortRequested => AbortEvent.WaitOne(0);
+        /// <summary>
+        /// Returns whether an abort request has been made
+        /// </summary>
+        /// <returns>true, if an abort request has been made.</returns>
+        protected bool AbortRequested => AbortEvent.WaitOne(0);
 
         /// <summary>
         /// Signaled when this command has finished execution, regardless of whether it succeeded, failed or was aborted.
@@ -899,9 +899,9 @@ namespace Sophos.Commands
                 // synchronization easier around aborts.
 
                 // Get rid of the extraneous abort event if one has been created.
-	            orphan._abortEvent?.Dispose();
+                orphan._abortEvent?.Dispose();
 
-	            // Make the orphan and its children share this same abort event.
+                // Make the orphan and its children share this same abort event.
                 SetAbortEvent(orphan);
 
                 // This creates a circular reference, which would be a problem in a language
@@ -971,8 +971,8 @@ namespace Sophos.Commands
                     // event. That signal must be complete for this command to be considered truly done and disposable.
                     _doneEvent.WaitOne();
 
-	                // ReSharper disable once InconsistentlySynchronizedField
-	                foreach (Command child in _children)
+                    // ReSharper disable once InconsistentlySynchronizedField
+                    foreach (Command child in _children)
                     {
                         // Avoid the above exception, and avoid doubly disposing abortEvent (because only the parent has the "real" copy)
                         child._owner = null;
@@ -980,19 +980,19 @@ namespace Sophos.Commands
                         child.Dispose();
                     }
 
-	                _abortEvent?.Dispose();
-	                _doneEvent.Dispose();
+                    _abortEvent?.Dispose();
+                    _doneEvent.Dispose();
                 }
 
                 Disposed = true;
             }
         }
 
-		/// <summary>Helper property for implementations that need to override <see cref="Dispose(bool)"/></summary>
-		protected bool Disposed { get; private set; }
+        /// <summary>Helper property for implementations that need to override <see cref="Dispose(bool)"/></summary>
+        protected bool Disposed { get; private set; }
 
-		/// <summary>Throws an <see cref="ObjectDisposedException"/> if this object has been disposed.</summary>
-		protected void CheckDisposed()
+        /// <summary>Throws an <see cref="ObjectDisposedException"/> if this object has been disposed.</summary>
+        protected void CheckDisposed()
         {
             if (Disposed)
             {
@@ -1025,12 +1025,12 @@ namespace Sophos.Commands
                 return command._owner;
             }
 
-			if (command is AbortSignaledCommand abortSignaledCommand)
-			{
-				return abortSignaledCommand.CommandToWatch;
-			}
+            if (command is AbortSignaledCommand abortSignaledCommand)
+            {
+                return abortSignaledCommand.CommandToWatch;
+            }
 
-			return null;
+            return null;
         }
 
         private void SetAbortEvent(Command target)
@@ -1057,9 +1057,9 @@ namespace Sophos.Commands
 
         private object BaseSyncExecute(object runtimeArg, Command owner)
         {
-	        owner?.TakeOwnership(this);
+            owner?.TakeOwnership(this);
 
-	        try
+            try
             {
                 CheckDisposed();
                 PreExecute();
@@ -1085,9 +1085,9 @@ namespace Sophos.Commands
                 }
             }
             finally
-	        {
-		        owner?.RelinquishOwnership(this);
-	        }
+            {
+                owner?.RelinquishOwnership(this);
+            }
         }
 
         private void AttachErrorInfo(Exception exc)
@@ -1130,7 +1130,7 @@ namespace Sophos.Commands
             if (refCount == 0)
             {
                 bool aborted = exc is CommandAbortedException;
-                
+
                 if (exc != null && !aborted)
                 {
                     AttachErrorInfo(exc);
@@ -1208,12 +1208,12 @@ namespace Sophos.Commands
             private readonly int _asyncExeThreadId;
         }
 
-		private Command _owner;
+        private Command _owner;
         private readonly HashSet<Command> _children = new HashSet<Command>();
         private int _executing;
         private readonly System.Threading.ManualResetEvent _doneEvent = new System.Threading.ManualResetEvent(true);
         private System.Threading.ManualResetEvent _abortEvent;
-		private readonly object _childLock = new object();
+        private readonly object _childLock = new object();
 
         private static long _nextId;
     }

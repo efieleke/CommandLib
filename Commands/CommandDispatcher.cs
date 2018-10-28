@@ -90,8 +90,7 @@ namespace Sophos.Commands
         /// </summary>
         /// <param name="command">
         /// The command to execute as soon as there is room in the pool. This object will assume responsibility for disposing of
-        /// this command. The command must be top-level
-        /// (that is, it must have no parent).
+        /// this command. The command must be top-level (that is, it must have no parent).
         /// <para>
         /// Note that it will cause undefined behavior to dispatch a <see cref="Command"/> object that is currently executing,
         /// or that has already been dispatched but has not yet executed.
@@ -108,11 +107,11 @@ namespace Sophos.Commands
                 throw new ArgumentException("Only top-level commands can be dispatched");
             }
 
-            _nothingToDoEvent.Reset();
-
             lock (_criticalSection)
             {
-                foreach(Command cmd in _finishedCommands)
+                _nothingToDoEvent.Reset();
+
+                foreach (Command cmd in _finishedCommands)
                 {
                     cmd.Dispose();
                 }
@@ -132,7 +131,7 @@ namespace Sophos.Commands
         }
 
         /// <summary>
-        /// Aborts all dispatched commands, and empties the queue of not yet executed commands.
+        /// Aborts all dispatched commands, and empties the queue of not-yet executed commands.
         /// </summary>
         public void Abort()
         {

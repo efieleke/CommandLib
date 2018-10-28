@@ -84,8 +84,8 @@ namespace Sophos.Commands
             /// <summary>
             /// Exists to support serialization
             /// </summary>
-            /// <param name="info"></param>
-            /// <param name="context"></param>
+            /// <param name="info">Serialization info</param>
+            /// <param name="context">Streaming context</param>
             [SecurityPermissionAttribute(SecurityAction.Demand, SerializationFormatter = true)]
             public override void GetObjectData(System.Runtime.Serialization.SerializationInfo info, System.Runtime.Serialization.StreamingContext context)
             {
@@ -110,6 +110,7 @@ namespace Sophos.Commands
             /// Throws an HttpRequestException if the status code represents an error
             /// </summary>
             /// <param name="response">The response that is evaluated</param>
+            /// <returns>a Task that can be waited upon</returns>
             public async Task CheckResponse(HttpResponseMessage response)
             {
                 if (!response.IsSuccessStatusCode)
