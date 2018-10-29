@@ -54,7 +54,7 @@ namespace Sophos.Commands
             : base(owner)
         {
             _timeoutMS = timeoutMS;
-            _commandToRun = CreateAbortLinkedCommand(commandToRun);
+            _commandToRun = CreateAbortSignaledCommand(commandToRun);
         }
 
         /// <summary>

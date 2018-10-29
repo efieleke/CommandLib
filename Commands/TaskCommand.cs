@@ -56,12 +56,12 @@ namespace Sophos.Commands
 			base.Dispose(disposing);
 		}
 
-		/// <summary>
-		/// Do not call this method from a derived class. It is called by the framework.
-		/// </summary>
-		/// <param name="listener">Not applicable</param>
-		/// <param name="runtimeArg">This is passed on to the underlying Task creation method.</param>
-		protected sealed override void AsyncExecuteImpl(ICommandListener listener, object runtimeArg)
+	    /// <summary>
+        /// Do not call this method from a derived class. It is called by the framework.
+        /// </summary>
+        /// <param name="listener">Not applicable</param>
+        /// <param name="runtimeArg">This is passed on to the underlying Task creation method.</param>
+        protected sealed override void AsyncExecuteImpl(ICommandListener listener, object runtimeArg)
 		{
 			int startingThreadId = Thread.CurrentThread.ManagedThreadId;
 
@@ -108,14 +108,16 @@ namespace Sophos.Commands
 					}
 					catch (AggregateException exc)
 					{
-						if (exc.InnerException is CommandAbortedException)
-						{
-							listener.CommandAborted();
-						}
-						else
-						{
-							listener.CommandFailed(exc.InnerException);
-						}
+					    switch (exc.InnerException)
+					    {
+					        case CommandAbortedException _:
+					        case TaskCanceledException _:
+					            listener.CommandAborted();
+					            break;
+					        default:
+					            listener.CommandFailed(exc.InnerException);
+					            break;
+					    }
 					}
 				}
 			},
@@ -156,6 +158,7 @@ namespace Sophos.Commands
 					threadArg.Listener.CommandSucceeded(threadArg.Result);
 					break;
 				case CommandAbortedException _:
+                case TaskCanceledException _:
 					threadArg.Listener.CommandAborted();
 					break;
 				default:

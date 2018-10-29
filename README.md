@@ -1,7 +1,7 @@
 Commands
 =========
 
-Commands is a C# library that simplifies coordination of asynchronous and synchronous activities. It works with tasks and with non-task operations, and offers features beyond what are available with tasks. The library is built upon class Command, which represents an action. A Command may be run synchronously or asynchronously, and may be aborted.
+Commands is a C# library that simplifies coordination of asynchronous and synchronous activities. It extends the notion of a Task, in that it works with both task and with non-task operations, and offers features beyond what are available with tasks. The library is built upon class Command, which represents an action. A Command may be run synchronously or asynchronously, and may be aborted.
 
 ParallelCommands, itself a Command, executes a collection of commands concurrently (in parallel), and SequentialCommands executes its commands in sequence. Using these classes, it's possible to create a deep nesting of coordinated actions. For example, SequentialCommands can hold instances of ParallelCommands, SequentialCommands, and any other Command-derived object.
 
@@ -11,7 +11,7 @@ RetryableCommand provides the option to keep retrying a failed command until the
 
 All of the above Command classes are simply containers for other Command objects that presumably do something of interest. They can be combined in ways that offer a lot of customization. For example, to make an HttpRequest at a given time, with a timeout and a configurable number of retries, you could create a ScheduledCommand containing a RetryableCommand containing a TimeLimitedCommand containing an HttpRequestCommand.
 
-TaskCommand, DelegateCommand and Command.AsTask() offer easy integration with tasks and delegates.
+TaskCommand, DelegateCommand, Command.FromTask() and Command.AsTask() offer easy integration with tasks and delegates.
 
 Guidelines for developing your own Command-derived class:
 

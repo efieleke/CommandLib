@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Threading;
 using System.Threading.Tasks;
 
 namespace Sophos.Commands
@@ -16,9 +17,10 @@ namespace Sophos.Commands
     /// because they are <see cref="Command"/> objects), so it's possible to create a deep nesting of coordinated activities.
     /// </para>
     /// <para>
-    /// Command extends the notion of a Task, in that it works both with tasks and with non-task-based asynchronous operations.
-    /// It also offers features not readily available with tasks. <see cref="TaskCommand{TResult}"/>, <see cref="DelegateCommand{TResult}"/>
-    /// and <see cref="Command.AsTask{TResult}(bool, object, Command)"/> offer easy integration with Tasks and delegates.
+    /// Command extends the notion of a Task, in that it works both with tasks and with non-task-based asynchronous operations, and
+    /// offers features not readily available with tasks. <see cref="TaskCommand{TResult}"/>, <see cref="DelegateCommand{TResult}"/>,
+    /// <see cref="Command.FromTask{TResult}(Task{TResult},CancellationTokenSource,Command)"/> and
+    /// <see cref="Command.AsTask{TResult}(bool, object, Command)"/> offer easy integration with Tasks and delegates.
     /// </para>
     /// <para>
     /// <see cref="PeriodicCommand"/> repeats its action at a given interval, <see cref="ScheduledCommand"/> runs once at a specific
@@ -126,7 +128,7 @@ namespace Sophos.Commands
     /// <summary>Represents an action that can be run synchronously or asynchronously.</summary>
     /// <remarks>
     /// <para>
-    /// Commands are abort-able. Even a synchronously running command can be aborted from a separate thread.
+    /// Commands may be aborted. Even a synchronously running command can be aborted from a separate thread.
     /// </para>
     /// <para>
     /// Commands all inherit from IDisposable, but Dispose() need only be called on top level commands. A top-level
@@ -136,7 +138,7 @@ namespace Sophos.Commands
     /// <para>
     /// When developing a Command subclass, be sure to inherit from either <see cref="SyncCommand"/> (if your command is naturally
     /// synchronous in its implementation), <see cref="TaskCommand{TResult}"/> (if your asynchronous command uses Tasks in its
-    /// implementation), or <see cref="AsyncCommand"/> if your implementation is otherwise asynchronous (that is, it completes on a
+    /// implementation), or <see cref="AsyncCommand"/> if your implementation is otherwise asynchronous (that is, it
     /// naturally completes on a thread that is different from the one it started on, but is not in the form of a Task).
     /// <see cref="SyncExecuteImpl"/>).
     /// </para>
@@ -158,7 +160,7 @@ namespace Sophos.Commands
     /// before it is disposed, and you create a new child command with the same owner upon every execution, resource usage
     /// will grow unbounded. The better approach is to not assign an owner to the locally created command, but instead
     /// have it run within the context of the launching command using <see cref="SyncExecute(object,Command)"/>.
-    /// If you instead require asynchronous execution, you can make use of <see cref="CreateAbortLinkedCommand"/>. This will
+    /// If you instead require asynchronous execution, you can make use of <see cref="CreateAbortSignaledCommand"/>. This will
     /// return a top-level command that responds to abort requests to the command that created it.
     /// </para>
     /// <para>
@@ -282,6 +284,87 @@ namespace Sophos.Commands
         #endregion
 
         #region Tasks
+
+        /// <summary>
+        /// Converts a Task into a Command.
+        /// </summary>
+        /// <typeparam name="TResult">
+        /// The type of result that the task returns.
+        /// </typeparam>
+        /// <param name="task">
+        /// The task to convert to a Command. The returned Command will take ownership of this Task, and call Dispose() on it when the Command
+        /// is disposed. If this task is already running at the time this method is called, be aware of the side effects. For example, if the
+        /// Command returned from this method is added to a SequentialCommands instance, the underlying Task could be running before the
+        /// SequentialCommands is even executed. That behavior may be exactly what you want, but be aware of it.
+        /// </param>
+        /// <returns>
+        /// A command, that when executed, will run the provided task (if it is not already running). This command returns from synchronous execution
+        /// the value of type TResult that the underlying Task returns. The 'result' parameter of <see cref="ICommandListener.CommandSucceeded"/> will
+        /// be set in similar fashion. It is the caller's responsibility to dispose of this response object if needed.
+        /// </returns>
+        public static Command FromTask<TResult>(Task<TResult> task)
+        {
+            return FromTask(task, null);
+        }
+
+        /// <summary>
+        /// Converts a Task into a Command.
+        /// </summary>
+        /// <typeparam name="TResult">
+        /// The type of result that the task returns.
+        /// </typeparam>
+        /// <param name="task">
+        /// The task to convert to a Command. The returned Command will take ownership of this Task, and call Dispose() on it when the Command
+        /// is disposed. If this task is already running at the time this method is called, be aware of the side effects. For example, if the
+        /// Command returned from this method is added to a SequentialCommands instance, the underlying Task could be running before the
+        /// SequentialCommands is even executed. That behavior may be exactly what you want, but be aware of it.
+        /// </param>
+        /// <param name="cancellationTokenSource">
+        /// The cancellation token associated with the task. If null, the task cannot be cancelled and the returned command will not respond
+        /// to abort requests. The returned command does *not* take ownership of the this token. It is the caller's responsibility to dispose
+        /// of it. The cancellation token must remain valid until after the last time the return command is executed.
+        /// </param>
+        /// <returns>
+        /// A command, that when executed, will run the provided task (if it is not already running). This command returns from synchronous execution
+        /// the value of type TResult that the underlying Task returns. The 'result' parameter of <see cref="ICommandListener.CommandSucceeded"/> will
+        /// be set in similar fashion. It is the caller's responsibility to dispose of this response object if needed.
+        /// </returns>
+        public static Command FromTask<TResult>(Task<TResult> task, CancellationTokenSource cancellationTokenSource)
+        {
+            return FromTask(task, cancellationTokenSource, null);
+        }
+
+        /// <summary>
+        /// Converts a Task into a Command.
+        /// </summary>
+        /// <typeparam name="TResult">
+        /// The type of result that the task returns.
+        /// </typeparam>
+        /// <param name="task">
+        /// The task to convert to a Command. The returned Command will take ownership of this Task, and call Dispose() on it when the Command
+        /// is disposed. If this task is already running at the time this method is called, be aware of the side effects. For example, if the
+        /// Command returned from this method is added to a SequentialCommands instance, the underlying Task could be running before the
+        /// SequentialCommands is even executed. That behavior may be exactly what you want, but be aware of it.
+        /// </param>
+        /// <param name="cancellationTokenSource">
+        /// The cancellation token associated with the task. If null, the task cannot be cancelled and the returned command will not respond
+        /// to abort requests. The returned command does *not* take ownership of the this token. It is the caller's responsibility to dispose
+        /// of it. The cancellation token must remain valid until after the last time the return command is executed.
+        /// </param>
+        /// <param name="owner">
+        /// The owner of the returned command. Specify null to indicate a top-level command. Otherwise, the returned command will be owned by
+        /// 'owner'. Owned commands respond to abort requests made of their owner. Also, owned commands are disposed of when the owner is disposed.
+        /// </param>
+        /// <returns>
+        /// A command, that when executed, will run the provided task (if it is not already running). This command returns from synchronous execution
+        /// the value of type TResult that the underlying Task returns. The 'result' parameter of <see cref="ICommandListener.CommandSucceeded"/> will
+        /// be set in similar fashion. It is the caller's responsibility to dispose of this response object if needed.
+        /// </returns>
+        public static Command FromTask<TResult>(Task<TResult> task, CancellationTokenSource cancellationTokenSource, Command owner)
+        {
+            return new SimpleTaskCommand<TResult>(task, cancellationTokenSource, owner);
+        }
+
         /// <summary>
         /// Returns a task that, when run, will execute this command passed as an argument. Note that this command must
         /// not be disposed before the task is disposed. Also, note that behavior is undefined if this command is executing
@@ -764,7 +847,7 @@ namespace Sophos.Commands
         /// Note that the linked command is only linked with regards to abort requests (not execution requests, or anything else),
         /// and that the link is one-way. If <see cref="Abort"/> is called on the linked command, this Command object will not respond to that.
         /// </remarks>
-        public AbortSignaledCommand CreateAbortLinkedCommand(Command commandToLink)
+        public AbortSignaledCommand CreateAbortSignaledCommand(Command commandToLink)
         {
             CheckDisposed();
             return new AbortSignaledCommand(commandToLink, this);
@@ -786,7 +869,7 @@ namespace Sophos.Commands
         /// Signaled when an abort request has been made. The state of this handle must not be altered
         /// by anything but the framework.
         /// </summary>
-        public System.Threading.WaitHandle AbortEvent
+        public WaitHandle AbortEvent
         {
             get
             {
@@ -805,7 +888,7 @@ namespace Sophos.Commands
         /// Signaled when this command has finished execution, regardless of whether it succeeded, failed or was aborted.
         /// The state of this handle must not be altered by anything but the framework.
         /// </summary>
-        public System.Threading.WaitHandle DoneEvent
+        public WaitHandle DoneEvent
         {
             get
             {
@@ -864,14 +947,14 @@ namespace Sophos.Commands
         {
             if (owner == null)
             {
-                _abortEvent = new System.Threading.ManualResetEvent(false);
+                _abortEvent = new ManualResetEvent(false);
             }
             else
             {
                 owner.TakeOwnership(this);
             }
 
-            Id = System.Threading.Interlocked.Increment(ref _nextId);
+            Id = Interlocked.Increment(ref _nextId);
         }
 
         /// <summary>Make this command the owner of the command passed as an argument.</summary>
@@ -928,7 +1011,7 @@ namespace Sophos.Commands
                 }
 
                 command._owner = null;
-                command._abortEvent = new System.Threading.ManualResetEvent(false);
+                command._abortEvent = new ManualResetEvent(false);
 
                 foreach (Command child in command._children)
                 {
@@ -1114,16 +1197,16 @@ namespace Sophos.Commands
                 _abortEvent.Reset();
             }
 
-            System.Threading.Interlocked.Increment(ref _executing);
+            Interlocked.Increment(ref _executing);
         }
 
         private void DecrementExecuting(ICommandListener listener, object result, Exception exc)
         {
-            int refCount = System.Threading.Interlocked.Decrement(ref _executing);
+            int refCount = Interlocked.Decrement(ref _executing);
 
             if (refCount < 0)
             {
-                System.Threading.Interlocked.Increment(ref _executing);
+                Interlocked.Increment(ref _executing);
                 throw new InvalidOperationException("Attempt to inform an idle command that it is no longer executing. Command: " + Description);
             }
 
@@ -1170,12 +1253,12 @@ namespace Sophos.Commands
             {
                 _command = command;
                 _listener = listener;
-                _asyncExeThreadId = System.Threading.Thread.CurrentThread.ManagedThreadId;
+                _asyncExeThreadId = Thread.CurrentThread.ManagedThreadId;
             }
 
             public void CommandSucceeded(object result)
             {
-                if (System.Threading.Thread.CurrentThread.ManagedThreadId == _asyncExeThreadId)
+                if (Thread.CurrentThread.ManagedThreadId == _asyncExeThreadId)
                 {
                     throw new InvalidOperationException("ICommandListener.CommandSucceeded called on same thread as AsyncExecute()");
                 }
@@ -1185,7 +1268,7 @@ namespace Sophos.Commands
 
             public void CommandAborted()
             {
-                if (System.Threading.Thread.CurrentThread.ManagedThreadId == _asyncExeThreadId)
+                if (Thread.CurrentThread.ManagedThreadId == _asyncExeThreadId)
                 {
                     throw new InvalidOperationException("ICommandListener.CommandAborted called on same thread as AsyncExecute()");
                 }
@@ -1195,7 +1278,7 @@ namespace Sophos.Commands
 
             public void CommandFailed(Exception exc)
             {
-                if (System.Threading.Thread.CurrentThread.ManagedThreadId == _asyncExeThreadId)
+                if (Thread.CurrentThread.ManagedThreadId == _asyncExeThreadId)
                 {
                     throw new InvalidOperationException("ICommandListener.CommandFailed called on same thread as AsyncExecute()");
                 }
@@ -1208,11 +1291,44 @@ namespace Sophos.Commands
             private readonly int _asyncExeThreadId;
         }
 
+        private class SimpleTaskCommand<TResult> : TaskCommand<TResult>
+        {
+            internal SimpleTaskCommand(Task<TResult> task, CancellationTokenSource cancellationTokenSource, Command owner) : base(owner)
+            {
+                _task = task;
+                _cancellationTokenSource = cancellationTokenSource;
+            }
+
+            /// <inheritdoc />
+            protected override void Dispose(bool disposing)
+            {
+                if (!Disposed && disposing)
+                {
+                    _cancellationTokenSource?.Dispose();
+                }
+
+                base.Dispose(disposing);
+            }
+
+            protected override Task<TResult> CreateTask(object runtimeArg)
+            {
+                return _task;
+            }
+
+            protected override void AbortImpl()
+            {
+                _cancellationTokenSource?.Cancel();
+            }
+
+            private readonly Task<TResult> _task;
+            private readonly CancellationTokenSource _cancellationTokenSource;
+        }
+
         private Command _owner;
         private readonly HashSet<Command> _children = new HashSet<Command>();
         private int _executing;
-        private readonly System.Threading.ManualResetEvent _doneEvent = new System.Threading.ManualResetEvent(true);
-        private System.Threading.ManualResetEvent _abortEvent;
+        private readonly ManualResetEvent _doneEvent = new ManualResetEvent(true);
+        private ManualResetEvent _abortEvent;
         private readonly object _childLock = new object();
 
         private static long _nextId;

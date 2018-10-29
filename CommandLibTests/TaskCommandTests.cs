@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Sophos.Commands;
@@ -66,6 +67,76 @@ namespace CommandLibTests
             }
         }
 
+        [TestMethod]
+        public void FromTask_TestSuccess()
+        {
+            using (var cmd = Command.FromTask(AddOneTask(1, null)))
+            {
+                HappyPathTest.Run(cmd, 0, 2);
+                HappyPathTest.Run(cmd, 0, 2);
+            }
+        }
+
+        [TestMethod]
+        public void FromTask_TestAbort()
+        {
+            var cancelTokenSource = new CancellationTokenSource();
+
+            using (var cmd = Command.FromTask(AddOneTask(1, cancelTokenSource), cancelTokenSource))
+            {
+                AbortTest.Run(cmd, null, 1);
+            }
+        }
+
+        [TestMethod]
+        public void FromTask_TestFail()
+        {
+            using (var cmd = Command.FromTask(FailTask(true)))
+            {
+                FailTest.Run<InvalidOperationException>(cmd, null);
+            }
+
+            using (var cmd = Command.FromTask(FailTask(false)))
+            {
+                FailTest.Run<ArgumentException>(cmd, null);
+            }
+        }
+
+        private static Task<int> AddOneTask(int input, CancellationTokenSource cancellationTokenSource)
+        {
+            if (cancellationTokenSource == null)
+            {
+                return new Task<int>(() =>
+                {
+                    Thread.Sleep(5);
+                    return input + 1;
+                });
+            }
+
+            return new Task<int>(() =>
+            {
+                cancellationTokenSource.Token.ThrowIfCancellationRequested();
+                Thread.Sleep(5);
+                cancellationTokenSource.Token.ThrowIfCancellationRequested();
+                return input + 1;
+            },
+                cancellationTokenSource.Token);
+        }
+
+        private static Task<int> FailTask(bool failImmediately)
+        {
+            return new Task<int>(() =>
+            {
+                if (failImmediately)
+                {
+                    throw new InvalidOperationException();
+                }
+
+                Thread.Sleep(5);
+                throw new ArgumentException();
+            });
+        }
+
         private class DoNothingCommand : TaskCommand<int>
         {
             internal enum Behavior
@@ -116,9 +187,7 @@ namespace CommandLibTests
             }
 
             private readonly Behavior _behavior;
-
-            private readonly System.Threading.ManualResetEvent _abortEvent =
-                new System.Threading.ManualResetEvent(false);
+            private readonly ManualResetEvent _abortEvent = new ManualResetEvent(false);
         }
     }
 }

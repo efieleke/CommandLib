@@ -6,7 +6,7 @@ namespace Sophos.Commands
     /// <summary>
     /// This class wraps a delegate as a Command. When the command is executed, the delegate is run.
     /// In order for this command to be responsive to abort requests, the delegate method must check
-    /// the <see cref="Command.AbortRequested"/> on the command that is the owner of this command.
+    /// the <see cref="Command.AbortRequested"/> flag on the command that is the owner of this command.
     /// </summary>
     /// <typeparam name="TResult">The type returned by the delegate</typeparam>
 	public sealed class DelegateCommand<TResult> : TaskCommand<TResult>

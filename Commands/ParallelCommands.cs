@@ -66,7 +66,7 @@ namespace Sophos.Commands
                 // wrapped in topmost AbortSignaledCommand objects. These top level objects will
                 // still respond to abort requests to this ParallelCommands object via the
                 // 'this' pointer we pass as an argument.
-                _commands.Add(CreateAbortLinkedCommand(command));
+                _commands.Add(CreateAbortSignaledCommand(command));
             }
             else
             {
