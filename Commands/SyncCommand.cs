@@ -67,6 +67,6 @@ namespace Sophos.Commands
             return SyncExeImpl(runtimeArg);
         }
 
-		private DelegateCommand<object> _asyncWrapperCmd;
+		private volatile DelegateCommand<object> _asyncWrapperCmd;
 	}
 }

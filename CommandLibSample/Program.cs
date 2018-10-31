@@ -153,19 +153,19 @@ namespace CommandLibSample
 		{
 			internal PretendCmd(TimeSpan duration, string desc) : base(null)
 			{
-				_pauseCmd = new PauseCommand(duration, null, this);
+			    _delayCmd = new DelayCommand(duration, this);
 				_desc = desc;
 			}
 
 			protected override object SyncExeImpl(object runtimeArg)
 			{
 				Console.Out.WriteLine("Started " + _desc);
-				_pauseCmd.SyncExecute();
+			    _delayCmd.SyncExecute();
 				Console.Out.WriteLine("Finished " + _desc);
 				return null;
 			}
 
-			private readonly PauseCommand _pauseCmd;
+			private readonly DelayCommand _delayCmd;
 			private readonly string _desc;
 		}
 

@@ -19,7 +19,7 @@ namespace Sophos.Commands
     /// <para>
     /// Command extends the notion of a Task, in that it works both with tasks and with non-task-based asynchronous operations, and
     /// offers features not readily available with tasks. <see cref="TaskCommand{TResult}"/>, <see cref="DelegateCommand{TResult}"/>,
-    /// <see cref="Command.FromTask{TResult}(Task{TResult},CancellationTokenSource,Command)"/> and
+    /// <see cref="DelayCommand"/>, <see cref="Command.FromTask{TResult}(Task{TResult},Command)"/> and
     /// <see cref="Command.AsTask{TResult}(bool, object, Command)"/> offer easy integration with Tasks and delegates.
     /// </para>
     /// <para>
@@ -36,9 +36,7 @@ namespace Sophos.Commands
     /// </para>
     /// <para>
     /// All of the above <see cref="Command"/> classes are simply containers for <see cref="Command"/> objects that presumably do
-    /// something of interest. Commands includes a few <see cref="Command"/> classes that might be commonly useful, including
-    /// <see cref="PauseCommand"/> and <see cref="HttpRequestCommand"/>, but it is expected that users of this library will
-    /// create their own <see cref="Command"/>-derived classes.
+    /// something of interest. It is expected that users of this library will create their own <see cref="Command"/>-derived classes.
     /// </para>
     /// <para>
     /// Guidelines for developing your own Command-derived class:
@@ -319,38 +317,6 @@ namespace Sophos.Commands
         /// Command returned from this method is added to a SequentialCommands instance, the underlying Task could be running before the
         /// SequentialCommands is even executed. That behavior may be exactly what you want, but be aware of it.
         /// </param>
-        /// <param name="cancellationTokenSource">
-        /// The cancellation token associated with the task. If null, the task cannot be cancelled and the returned command will not respond
-        /// to abort requests. The returned command does *not* take ownership of the this token. It is the caller's responsibility to dispose
-        /// of it. The cancellation token must remain valid until after the last time the return command is executed.
-        /// </param>
-        /// <returns>
-        /// A command, that when executed, will run the provided task (if it is not already running). This command returns from synchronous execution
-        /// the value of type TResult that the underlying Task returns. The 'result' parameter of <see cref="ICommandListener.CommandSucceeded"/> will
-        /// be set in similar fashion. It is the caller's responsibility to dispose of this response object if needed.
-        /// </returns>
-        public static Command FromTask<TResult>(Task<TResult> task, CancellationTokenSource cancellationTokenSource)
-        {
-            return FromTask(task, cancellationTokenSource, null);
-        }
-
-        /// <summary>
-        /// Converts a Task into a Command.
-        /// </summary>
-        /// <typeparam name="TResult">
-        /// The type of result that the task returns.
-        /// </typeparam>
-        /// <param name="task">
-        /// The task to convert to a Command. The returned Command will take ownership of this Task, and call Dispose() on it when the Command
-        /// is disposed. If this task is already running at the time this method is called, be aware of the side effects. For example, if the
-        /// Command returned from this method is added to a SequentialCommands instance, the underlying Task could be running before the
-        /// SequentialCommands is even executed. That behavior may be exactly what you want, but be aware of it.
-        /// </param>
-        /// <param name="cancellationTokenSource">
-        /// The cancellation token associated with the task. If null, the task cannot be cancelled and the returned command will not respond
-        /// to abort requests. The returned command does *not* take ownership of the this token. It is the caller's responsibility to dispose
-        /// of it. The cancellation token must remain valid until after the last time the return command is executed.
-        /// </param>
         /// <param name="owner">
         /// The owner of the returned command. Specify null to indicate a top-level command. Otherwise, the returned command will be owned by
         /// 'owner'. Owned commands respond to abort requests made of their owner. Also, owned commands are disposed of when the owner is disposed.
@@ -360,9 +326,47 @@ namespace Sophos.Commands
         /// the value of type TResult that the underlying Task returns. The 'result' parameter of <see cref="ICommandListener.CommandSucceeded"/> will
         /// be set in similar fashion. It is the caller's responsibility to dispose of this response object if needed.
         /// </returns>
-        public static Command FromTask<TResult>(Task<TResult> task, CancellationTokenSource cancellationTokenSource, Command owner)
+        public static Command FromTask<TResult>(Task<TResult> task, Command owner)
         {
-            return new SimpleTaskCommand<TResult>(task, cancellationTokenSource, owner);
+            return new SimpleTaskCommand<TResult>(task, owner);
+        }
+
+        /// <summary>
+        /// Converts a Task into a top-level Command.
+        /// </summary>
+        /// <param name="task">
+        /// The task to convert to a Command. The returned Command will take ownership of this Task, and call Dispose() on it when the Command
+        /// is disposed. If this task is already running at the time this method is called, be aware of the side effects. For example, if the
+        /// Command returned from this method is added to a SequentialCommands instance, the underlying Task could be running before the
+        /// SequentialCommands is even executed. That behavior may be exactly what you want, but be aware of it.
+        /// </param>
+        /// <returns>
+        /// A command, that when executed, will run the provided task (if it is not already running).
+        /// </returns>
+        public static Command FromTask(Task task)
+        {
+            return FromTask(task, null);
+        }
+
+        /// <summary>
+        /// Converts a Task into a Command.
+        /// </summary>
+        /// <param name="task">
+        /// The task to convert to a Command. The returned Command will take ownership of this Task, and call Dispose() on it when the Command
+        /// is disposed. If this task is already running at the time this method is called, be aware of the side effects. For example, if the
+        /// Command returned from this method is added to a SequentialCommands instance, the underlying Task could be running before the
+        /// SequentialCommands is even executed. That behavior may be exactly what you want, but be aware of it.
+        /// </param>
+        /// <param name="owner">
+        /// The owner of the returned command. Specify null to indicate a top-level command. Otherwise, the returned command will be owned by
+        /// 'owner'. Owned commands respond to abort requests made of their owner. Also, owned commands are disposed of when the owner is disposed.
+        /// </param>
+        /// <returns>
+        /// A command, that when executed, will run the provided task (if it is not already running).
+        /// </returns>
+        public static Command FromTask(Task task, Command owner)
+        {
+            return new SimpleTaskCommand(task, owner);
         }
 
         /// <summary>
@@ -787,7 +791,7 @@ namespace Sophos.Commands
                     throw new InvalidOperationException("Abort can only be called on top-level commands");
                 }
 
-                _abortEvent.Set();
+                _cancellationTokenSource.Cancel();
                 AbortImplAllDescendents(this);
                 AbortImpl();
             }
@@ -874,9 +878,11 @@ namespace Sophos.Commands
             get
             {
                 CheckDisposed();
-                return _abortEvent;
+                return _cancellationTokenSource.Token.WaitHandle;
             }
         }
+
+        protected internal CancellationToken CancellationToken => _cancellationTokenSource.Token;
 
         /// <summary>
         /// Returns whether an abort request has been made
@@ -947,7 +953,7 @@ namespace Sophos.Commands
         {
             if (owner == null)
             {
-                _abortEvent = new ManualResetEvent(false);
+                _cancellationTokenSource = new CancellationTokenSource();
             }
             else
             {
@@ -982,7 +988,7 @@ namespace Sophos.Commands
                 // synchronization easier around aborts.
 
                 // Get rid of the extraneous abort event if one has been created.
-                orphan._abortEvent?.Dispose();
+                orphan._cancellationTokenSource?.Dispose();
 
                 // Make the orphan and its children share this same abort event.
                 SetAbortEvent(orphan);
@@ -1011,7 +1017,7 @@ namespace Sophos.Commands
                 }
 
                 command._owner = null;
-                command._abortEvent = new ManualResetEvent(false);
+                command._cancellationTokenSource = new CancellationTokenSource();
 
                 foreach (Command child in command._children)
                 {
@@ -1026,7 +1032,7 @@ namespace Sophos.Commands
         /// </summary>
         protected void CheckAbortFlag()
         {
-            if (_abortEvent.WaitOne(0))
+            if (_cancellationTokenSource.IsCancellationRequested)
             {
                 throw new CommandAbortedException();
             }
@@ -1059,11 +1065,11 @@ namespace Sophos.Commands
                     {
                         // Avoid the above exception, and avoid doubly disposing abortEvent (because only the parent has the "real" copy)
                         child._owner = null;
-                        child._abortEvent = null;
+                        child._cancellationTokenSource = null;
                         child.Dispose();
                     }
 
-                    _abortEvent?.Dispose();
+                    _cancellationTokenSource?.Dispose();
                     _doneEvent.Dispose();
                 }
 
@@ -1118,7 +1124,7 @@ namespace Sophos.Commands
 
         private void SetAbortEvent(Command target)
         {
-            target._abortEvent = _abortEvent;
+            target._cancellationTokenSource = _cancellationTokenSource;
 
             foreach (Command child in target._children)
             {
@@ -1191,10 +1197,18 @@ namespace Sophos.Commands
             _doneEvent.WaitOne();
             _doneEvent.Reset();
 
-            // Don't reset the abort event for launched child commands
+            // Reset the abort event if this is a top-level command.
             if (_owner == null)
             {
-                _abortEvent.Reset();
+                lock (_childLock)
+                {
+                    _cancellationTokenSource = new CancellationTokenSource();
+
+                    foreach (Command child in _children)
+                    {
+                        SetAbortEvent(child);
+                    }
+                }
             }
 
             Interlocked.Increment(ref _executing);
@@ -1293,10 +1307,9 @@ namespace Sophos.Commands
 
         private class SimpleTaskCommand<TResult> : TaskCommand<TResult>
         {
-            internal SimpleTaskCommand(Task<TResult> task, CancellationTokenSource cancellationTokenSource, Command owner) : base(owner)
+            internal SimpleTaskCommand(Task<TResult> task, Command owner) : base(owner)
             {
                 _task = task;
-                _cancellationTokenSource = cancellationTokenSource;
             }
 
             /// <inheritdoc />
@@ -1304,33 +1317,53 @@ namespace Sophos.Commands
             {
                 if (!Disposed && disposing)
                 {
-                    _cancellationTokenSource?.Dispose();
+                    _task.Dispose();
                 }
 
                 base.Dispose(disposing);
             }
 
-            protected override Task<TResult> CreateTask(object runtimeArg)
+            protected override Task<TResult> CreateTask(object runtimeArg, CancellationToken cancellationToken)
             {
                 return _task;
             }
 
-            protected override void AbortImpl()
-            {
-                _cancellationTokenSource?.Cancel();
-            }
-
             private readonly Task<TResult> _task;
-            private readonly CancellationTokenSource _cancellationTokenSource;
         }
 
-        private Command _owner;
+        private class SimpleTaskCommand : TaskCommand
+        {
+            internal SimpleTaskCommand(Task task, Command owner) : base(owner)
+            {
+                _task = task;
+            }
+
+            /// <inheritdoc />
+            protected override void Dispose(bool disposing)
+            {
+                if (!Disposed && disposing)
+                {
+                    _task.Dispose();
+                }
+
+                base.Dispose(disposing);
+            }
+
+            protected override Task CreateTaskNoResult(object runtimeArg, CancellationToken cancellationToken)
+            {
+                return _task;
+            }
+
+            private readonly Task _task;
+        }
+
+        private volatile Command _owner;
         private readonly HashSet<Command> _children = new HashSet<Command>();
-        private int _executing;
+        private volatile int _executing;
         private readonly ManualResetEvent _doneEvent = new ManualResetEvent(true);
-        private ManualResetEvent _abortEvent;
+        private volatile CancellationTokenSource _cancellationTokenSource;
         private readonly object _childLock = new object();
 
-        private static long _nextId;
+        private static volatile int _nextId;
     }
 }

@@ -153,7 +153,7 @@ namespace Sophos.Commands
         private readonly Command _commandToRun;
         private readonly System.Threading.WaitHandle _abortEvent;
         private readonly Command _commandToWatch;
-        private Exception _lastException;
-        private object _result;
+        private volatile Exception _lastException;
+        private volatile object _result;
     }
 }

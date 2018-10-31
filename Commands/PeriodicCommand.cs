@@ -52,7 +52,7 @@ namespace Sophos.Commands
         /// </param>
         public PeriodicCommand(
             Command command,
-            long repeatCount,
+            int repeatCount,
             TimeSpan interval,
             IntervalType intervalType,
             bool intervalIsInclusive)
@@ -83,7 +83,7 @@ namespace Sophos.Commands
         /// </param>
         public PeriodicCommand(
             Command command,
-            long repeatCount,
+            int repeatCount,
             TimeSpan interval,
             IntervalType intervalType,
             bool intervalIsInclusive,
@@ -119,7 +119,7 @@ namespace Sophos.Commands
         /// </param>
         public PeriodicCommand(
             Command command,
-            long repeatCount,
+            int repeatCount,
             TimeSpan interval,
             IntervalType intervalType,
             bool intervalIsInclusive,
@@ -203,12 +203,12 @@ namespace Sophos.Commands
         /// already executed.
         /// </summary>
         /// <remarks>It is safe to change this property while this command is executing</remarks>
-        public long RepeatCount
+        public int RepeatCount
         {
             get
             {
                 CheckDisposed();
-                return System.Threading.Interlocked.Read(ref _repeatCount);
+                return _repeatCount;
             }
             set
             {
@@ -310,7 +310,7 @@ namespace Sophos.Commands
         private readonly PauseCommand _pause;
         private readonly PauseCommand _initialPause;
         private readonly Command _collectionCmd;
-        private long _repeatCount;
+        private volatile int _repeatCount;
         private readonly bool _startWithPause;
         private readonly System.Threading.WaitHandle _stopEvent;
     }

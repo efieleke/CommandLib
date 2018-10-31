@@ -277,6 +277,6 @@ namespace Sophos.Commands
         private readonly LinkedList<Command> _finishedCommands = new LinkedList<Command>();
         private readonly object _criticalSection = new object();
         private readonly System.Threading.ManualResetEvent _nothingToDoEvent = new System.Threading.ManualResetEvent(true);
-        private bool _disposed;
+        private volatile bool _disposed;
     }
 }

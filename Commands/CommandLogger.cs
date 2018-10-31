@@ -114,7 +114,7 @@ namespace Sophos.Commands
             }
         }
 
-        private bool _disposed;
+        private volatile bool _disposed;
         private readonly System.IO.StreamWriter _writer;
         private readonly object _criticalSection = new object();
     }

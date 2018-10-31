@@ -110,7 +110,7 @@
             <para>
             Command extends the notion of a Task, in that it works both with tasks and with non-task-based asynchronous operations, and
             offers features not readily available with tasks. <see cref="T:Sophos.Commands.TaskCommand`1"/>, <see cref="T:Sophos.Commands.DelegateCommand`1"/>,
-            <see cref="M:Sophos.Commands.Command.FromTask``1(System.Threading.Tasks.Task{``0},System.Threading.CancellationTokenSource,Sophos.Commands.Command)"/> and
+            <see cref="T:Sophos.Commands.DelayCommand"/>, <see cref="M:Sophos.Commands.Command.FromTask``1(System.Threading.Tasks.Task{``0},Sophos.Commands.Command)"/> and
             <see cref="M:Sophos.Commands.Command.AsTask``1(System.Boolean,System.Object,Sophos.Commands.Command)"/> offer easy integration with Tasks and delegates.
             </para>
             <para>
@@ -127,9 +127,7 @@
             </para>
             <para>
             All of the above <see cref="T:Sophos.Commands.Command"/> classes are simply containers for <see cref="T:Sophos.Commands.Command"/> objects that presumably do
-            something of interest. Commands includes a few <see cref="T:Sophos.Commands.Command"/> classes that might be commonly useful, including
-            <see cref="T:Sophos.Commands.PauseCommand"/> and <see cref="T:Sophos.Commands.HttpRequestCommand"/>, but it is expected that users of this library will
-            create their own <see cref="T:Sophos.Commands.Command"/>-derived classes.
+            something of interest. It is expected that users of this library will create their own <see cref="T:Sophos.Commands.Command"/>-derived classes.
             </para>
             <para>
             Guidelines for developing your own Command-derived class:
@@ -327,7 +325,7 @@
             be set in similar fashion. It is the caller's responsibility to dispose of this response object if needed.
             </returns>
         </member>
-        <member name="M:Sophos.Commands.Command.FromTask``1(System.Threading.Tasks.Task{``0},System.Threading.CancellationTokenSource)">
+        <member name="M:Sophos.Commands.Command.FromTask``1(System.Threading.Tasks.Task{``0},Sophos.Commands.Command)">
             <summary>
             Converts a Task into a Command.
             </summary>
@@ -339,35 +337,6 @@
             is disposed. If this task is already running at the time this method is called, be aware of the side effects. For example, if the
             Command returned from this method is added to a SequentialCommands instance, the underlying Task could be running before the
             SequentialCommands is even executed. That behavior may be exactly what you want, but be aware of it.
-            </param>
-            <param name="cancellationTokenSource">
-            The cancellation token associated with the task. If null, the task cannot be cancelled and the returned command will not respond
-            to abort requests. The returned command does *not* take ownership of the this token. It is the caller's responsibility to dispose
-            of it. The cancellation token must remain valid until after the last time the return command is executed.
-            </param>
-            <returns>
-            A command, that when executed, will run the provided task (if it is not already running). This command returns from synchronous execution
-            the value of type TResult that the underlying Task returns. The 'result' parameter of <see cref="M:Sophos.Commands.ICommandListener.CommandSucceeded(System.Object)"/> will
-            be set in similar fashion. It is the caller's responsibility to dispose of this response object if needed.
-            </returns>
-        </member>
-        <member name="M:Sophos.Commands.Command.FromTask``1(System.Threading.Tasks.Task{``0},System.Threading.CancellationTokenSource,Sophos.Commands.Command)">
-            <summary>
-            Converts a Task into a Command.
-            </summary>
-            <typeparam name="TResult">
-            The type of result that the task returns.
-            </typeparam>
-            <param name="task">
-            The task to convert to a Command. The returned Command will take ownership of this Task, and call Dispose() on it when the Command
-            is disposed. If this task is already running at the time this method is called, be aware of the side effects. For example, if the
-            Command returned from this method is added to a SequentialCommands instance, the underlying Task could be running before the
-            SequentialCommands is even executed. That behavior may be exactly what you want, but be aware of it.
-            </param>
-            <param name="cancellationTokenSource">
-            The cancellation token associated with the task. If null, the task cannot be cancelled and the returned command will not respond
-            to abort requests. The returned command does *not* take ownership of the this token. It is the caller's responsibility to dispose
-            of it. The cancellation token must remain valid until after the last time the return command is executed.
             </param>
             <param name="owner">
             The owner of the returned command. Specify null to indicate a top-level command. Otherwise, the returned command will be owned by
@@ -377,6 +346,38 @@
             A command, that when executed, will run the provided task (if it is not already running). This command returns from synchronous execution
             the value of type TResult that the underlying Task returns. The 'result' parameter of <see cref="M:Sophos.Commands.ICommandListener.CommandSucceeded(System.Object)"/> will
             be set in similar fashion. It is the caller's responsibility to dispose of this response object if needed.
+            </returns>
+        </member>
+        <member name="M:Sophos.Commands.Command.FromTask(System.Threading.Tasks.Task)">
+            <summary>
+            Converts a Task into a top-level Command.
+            </summary>
+            <param name="task">
+            The task to convert to a Command. The returned Command will take ownership of this Task, and call Dispose() on it when the Command
+            is disposed. If this task is already running at the time this method is called, be aware of the side effects. For example, if the
+            Command returned from this method is added to a SequentialCommands instance, the underlying Task could be running before the
+            SequentialCommands is even executed. That behavior may be exactly what you want, but be aware of it.
+            </param>
+            <returns>
+            A command, that when executed, will run the provided task (if it is not already running).
+            </returns>
+        </member>
+        <member name="M:Sophos.Commands.Command.FromTask(System.Threading.Tasks.Task,Sophos.Commands.Command)">
+            <summary>
+            Converts a Task into a Command.
+            </summary>
+            <param name="task">
+            The task to convert to a Command. The returned Command will take ownership of this Task, and call Dispose() on it when the Command
+            is disposed. If this task is already running at the time this method is called, be aware of the side effects. For example, if the
+            Command returned from this method is added to a SequentialCommands instance, the underlying Task could be running before the
+            SequentialCommands is even executed. That behavior may be exactly what you want, but be aware of it.
+            </param>
+            <param name="owner">
+            The owner of the returned command. Specify null to indicate a top-level command. Otherwise, the returned command will be owned by
+            'owner'. Owned commands respond to abort requests made of their owner. Also, owned commands are disposed of when the owner is disposed.
+            </param>
+            <returns>
+            A command, that when executed, will run the provided task (if it is not already running).
             </returns>
         </member>
         <member name="M:Sophos.Commands.Command.AsTask``1(System.Boolean)">
@@ -863,6 +864,9 @@
         <member name="M:Sophos.Commands.Command.SimpleTaskCommand`1.Dispose(System.Boolean)">
             <inheritdoc />
         </member>
+        <member name="M:Sophos.Commands.Command.SimpleTaskCommand.Dispose(System.Boolean)">
+            <inheritdoc />
+        </member>
         <member name="T:Sophos.Commands.CommandAbortedException">
             <summary>
             This is thrown from Command.SyncExecute() when a command is aborted.
@@ -1082,6 +1086,43 @@
             </summary>
             <param name="disposing"></param>
         </member>
+        <member name="T:Sophos.Commands.DelayCommand">
+            <summary>
+            Wraps Task.Delay() into a Command object. Use this in preference over <see cref="T:Sophos.Commands.PauseCommand"/>,
+            when possible, for minimal latency.
+            </summary>
+            <remarks>
+            <para>
+            <see cref="M:Sophos.Commands.Command.SyncExecute(System.Object)"/> and <see cref="M:Sophos.Commands.Command.AsyncExecute(Sophos.Commands.ICommandListener,System.Object)"/>
+            ignore the 'runtimeArg' value that is passed in
+            </para>
+            </remarks>
+        </member>
+        <member name="M:Sophos.Commands.DelayCommand.#ctor(System.TimeSpan)">
+            <summary>
+            Constructor for a top-level command
+            </summary>
+            <param name="duration">The delay duration</param>
+        </member>
+        <member name="M:Sophos.Commands.DelayCommand.#ctor(System.TimeSpan,Sophos.Commands.Command)">
+            <summary>
+            Constructor
+            </summary>
+            <param name="duration">The delay duration</param>
+            <param name="owner">
+            Specify null to indicate a top-level command. Otherwise, this command will be owned by 'owner'. Owned commands respond to
+            abort requests made of their owner. Also, owned commands are disposed of when the owner is disposed.
+            </param>
+        </member>
+        <member name="P:Sophos.Commands.DelayCommand.Duration">
+            <summary>
+            The amount of time to pause
+            </summary>
+            <remarks>It is safe to change this property while the command is executing, but doing so will have no effect until the next time it is executed.</remarks>
+        </member>
+        <member name="M:Sophos.Commands.DelayCommand.CreateTaskNoResult(System.Object,System.Threading.CancellationToken)">
+            <inheritdoc />
+        </member>
         <member name="T:Sophos.Commands.DelegateCommand`1">
             <summary>
             This class wraps a delegate as a Command. When the command is executed, the delegate is run.
@@ -1124,7 +1165,7 @@
             disposed of when the owner is disposed.
             </param>
         </member>
-        <member name="M:Sophos.Commands.DelegateCommand`1.CreateTask(System.Object)">
+        <member name="M:Sophos.Commands.DelegateCommand`1.CreateTask(System.Object,System.Threading.CancellationToken)">
             <inheritdoc />
         </member>
         <member name="T:Sophos.Commands.DelegateCommandListener">
@@ -1299,16 +1340,12 @@
             </summary>
             <param name="disposing">Will be true if this was called as a direct result of the object being explicitly disposed.</param>
         </member>
-        <member name="M:Sophos.Commands.HttpRequestCommand.AbortImpl">
-            <summary>
-            Do not call this method from a derived class. It is called by the framework.
-            </summary>
-        </member>
-        <member name="M:Sophos.Commands.HttpRequestCommand.CreateTask(System.Object)">
+        <member name="M:Sophos.Commands.HttpRequestCommand.CreateTask(System.Object,System.Threading.CancellationToken)">
             <summary>
             Do not call this method from a derived class. It is called by the framework.
             </summary>
             <param name="runtimeArg"></param>
+            <param name="cancellationToken"></param>
             <returns>the task</returns>
         </member>
         <member name="T:Sophos.Commands.ICommandListener">
@@ -1576,7 +1613,7 @@
             execution of the command.
             </summary>
         </member>
-        <member name="M:Sophos.Commands.PeriodicCommand.#ctor(Sophos.Commands.Command,System.Int64,System.TimeSpan,Sophos.Commands.PeriodicCommand.IntervalType,System.Boolean)">
+        <member name="M:Sophos.Commands.PeriodicCommand.#ctor(Sophos.Commands.Command,System.Int32,System.TimeSpan,Sophos.Commands.PeriodicCommand.IntervalType,System.Boolean)">
             <summary>
             Constructs a top-level PeriodicCommand as a top-level <see cref="T:Sophos.Commands.Command"/>
             </summary>
@@ -1593,7 +1630,7 @@
             command execution takes longer than the interval, the next repetition will start immediately).
             </param>
         </member>
-        <member name="M:Sophos.Commands.PeriodicCommand.#ctor(Sophos.Commands.Command,System.Int64,System.TimeSpan,Sophos.Commands.PeriodicCommand.IntervalType,System.Boolean,System.Threading.WaitHandle)">
+        <member name="M:Sophos.Commands.PeriodicCommand.#ctor(Sophos.Commands.Command,System.Int32,System.TimeSpan,Sophos.Commands.PeriodicCommand.IntervalType,System.Boolean,System.Threading.WaitHandle)">
             <summary>
             Constructs a top-level PeriodicCommand as a top-level <see cref="T:Sophos.Commands.Command"/>
             </summary>
@@ -1616,7 +1653,7 @@
             if you choose to do this.
             </param>
         </member>
-        <member name="M:Sophos.Commands.PeriodicCommand.#ctor(Sophos.Commands.Command,System.Int64,System.TimeSpan,Sophos.Commands.PeriodicCommand.IntervalType,System.Boolean,System.Threading.WaitHandle,Sophos.Commands.Command)">
+        <member name="M:Sophos.Commands.PeriodicCommand.#ctor(Sophos.Commands.Command,System.Int32,System.TimeSpan,Sophos.Commands.PeriodicCommand.IntervalType,System.Boolean,System.Threading.WaitHandle,Sophos.Commands.Command)">
             <summary>
             Constructs a PeriodicCommand
             </summary>
@@ -2148,7 +2185,7 @@
             <remarks>
             <para>
             <see cref="M:Sophos.Commands.Command.SyncExecute(System.Object)"/> and <see cref="M:Sophos.Commands.Command.AsyncExecute(Sophos.Commands.ICommandListener,System.Object)"/> will accept 
-            an object for the 'runtimeArg'. This is passed on to the abstract <see cref="M:Sophos.Commands.TaskCommand`1.CreateTask(System.Object)" /> method.
+            an object for the 'runtimeArg'. This is passed on to the abstract <see cref="M:Sophos.Commands.TaskCommand`1.CreateTask(System.Object,System.Threading.CancellationToken)" /> method.
             </para>
             <para>
             This command returns from synchronous execution the value of type TResult that the underlying Task returns. The 'result' parameter of
@@ -2160,7 +2197,7 @@
         </member>
         <member name="M:Sophos.Commands.TaskCommand`1.#ctor">
             <summary>
-            Constructor
+            Constructor for a top-level command
             </summary>
         </member>
         <member name="M:Sophos.Commands.TaskCommand`1.#ctor(Sophos.Commands.Command)">
@@ -2185,7 +2222,7 @@
             <param name="listener">Not applicable</param>
             <param name="runtimeArg">This is passed on to the underlying Task creation method.</param>
         </member>
-        <member name="M:Sophos.Commands.TaskCommand`1.CreateTask(System.Object)">
+        <member name="M:Sophos.Commands.TaskCommand`1.CreateTask(System.Object,System.Threading.CancellationToken)">
             <summary>
             Concrete classes must implement this by returning a Task. If the delegate method takes significant
             time, it is advisable to have it be responsive to abort requests by checking
@@ -2195,10 +2232,67 @@
             Concrete implementations decide what to do with this. This value is passed on from the runtimeArg
             that was provided to the synchronous or asynchronous execution methods.
             </param>
+            <param name="cancellationToken">
+            If your implementation will create tasks that require a cancellation token to be responsive
+            to abort requests, pass this token along.
+            </param>
             <returns>
             This value is passed along as the return value of synchronous execution routines, or the 'result' parameter
             of <see cref="M:Sophos.Commands.ICommandListener.CommandSucceeded(System.Object)"/> for asynchronous execution routines.
             </returns>
+        </member>
+        <member name="T:Sophos.Commands.TaskCommand">
+            <summary>
+            This Command encapsulates a Task. Concrete classes must implement the abstract method
+            that creates the Task. If your implementation is naturally asynchronous but does not make use
+            of Tasks (i.e. the Task class), inherit directly from AsyncCommand instead.
+            </summary>
+            <remarks>
+            <para>
+            <see cref="M:Sophos.Commands.Command.SyncExecute(System.Object)"/> and <see cref="M:Sophos.Commands.Command.AsyncExecute(Sophos.Commands.ICommandListener,System.Object)"/> will accept 
+            an object for the 'runtimeArg'. This is passed on to the abstract <see cref="M:Sophos.Commands.TaskCommand.CreateTask(System.Object,System.Threading.CancellationToken)" /> method.
+            </para>
+            <para>
+            This command returns from synchronous execution the bool value true. The 'result' parameter of
+            <see cref="M:Sophos.Commands.ICommandListener.CommandSucceeded(System.Object)"/> will be set to true as well. 
+            </para>
+            </remarks>
+        </member>
+        <member name="M:Sophos.Commands.TaskCommand.#ctor">
+            <summary>
+            Constructor for a top level command
+            </summary>
+        </member>
+        <member name="M:Sophos.Commands.TaskCommand.#ctor(Sophos.Commands.Command)">
+            <summary>
+            Constructor
+            </summary>
+            <param name="owner">
+            Specify null to indicate a top-level command. Otherwise, this command will be owned by 'owner'. Owned commands respond to
+            abort requests made of their owner. Also, owned commands are disposed of when the owner is disposed.
+            </param>
+        </member>
+        <member name="M:Sophos.Commands.TaskCommand.CreateTaskNoResult(System.Object,System.Threading.CancellationToken)">
+            <summary>
+            Concrete classes must implement this by returning a Task. If the delegate method takes significant
+            time, it is advisable to have it be responsive to abort requests by checking
+            <see cref="P:Sophos.Commands.Command.AbortRequested"/> or calling <see cref="M:Sophos.Commands.Command.CheckAbortFlag"/>.
+            </summary>
+            <param name="runtimeArg">
+            Concrete implementations decide what to do with this. This value is passed on from the runtimeArg
+            that was provided to the synchronous or asynchronous execution methods.
+            </param>
+            <param name="cancellationToken">
+            If your implementation will create tasks that require a cancellation token to be responsive
+            to abort requests, pass this token along.
+            </param>
+            <returns>
+            This value is passed along as the return value of synchronous execution routines, or the 'result' parameter
+            of <see cref="M:Sophos.Commands.ICommandListener.CommandSucceeded(System.Object)"/> for asynchronous execution routines.
+            </returns>
+        </member>
+        <member name="M:Sophos.Commands.TaskCommand.CreateTask(System.Object,System.Threading.CancellationToken)">
+            <inheritdoc />
         </member>
         <member name="T:Sophos.Commands.TimeLimitedCommand">
             <summary>

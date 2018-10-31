@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Net.Http;
 using System.Security.Permissions;
+using System.Threading;
 using System.Threading.Tasks;
 
 namespace Sophos.Commands
@@ -218,84 +219,61 @@ namespace Sophos.Commands
         /// <param name="disposing">Will be true if this was called as a direct result of the object being explicitly disposed.</param>
         protected override void Dispose(bool disposing)
         {
-            if (!Disposed)
+            if (!Disposed && disposing && _disposeHttpClient)
             {
-                if (disposing)
-                {
-                    _cancelTokenSource.Dispose();
-
-                    if (_disposeHttpClient)
-                    {
-                        Client.Dispose();
-                    }
-                }
+                Client.Dispose();
             }
 
             base.Dispose(disposing);
-        }
-
-        /// <summary>
-        /// Do not call this method from a derived class. It is called by the framework.
-        /// </summary>
-        protected sealed override void AbortImpl()
-        {
-            _aborted = true;
-            _cancelTokenSource.Cancel();
         }
 
 		/// <summary>
 		/// Do not call this method from a derived class. It is called by the framework.
 		/// </summary>
 		/// <param name="runtimeArg"></param>
+		/// <param name="cancellationToken"></param>
 		/// <returns>the task</returns>
-		protected sealed override async Task<HttpResponseMessage> CreateTask(object runtimeArg)
+		protected sealed override async Task<HttpResponseMessage> CreateTask(object runtimeArg, CancellationToken cancellationToken)
 		{
-			// Dispose of the prior cancel token source after the request is performed. We need to keep
-			// the prior one until then for thread safety reasons
-			using (var _ = _cancelTokenSource)
+			IRequestGenerator generator = runtimeArg == null ? _requestGenerator : (IRequestGenerator) runtimeArg;
+
+			using (HttpRequestMessage request = generator.GenerateRequest())
 			{
-				_cancelTokenSource = new System.Threading.CancellationTokenSource();
-				_aborted = false;
-				IRequestGenerator generator = runtimeArg == null ? _requestGenerator : (IRequestGenerator) runtimeArg;
-
-				using (HttpRequestMessage request = generator.GenerateRequest())
+				// The same request message cannot be sent more than once, so we have to construct a new one every time.
+				using (Task<HttpResponseMessage> task = Client.SendAsync(request, HttpCompletionOption.ResponseContentRead, cancellationToken))
 				{
-					// The same request message cannot be sent more than once, so we have to construct a new one every time.
-					using (Task<HttpResponseMessage> task = Client.SendAsync(request, HttpCompletionOption.ResponseContentRead, _cancelTokenSource.Token))
+					try
 					{
-						try
-						{
-							HttpResponseMessage message = await task;
+						HttpResponseMessage message = await task;
 
-							if (_responseChecker != null)
+						if (_responseChecker != null)
+						{
+							try
 							{
-								try
+								using (Task t = _responseChecker.CheckResponse(message))
 								{
-									using (Task t = _responseChecker.CheckResponse(message))
-									{
-										await t;
-									}
-								}
-								catch (Exception)
-								{
-									message.Dispose();
-									throw;
+									await t;
 								}
 							}
-
-							return message;
-						}
-						catch (OperationCanceledException)
-						{
-							if (_aborted)
+							catch (Exception)
 							{
-								// We got here because Abort() was called
-								throw new CommandAbortedException();
+								message.Dispose();
+								throw;
 							}
-
-							// We got here because the request timed out
-							throw new TimeoutException();
 						}
+
+						return message;
+					}
+					catch (OperationCanceledException)
+					{
+						if (AbortRequested)
+						{
+							// We got here because Abort() was called
+							throw new CommandAbortedException();
+						}
+
+						// We got here because the request timed out
+						throw new TimeoutException();
 					}
 				}
 			}
@@ -304,7 +282,5 @@ namespace Sophos.Commands
 		private readonly IRequestGenerator _requestGenerator;
         private readonly IResponseChecker _responseChecker;
         private readonly bool _disposeHttpClient;
-        private bool _aborted;
-        private System.Threading.CancellationTokenSource _cancelTokenSource = new System.Threading.CancellationTokenSource();
     }
 }

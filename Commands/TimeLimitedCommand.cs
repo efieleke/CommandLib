@@ -137,7 +137,7 @@ namespace Sophos.Commands
 
         private readonly Command _commandToRun;
         private readonly int _timeoutMS;
-        private object _result;
-        private Exception _lastException;
+        private volatile object _result;
+        private volatile Exception _lastException;
     }
 }

@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Threading;
 using System.Threading.Tasks;
 
 namespace Sophos.Commands
@@ -52,9 +53,9 @@ namespace Sophos.Commands
 		}
 
 	    /// <inheritdoc />
-		protected override Task<TResult> CreateTask(object runtimeArg)
+		protected override Task<TResult> CreateTask(object runtimeArg, CancellationToken cancellationToken)
 		{
-			return new Task<TResult>(_func, runtimeArg);
+			return new Task<TResult>(_func, runtimeArg, cancellationToken);
 		}
 
 		private readonly Func<object, TResult> _func;

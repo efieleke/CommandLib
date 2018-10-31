@@ -252,7 +252,7 @@ namespace CommandLibTests
 
                 listener.Reset(CmdListener.CallbackType.Succeeded, null);
                 periodicCmd.AsyncExecute(listener, 2);
-                periodicCmd.RepeatCount = long.MaxValue;
+                periodicCmd.RepeatCount = int.MaxValue;
                 periodicCmd.Interval = TimeSpan.FromTicks(0);
                 periodicCmd.SkipCurrentWait();
                 System.Threading.Thread.Sleep(10); // give time for the command to execute many times
@@ -286,7 +286,7 @@ namespace CommandLibTests
                     stopEvent.Reset();
                     listener.Reset(CmdListener.CallbackType.Succeeded, null);
                     periodicCmd.AsyncExecute(listener, 2);
-                    periodicCmd.RepeatCount = long.MaxValue;
+                    periodicCmd.RepeatCount = int.MaxValue;
                     periodicCmd.Interval = TimeSpan.FromTicks(0);
                     periodicCmd.SkipCurrentWait();
                     System.Threading.Thread.Sleep(10); // give time for the command to execute many times

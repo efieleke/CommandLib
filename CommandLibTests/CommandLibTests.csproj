@@ -62,6 +62,7 @@
     <Compile Include="AddCommand.cs" />
     <Compile Include="BadAsyncCommandTests.cs" />
     <Compile Include="CmdListener.cs" />
+    <Compile Include="DelayCommandTests.cs" />
     <Compile Include="DelegateCommandTests.cs" />
     <Compile Include="FailingCommand.cs" />
     <Compile Include="FailTest.cs" />

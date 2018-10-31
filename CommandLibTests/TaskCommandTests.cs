@@ -82,9 +82,16 @@ namespace CommandLibTests
         {
             var cancelTokenSource = new CancellationTokenSource();
 
-            using (var cmd = Command.FromTask(AddOneTask(1, cancelTokenSource), cancelTokenSource))
+            using (var cmd = Command.FromTask(AddOneTask(1, cancelTokenSource)))
             {
-                AbortTest.Run(cmd, null, 1);
+                cmd.AsyncExecute(
+                    o => throw new Exception("Did not expect success"),
+                    () => { },
+                    e => throw e);
+
+                Thread.Sleep(1);
+                cancelTokenSource.Cancel();
+                cmd.Wait();
             }
         }
 
@@ -120,7 +127,7 @@ namespace CommandLibTests
                 cancellationTokenSource.Token.ThrowIfCancellationRequested();
                 return input + 1;
             },
-                cancellationTokenSource.Token);
+            cancellationTokenSource.Token);
         }
 
         private static Task<int> FailTask(bool failImmediately)
@@ -157,7 +164,7 @@ namespace CommandLibTests
                 _behavior = behavior;
             }
 
-            protected override Task<int> CreateTask(object runtimeArg)
+            protected override Task<int> CreateTask(object runtimeArg, CancellationToken cancellationToken)
             {
                 switch (_behavior)
                 {

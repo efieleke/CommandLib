@@ -87,7 +87,7 @@ namespace Sophos.Commands
         }
 
         private readonly System.Threading.ManualResetEvent _doneEvent = new System.Threading.ManualResetEvent(false);
-        private Exception _lastException;
-        private object _result;
+        private volatile Exception _lastException;
+        private volatile object _result;
     }
 }

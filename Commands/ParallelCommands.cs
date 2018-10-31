@@ -243,10 +243,10 @@ namespace Sophos.Commands
 
             private readonly ICommandListener _listener;
             private readonly ParallelCommands _command;
-            private long _failCount;
-            private long _abortCount;
-            private long _remaining;
-            private Exception _error;
+            private volatile int _failCount;
+            private volatile int _abortCount;
+            private volatile int _remaining;
+            private volatile Exception _error;
         }
 
         private class DummyCommand : SyncCommand
