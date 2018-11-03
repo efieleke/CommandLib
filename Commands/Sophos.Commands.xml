@@ -463,6 +463,77 @@
             in that case (not the Canceled state). The underlying exception that the Task will report is CommandAbortedException.
             </remarks>
         </member>
+        <member name="M:Sophos.Commands.Command.AsTask(System.Boolean)">
+            <summary>
+            Returns a task that, when run, will execute this command passed as an argument. Note that this command must
+            not be disposed before the task is disposed. Also, note that behavior is undefined if this command is executing
+            at the time the task is run. This method is meant as a potential convenience. The more natural
+            way to execute commands is via the various Execute* methods.
+            </summary>
+            <param name="startTask">
+            If true, the task will be started before it is returned. Otherwise, the caller must
+            start the task in order for it to run (via its Start method, for example).
+            </param>
+            <returns>
+            The Task, which will have been started if 'startTask' was set to true.
+            </returns>
+            <remarks>
+            The returned Task may only be aborted during its execution if this Command is aborted. The Task will be in the Faulted state
+            in that case (not the Canceled state). The underlying exception that the Task will report is CommandAbortedException.
+            </remarks>
+        </member>
+        <member name="M:Sophos.Commands.Command.AsTask(System.Boolean,System.Object)">
+            <summary>
+            Returns a task that, when run, will execute this command passed as an argument. Note that this command must
+            not be disposed before the task is disposed. Also, note that behavior is undefined if this command is executing
+            at the time the task is run. This method is meant as a potential convenience. The more natural
+            way to execute commands is via the various Execute* methods.
+            </summary>
+            <param name="startTask">
+            If true, the task will be started before it is returned. Otherwise, the caller must
+            start the task in order for it to run (via its Start method, for example).
+            </param>
+            <param name="runtimeArg">
+            Some commands may expect some sort of argument at the time of execution, and some commands do not.
+            See the concrete command class of interest for details.
+            </param>
+            <returns>
+            The Task, which will have been started if 'startTask' was set to true.
+            </returns>
+            <remarks>
+            The returned Task may only be aborted during its execution if this Command is aborted. The Task will be in the Faulted state
+            in that case (not the Canceled state). The underlying exception that the Task will report is CommandAbortedException.
+            </remarks>
+        </member>
+        <member name="M:Sophos.Commands.Command.AsTask(System.Boolean,System.Object,Sophos.Commands.Command)">
+            <summary>
+            Returns a task that, when run, will execute this command passed as an argument. Note that this command must
+            not be disposed before the task is disposed. Also, note that behavior is undefined if this command is executing
+            at the time the task is run. This method is meant as a potential convenience. The more natural
+            way to execute commands is via the various Execute* methods.
+            </summary>
+            <param name="startTask">
+            If true, the task will be started before it is returned. Otherwise, the caller must
+            start the task in order for it to run (via its Start method, for example).
+            </param>
+            <param name="runtimeArg">
+            Some commands may expect some sort of argument at the time of execution, and some commands do not.
+            See the concrete command class of interest for details.
+            </param>
+            <param name="owner">
+            If you want this Command to pay attention to abort requests of a different command while running the returned Task,
+            set this value to that command. Note that if this Command is already assigned an owner, passing a non-null value will
+            raise an exception. Also note that the owner assignment is only in effect during the scope of this call. Upon return,
+            this command will revert to having no owner.
+            </param>
+            <returns>
+            The Task, which will have been started if 'startTask' was set to true.
+            </returns>
+            <remarks>
+            The returned Task may only be aborted during its execution if this Command is aborted. The Task will be in the Faulted state
+            in that case (not the Canceled state). The underlying exception that the Task will report is CommandAbortedException.
+            </remarks>
+        </member>
         <member name="M:Sophos.Commands.Command.Dispose">
             <summary>
             Call to dispose this command and release any resources that it holds. Only call this on top-level commands (i.e. commands that have no owner)
@@ -525,75 +596,6 @@
             <returns>
             Concrete commands may return a value of interest. See the concrete command class for details.
             Generic methods are also provided to automatically cast the return value to the expected type.
-            </returns>
-            <exception cref="T:Sophos.Commands.CommandAbortedException">Thrown when execution is aborted</exception>
-            <exception cref="T:System.ObjectDisposedException">Thrown if called after this object has been disposed</exception>
-            <exception cref="T:System.Exception">
-            Thrown if execution does not complete successfully. Call <see cref="M:Sophos.Commands.Command.GetAttachedErrorInfo(System.Exception)"/> to retrieve context information
-            about the command that was running at the time the exception was thrown.
-            </exception>
-            <remarks>
-            It is safe to call this any number of times, but it will cause undefined behavior to re-execute a
-            command that is already executing.
-            </remarks>
-        </member>
-        <member name="M:Sophos.Commands.Command.SyncExecute``1">
-            <summary>Executes the command and does not return until it finishes.</summary>
-            <typeparam name="TResult">The expected return type. An exception will be thrown if the actual return type cannot be cast to this type.</typeparam>
-            <returns>
-            Concrete commands may return a value of interest. See the concrete command class for details.
-            </returns>
-            <exception cref="T:Sophos.Commands.CommandAbortedException">Thrown when execution is aborted</exception>
-            <exception cref="T:System.ObjectDisposedException">Thrown if called after this object has been disposed</exception>
-            <exception cref="T:System.Exception">
-            Thrown if execution does not complete successfully. Call <see cref="M:Sophos.Commands.Command.GetAttachedErrorInfo(System.Exception)"/> to retrieve context information
-            about the command that was running at the time the exception was thrown.
-            </exception>
-            <remarks>
-            It is safe to call this any number of times, but it will cause undefined behavior to re-execute a
-            command that is already executing.
-            <para>
-            Some commands expect an argument be passed to SyncExecute. See the concrete command of interest for details.
-            If an argument is expected, call one of the overloaded SyncExecute() methods instead.
-            </para>
-            </remarks>
-        </member>
-        <member name="M:Sophos.Commands.Command.SyncExecute``1(System.Object)">
-            <summary>Executes the command and does not return until it finishes.</summary>
-            <typeparam name="TResult">The expected return type. An exception will be thrown if the actual return type cannot be cast to this type.</typeparam>
-            <param name="runtimeArg">
-            Some commands may expect some sort of argument at the time of execution, and some commands may ignore this parameter.
-            See the concrete command class of interest for details.
-            </param>
-            <returns>
-            Concrete commands may return a value of interest. See the concrete command class for details.
-            </returns>
-            <exception cref="T:Sophos.Commands.CommandAbortedException">Thrown when execution is aborted</exception>
-            <exception cref="T:System.ObjectDisposedException">Thrown if called after this object has been disposed</exception>
-            <exception cref="T:System.Exception">
-            Thrown if execution does not complete successfully. Call <see cref="M:Sophos.Commands.Command.GetAttachedErrorInfo(System.Exception)"/> to retrieve context information
-            about the command that was running at the time the exception was thrown.
-            </exception>
-            <remarks>
-            It is safe to call this any number of times, but it will cause undefined behavior to re-execute a
-            command that is already executing.
-            </remarks>
-        </member>
-        <member name="M:Sophos.Commands.Command.SyncExecute``1(System.Object,Sophos.Commands.Command)">
-            <summary>Executes the command and does not return until it finishes.</summary>
-            <typeparam name="TResult">The expected return type. An exception will be thrown if the actual return type cannot be cast to this type.</typeparam>
-            <param name="runtimeArg">
-            Some commands may expect some sort of argument at the time of execution, and some commands may ignore this parameter.
-            See the concrete command class of interest for details.
-            </param>
-            <param name="owner">
-            If you want this command to pay attention to abort requests of a different command, set this value to that command.
-            Note that if this Command is already assigned an owner, passing a non-null value will raise an exception. Also note
-            that the owner assignment is only in effect during the scope of this call. Upon return, this command will revert to
-            having no owner.
-            </param>
-            <returns>
-            Concrete commands may return a value of interest. See the concrete command class for details.
             </returns>
             <exception cref="T:Sophos.Commands.CommandAbortedException">Thrown when execution is aborted</exception>
             <exception cref="T:System.ObjectDisposedException">Thrown if called after this object has been disposed</exception>
@@ -758,6 +760,13 @@
             <summary>
             Signaled when an abort request has been made. The state of this handle must not be altered
             by anything but the framework.
+            </summary>
+        </member>
+        <member name="P:Sophos.Commands.Command.CancellationToken">
+            <summary>
+            Returns the CancellationToken for this command. The preferred way to cancel a command
+            is to call <see cref="M:Sophos.Commands.Command.Abort"/>, and the preferred way to check to see whether
+            a command has an outstanding abort request is via <see cref="P:Sophos.Commands.Command.AbortRequested"/>.
             </summary>
         </member>
         <member name="P:Sophos.Commands.Command.AbortRequested">
@@ -1120,7 +1129,7 @@
             </summary>
             <remarks>It is safe to change this property while the command is executing, but doing so will have no effect until the next time it is executed.</remarks>
         </member>
-        <member name="M:Sophos.Commands.DelayCommand.CreateTaskNoResult(System.Object,System.Threading.CancellationToken)">
+        <member name="M:Sophos.Commands.DelayCommand.CreateTaskNoResult(System.Nullable{System.TimeSpan},System.Threading.CancellationToken)">
             <inheritdoc />
         </member>
         <member name="T:Sophos.Commands.DelegateCommand`1">
@@ -1168,12 +1177,13 @@
         <member name="M:Sophos.Commands.DelegateCommand`1.CreateTask(System.Object,System.Threading.CancellationToken)">
             <inheritdoc />
         </member>
-        <member name="T:Sophos.Commands.DelegateCommandListener">
+        <member name="T:Sophos.Commands.DelegateCommandListener`1">
             <summary>
             Implements ICommandListener by using provided delegates.
             </summary>
+            <typeparam name="TResult">The type returned by the function delegate</typeparam>
         </member>
-        <member name="M:Sophos.Commands.DelegateCommandListener.#ctor(System.Action{System.Object},System.Action,System.Action{System.Exception})">
+        <member name="M:Sophos.Commands.DelegateCommandListener`1.#ctor(System.Action{`0},System.Action,System.Action{System.Exception})">
             <summary>
             Instantiates an ICommandListener that can be passed to Command.AsyncExecute()
             </summary>
@@ -1181,13 +1191,13 @@
             <param name="onAbort">Method to be called when a <see cref="T:Sophos.Commands.Command"/> is aborted</param>
             <param name="onFail">Method to be called when a <see cref="T:Sophos.Commands.Command"/> fails</param>
         </member>
-        <member name="M:Sophos.Commands.DelegateCommandListener.CommandSucceeded(System.Object)">
+        <member name="M:Sophos.Commands.DelegateCommandListener`1.CommandSucceeded(System.Object)">
             <inheritdoc />
         </member>
-        <member name="M:Sophos.Commands.DelegateCommandListener.CommandAborted">
+        <member name="M:Sophos.Commands.DelegateCommandListener`1.CommandAborted">
             <inheritdoc />
         </member>
-        <member name="M:Sophos.Commands.DelegateCommandListener.CommandFailed(System.Exception)">
+        <member name="M:Sophos.Commands.DelegateCommandListener`1.CommandFailed(System.Exception)">
             <inheritdoc />
         </member>
         <member name="T:Sophos.Commands.HttpRequestCommand">
@@ -1197,11 +1207,11 @@
             <remarks>
             <para>
             <see cref="M:Sophos.Commands.Command.SyncExecute(System.Object)"/> and <see cref="M:Sophos.Commands.Command.AsyncExecute(Sophos.Commands.ICommandListener,System.Object)"/> will accept 
-            an object of type IHttpRequestGenerator for the 'runtimeArg', If not null, that will be used instead of the
+            an object of type HttpRequestCommand.IRequestGenerator for the 'runtimeArg', If not null, that will be used instead of the
             IHttpRequestGenerator passed to the constructor.
             </para>
             <para>
-            This command returns from synchronous execution a .HttpResponseMessage that represents the server response from  the HTTP
+            This command returns from synchronous execution an HttpResponseMessage that represents the server response from  the HTTP
             operation. The 'result' parameter of <see cref="M:Sophos.Commands.ICommandListener.CommandSucceeded(System.Object)"/> will be set in similar fashion. It is the caller's
             responsibility to dispose of this response object.
             </para>
@@ -1340,7 +1350,7 @@
             </summary>
             <param name="disposing">Will be true if this was called as a direct result of the object being explicitly disposed.</param>
         </member>
-        <member name="M:Sophos.Commands.HttpRequestCommand.CreateTask(System.Object,System.Threading.CancellationToken)">
+        <member name="M:Sophos.Commands.HttpRequestCommand.CreateTask(Sophos.Commands.HttpRequestCommand.IRequestGenerator,System.Threading.CancellationToken)">
             <summary>
             Do not call this method from a derived class. It is called by the framework.
             </summary>
@@ -1394,6 +1404,70 @@
             your handler. Also, do not call the executing command's <see cref="M:Sophos.Commands.Command.Wait"/> method from within your handler, as that will cause deadlock.
             </remarks>
         </member>
+        <member name="T:Sophos.Commands.ICommandListener`1">
+            <summary>
+            An object implementing this interface is required as a parameter to certain overloads of <see cref="M:Sophos.Commands.Command.AsyncExecute(Sophos.Commands.ICommandListener)"/>.
+            Exactly one of its methods will eventually be called when a command is executed asynchronously, and it is guaranteed that the
+            call will be on a thread different from the thread AsyncExecute was called from.
+            </summary>
+            <remarks>
+            <para>
+            The <see cref="T:Sophos.Commands.Command"/> is in the last stage of execution when making these callbacks, so do not re-execute the command from within
+            your handler. Also, do not call the executing command's <see cref="M:Sophos.Commands.Command.Wait"/> from within your handler, as that will cause deadlock.
+            </para>
+            </remarks>
+            <typeparam name="TResult">The type of resulting data tha executing the related command produces</typeparam>
+        </member>
+        <member name="M:Sophos.Commands.ICommandListener`1.CommandSucceeded(`0)">
+            <summary>
+            Called when a <see cref="T:Sophos.Commands.Command"/> launched via <see cref="M:Sophos.Commands.Command.AsyncExecute(Sophos.Commands.ICommandListener)"/> succeeds.
+            </summary>
+            <param name="result">The resulting data that executing the <see cref="T:Sophos.Commands.Command"/> produced. </param>
+            <remarks>
+            The <see cref="T:Sophos.Commands.Command"/> is in the last stage of execution when making this callback, so do not re-execute the command from within
+            your handler. Also, do not call the executing command's <see cref="M:Sophos.Commands.Command.Wait"/> method from within your handler, as that will cause deadlock.
+            </remarks>
+        </member>
+        <member name="M:Sophos.Commands.ICommandListener`1.CommandAborted">
+            <summary>
+            Called when a <see cref="T:Sophos.Commands.Command"/> launched via <see cref="M:Sophos.Commands.Command.AsyncExecute(Sophos.Commands.ICommandListener)"/> was aborted.
+            </summary>
+            <remarks>
+            The <see cref="T:Sophos.Commands.Command"/> is in the last stage of execution when making this callback, so do not re-execute the command from within
+            your handler. Also, do not call the executing command's <see cref="M:Sophos.Commands.Command.Wait"/> method from within your handler, as that will cause deadlock.
+            </remarks>
+        </member>
+        <member name="M:Sophos.Commands.ICommandListener`1.CommandFailed(System.Exception)">
+            <summary>
+            Called when a <see cref="T:Sophos.Commands.Command"/> launched via <see cref="M:Sophos.Commands.Command.AsyncExecute(Sophos.Commands.ICommandListener)"/> fails.
+            </summary>
+            <param name="exc">The reason for failure</param>
+            <remarks>
+            The <see cref="T:Sophos.Commands.Command"/> is in the last stage of execution when making this callback, so do not re-execute the command from within
+            your handler. Also, do not call the executing command's <see cref="M:Sophos.Commands.Command.Wait"/> method from within your handler, as that will cause deadlock.
+            </remarks>
+        </member>
+        <member name="T:Sophos.Commands.CovariantListener`1">
+            <summary>
+            Converts an see<see cref="T:Sophos.Commands.ICommandListener`1"/> to an <see cref="T:Sophos.Commands.ICommandListener"/>"/>
+            </summary>
+            <typeparam name="TResult">The type of resulting data tha executing the related command produces</typeparam>
+        </member>
+        <member name="M:Sophos.Commands.CovariantListener`1.#ctor(Sophos.Commands.ICommandListener{`0})">
+            <summary>
+            Constructor
+            </summary>
+            <param name="listener">The listener to convert</param>
+        </member>
+        <member name="M:Sophos.Commands.CovariantListener`1.CommandSucceeded(System.Object)">
+            <inheritdoc />
+        </member>
+        <member name="M:Sophos.Commands.CovariantListener`1.CommandAborted">
+            <inheritdoc />
+        </member>
+        <member name="M:Sophos.Commands.CovariantListener`1.CommandFailed(System.Exception)">
+            <inheritdoc />
+        </member>
         <member name="T:Sophos.Commands.ICommandMonitor">
             <summary>
             This is a callback interface for <see cref="T:Sophos.Commands.Command"/> starting and finishing events. Its intended use is for logging and diagnostics.
@@ -1443,20 +1517,38 @@
             </para>
             </remarks>
         </member>
-        <member name="M:Sophos.Commands.ParallelCommands.#ctor(System.Boolean)">
+        <member name="T:Sophos.Commands.ParallelCommands.Behavior">
+            <summary>
+            Describes behaviors for a <see cref="T:Sophos.Commands.ParallelCommands"/> instance
+            </summary>
+        </member>
+        <member name="F:Sophos.Commands.ParallelCommands.Behavior.AbortUponFailure">
+            <summary>
+            If set, any sub-command run via this instance that fails will cause an abort request to be issued
+            to the still-running commands.
+            </summary>
+        </member>
+        <member name="F:Sophos.Commands.ParallelCommands.Behavior.AggregateErrors">
+            <summary>
+            If set, and errors occur, the exception raised will be an AggregateException, containing the exceptions
+            for every failed sub-command. Otherwise the exception raised will be the one raised by the first
+            command to fail (if any).
+            </summary>
+        </member>
+        <member name="M:Sophos.Commands.ParallelCommands.#ctor(Sophos.Commands.ParallelCommands.Behavior)">
             <summary>
             Constructs a ParallelCommands object as a top-level <see cref="T:Sophos.Commands.Command"/>
             </summary>
-            <param name="abortUponFailure">
-            If true, and any <see cref="T:Sophos.Commands.Command"/> within the collection fails, the rest of the executing commands will immediately be aborted
+            <param name="behavior">
+            Flags describing certain behaviors of this instance
             </param>
         </member>
-        <member name="M:Sophos.Commands.ParallelCommands.#ctor(System.Boolean,Sophos.Commands.Command)">
+        <member name="M:Sophos.Commands.ParallelCommands.#ctor(Sophos.Commands.ParallelCommands.Behavior,Sophos.Commands.Command)">
             <summary>
             Constructs a ParallelCommands object
             </summary>
-            <param name="abortUponFailure">
-            If true, and any command within the collection fails, the rest of the executing commands will immediately be aborted.
+            <param name="behavior">
+            Flags describing certain behaviors of this instance
             </param>
             <param name="owner">
             Specify null to indicate a top-level command. Otherwise, this command will be owned by 'owner'. Owned commands respond to
@@ -1476,11 +1568,6 @@
         <member name="M:Sophos.Commands.ParallelCommands.Clear">
             <summary>Empties all commands from the collection.</summary>
             <remarks>Behavior is undefined if you call this while this command is executing.</remarks>
-        </member>
-        <member name="P:Sophos.Commands.ParallelCommands.Commands">
-            <summary>
-            The commands that have been added to this collection
-            </summary>
         </member>
         <member name="M:Sophos.Commands.ParallelCommands.ExtendedDescription">
             <summary>
@@ -2176,6 +2263,157 @@
             <param name="runtimeArg">Not applicable</param>
             <returns>Not applicable</returns>
         </member>
+        <member name="T:Sophos.Commands.TaskCommand`2">
+            <summary>
+            This Command encapsulates a Task. Concrete classes must implement the abstract method
+            that creates the Task. If your implementation is naturally asynchronous but does not make use
+            of Tasks (i.e. the Task class), inherit directly from AsyncCommand instead.
+            </summary>
+            <remarks>
+            <para>
+            <see cref="M:Sophos.Commands.Command.SyncExecute(System.Object)"/> and <see cref="M:Sophos.Commands.Command.AsyncExecute(Sophos.Commands.ICommandListener,System.Object)"/> will accept 
+            an object for the 'runtimeArg'. This is passed on to the abstract <see cref="M:Sophos.Commands.TaskCommand`2.CreateTask(`0,System.Threading.CancellationToken)" /> method.
+            </para>
+            <para>
+            This command returns from synchronous execution the value of type TResult that the underlying Task returns. The 'result' parameter of
+            <see cref="M:Sophos.Commands.ICommandListener.CommandSucceeded(System.Object)"/> will be set in similar fashion. It is the caller's responsibility to dispose of this
+            response object if needed.
+            </para>
+            </remarks>
+            <typeparam name="TResult">The type returned with the Task</typeparam>
+            <typeparam name="TArg">The type of argument passed to the method that generates the task</typeparam>
+        </member>
+        <member name="M:Sophos.Commands.TaskCommand`2.SyncExecute">
+            <summary>
+            Covariant implementation of <see cref="M:Sophos.Commands.Command.SyncExecute"/>
+            </summary>
+            <returns>the same value that the underlying task returns</returns>
+            <remarks>See <see cref="M:Sophos.Commands.Command.SyncExecute"/> for further details.</remarks>
+        </member>
+        <member name="M:Sophos.Commands.TaskCommand`2.SyncExecute(System.Object)">
+            <summary>
+            Covariant implementation of <see cref="M:Sophos.Commands.Command.SyncExecute(System.Object)"/>
+            </summary>
+            <param name="runtimeArg">this is passed to the task instantiation method</param>
+            <returns>the same value that the underlying task returns</returns>
+            <remarks>See <see cref="M:Sophos.Commands.Command.SyncExecute(System.Object)"/> for further details.</remarks>
+        </member>
+        <member name="M:Sophos.Commands.TaskCommand`2.SyncExecute(`0)">
+            <summary>
+            Covariant implementation of <see cref="M:Sophos.Commands.Command.SyncExecute(System.Object)"/>
+            </summary>
+            <param name="runtimeArg">this is passed to the task instantiation method</param>
+            <returns>the same value that the underlying task returns</returns>
+            <remarks>See <see cref="M:Sophos.Commands.Command.SyncExecute(System.Object)"/> for further details.</remarks>
+        </member>
+        <member name="M:Sophos.Commands.TaskCommand`2.SyncExecute(System.Object,Sophos.Commands.Command)">
+            <summary>
+            Covariant implementation of <see cref="M:Sophos.Commands.Command.SyncExecute(System.Object,Sophos.Commands.Command)"/>
+            </summary>
+            <param name="runtimeArg">this is passed to the task instantiation method</param>
+            <param name="owner">
+            If you want this command to pay attention to abort requests of a different command, set this value to that command.
+            Note that if this Command is already assigned an owner, passing a non-null value will raise an exception. Also note
+            that the owner assignment is only in effect during the scope of this call. Upon return, this command will revert to
+            having no owner.
+            </param>
+            <returns>the same value that the underlying task returns</returns>
+            <remarks>See <see cref="M:Sophos.Commands.Command.SyncExecute(System.Object,Sophos.Commands.Command)"/> for further details.</remarks>
+        </member>
+        <member name="M:Sophos.Commands.TaskCommand`2.SyncExecute(`0,Sophos.Commands.Command)">
+            <summary>
+            Covariant implementation of <see cref="M:Sophos.Commands.Command.SyncExecute(System.Object,Sophos.Commands.Command)"/>
+            </summary>
+            <param name="runtimeArg">this is passed to the task instantiation method</param>
+            <param name="owner">
+            If you want this command to pay attention to abort requests of a different command, set this value to that command.
+            Note that if this Command is already assigned an owner, passing a non-null value will raise an exception. Also note
+            that the owner assignment is only in effect during the scope of this call. Upon return, this command will revert to
+            having no owner.
+            </param>
+            <returns>the same value that the underlying task returns</returns>
+            <remarks>See <see cref="M:Sophos.Commands.Command.SyncExecute(System.Object,Sophos.Commands.Command)"/> for further details.</remarks>
+        </member>
+        <member name="M:Sophos.Commands.TaskCommand`2.AsyncExecute(System.Action{`1},System.Action,System.Action{System.Exception})">
+            <summary>
+            Covariant implementation of <see cref="M:Sophos.Commands.Command.AsyncExecute(System.Action{System.Object},System.Action,System.Action{System.Exception})"/>
+            </summary>
+            <param name="onSuccess">Callback for successful operation</param>
+            <param name="onAbort">Callback for aborted operation</param>
+            <param name="onFail">Callback for failed operation</param>
+            <remarks>See <see cref="M:Sophos.Commands.Command.AsyncExecute(System.Action{System.Object},System.Action,System.Action{System.Exception})"/> for further details</remarks>
+        </member>
+        <member name="M:Sophos.Commands.TaskCommand`2.AsyncExecute(Sophos.Commands.ICommandListener{`1})">
+            <summary>
+            Covariant implementation of <see cref="M:Sophos.Commands.Command.AsyncExecute(Sophos.Commands.ICommandListener)"/>
+            </summary>
+            <param name="listener">One of this member's methods will be called upon completion of the command</param>
+            <remarks>See <see cref="M:Sophos.Commands.Command.AsyncExecute(Sophos.Commands.ICommandListener)"/> for further details</remarks>
+        </member>
+        <member name="M:Sophos.Commands.TaskCommand`2.AsyncExecute(System.Action{`1},System.Action,System.Action{System.Exception},`0)">
+            <summary>
+            Covariant implementation of <see cref="M:Sophos.Commands.Command.AsyncExecute(System.Action{System.Object},System.Action,System.Action{System.Exception},System.Object)"/>
+            </summary>
+            <param name="onSuccess">Callback for successful operation</param>
+            <param name="onAbort">Callback for aborted operation</param>
+            <param name="onFail">Callback for failed operation</param>
+            <param name="runtimeArg">This value is passed to the method that instantiates the task</param>
+            <remarks>See <see cref="M:Sophos.Commands.Command.AsyncExecute(System.Action{System.Object},System.Action,System.Action{System.Exception},System.Object)"/> for further details</remarks>
+        </member>
+        <member name="M:Sophos.Commands.TaskCommand`2.AsyncExecute(Sophos.Commands.ICommandListener{`1},`0)">
+            <summary>
+            Covariant implementation of <see cref="M:Sophos.Commands.Command.AsyncExecute(Sophos.Commands.ICommandListener,System.Object)"/>
+            </summary>
+            <param name="listener">One of this member's methods will be called upon completion of the command</param>
+            <param name="runtimeArg">This value is passed to the method that instantiates the task</param>
+            <remarks>See <see cref="M:Sophos.Commands.Command.AsyncExecute(Sophos.Commands.ICommandListener,System.Object)"/> for further details</remarks>
+        </member>
+        <member name="M:Sophos.Commands.TaskCommand`2.#ctor">
+            <summary>
+            Constructor for a top-level command
+            </summary>
+        </member>
+        <member name="M:Sophos.Commands.TaskCommand`2.#ctor(Sophos.Commands.Command)">
+            <summary>
+            Constructor
+            </summary>
+            <param name="owner">
+            Specify null to indicate a top-level command. Otherwise, this command will be owned by 'owner'. Owned commands respond to
+            abort requests made of their owner. Also, owned commands are disposed of when the owner is disposed.
+            </param>
+        </member>
+        <member name="M:Sophos.Commands.TaskCommand`2.Dispose(System.Boolean)">
+            <summary>
+            Implementations should override only if they contain members that must be disposed. Remember to invoke the base class implementation from within any override.
+            </summary>
+            <param name="disposing">Will be true if this was called as a direct result of the object being explicitly disposed.</param>
+        </member>
+        <member name="M:Sophos.Commands.TaskCommand`2.AsyncExecuteImpl(Sophos.Commands.ICommandListener,System.Object)">
+            <summary>
+            Do not call this method from a derived class. It is called by the framework.
+            </summary>
+            <param name="listener">Not applicable</param>
+            <param name="runtimeArg">This is passed on to the underlying Task creation method.</param>
+        </member>
+        <member name="M:Sophos.Commands.TaskCommand`2.CreateTask(`0,System.Threading.CancellationToken)">
+            <summary>
+            Concrete classes must implement this by returning a Task. If the delegate method takes significant
+            time, it is advisable to have it be responsive to abort requests by checking
+            <see cref="P:Sophos.Commands.Command.AbortRequested"/> or calling <see cref="M:Sophos.Commands.Command.CheckAbortFlag"/>.
+            </summary>
+            <param name="runtimeArg">
+            Concrete implementations decide what to do with this. This value is passed on from the runtimeArg
+            that was provided to the synchronous or asynchronous execution methods.
+            </param>
+            <param name="cancellationToken">
+            If your implementation will create tasks that require a cancellation token to be responsive
+            to abort requests, pass this token along.
+            </param>
+            <returns>
+            This value is passed along as the return value of synchronous execution routines, or the 'result' parameter
+            of <see cref="M:Sophos.Commands.ICommandListener.CommandSucceeded(System.Object)"/> for asynchronous execution routines.
+            </returns>
+        </member>
         <member name="T:Sophos.Commands.TaskCommand`1">
             <summary>
             This Command encapsulates a Task. Concrete classes must implement the abstract method
@@ -2185,19 +2423,18 @@
             <remarks>
             <para>
             <see cref="M:Sophos.Commands.Command.SyncExecute(System.Object)"/> and <see cref="M:Sophos.Commands.Command.AsyncExecute(Sophos.Commands.ICommandListener,System.Object)"/> will accept 
-            an object for the 'runtimeArg'. This is passed on to the abstract <see cref="M:Sophos.Commands.TaskCommand`1.CreateTask(System.Object,System.Threading.CancellationToken)" /> method.
+            an object for the 'runtimeArg'. This is passed on to the abstract <see cref="M:Sophos.Commands.TaskCommand`1.CreateTask(`0,System.Threading.CancellationToken)" /> method.
             </para>
             <para>
-            This command returns from synchronous execution the value of type TResult that the underlying Task returns. The 'result' parameter of
-            <see cref="M:Sophos.Commands.ICommandListener.CommandSucceeded(System.Object)"/> will be set in similar fashion. It is the caller's responsibility to dispose of this
-            response object if needed.
+            This command returns from synchronous execution the bool value true. The 'result' parameter of
+            <see cref="M:Sophos.Commands.ICommandListener.CommandSucceeded(System.Object)"/> will be set to true as well. 
             </para>
             </remarks>
-            <typeparam name="TResult">The type returned with the Task</typeparam>
+            <typeparam name="TArg">The type of argument passed to method that creates the task</typeparam>
         </member>
         <member name="M:Sophos.Commands.TaskCommand`1.#ctor">
             <summary>
-            Constructor for a top-level command
+            Constructor for a top level command
             </summary>
         </member>
         <member name="M:Sophos.Commands.TaskCommand`1.#ctor(Sophos.Commands.Command)">
@@ -2209,20 +2446,7 @@
             abort requests made of their owner. Also, owned commands are disposed of when the owner is disposed.
             </param>
         </member>
-        <member name="M:Sophos.Commands.TaskCommand`1.Dispose(System.Boolean)">
-            <summary>
-            Implementations should override only if they contain members that must be disposed. Remember to invoke the base class implementation from within any override.
-            </summary>
-            <param name="disposing">Will be true if this was called as a direct result of the object being explicitly disposed.</param>
-        </member>
-        <member name="M:Sophos.Commands.TaskCommand`1.AsyncExecuteImpl(Sophos.Commands.ICommandListener,System.Object)">
-            <summary>
-            Do not call this method from a derived class. It is called by the framework.
-            </summary>
-            <param name="listener">Not applicable</param>
-            <param name="runtimeArg">This is passed on to the underlying Task creation method.</param>
-        </member>
-        <member name="M:Sophos.Commands.TaskCommand`1.CreateTask(System.Object,System.Threading.CancellationToken)">
+        <member name="M:Sophos.Commands.TaskCommand`1.CreateTaskNoResult(`0,System.Threading.CancellationToken)">
             <summary>
             Concrete classes must implement this by returning a Task. If the delegate method takes significant
             time, it is advisable to have it be responsive to abort requests by checking
@@ -2241,57 +2465,7 @@
             of <see cref="M:Sophos.Commands.ICommandListener.CommandSucceeded(System.Object)"/> for asynchronous execution routines.
             </returns>
         </member>
-        <member name="T:Sophos.Commands.TaskCommand">
-            <summary>
-            This Command encapsulates a Task. Concrete classes must implement the abstract method
-            that creates the Task. If your implementation is naturally asynchronous but does not make use
-            of Tasks (i.e. the Task class), inherit directly from AsyncCommand instead.
-            </summary>
-            <remarks>
-            <para>
-            <see cref="M:Sophos.Commands.Command.SyncExecute(System.Object)"/> and <see cref="M:Sophos.Commands.Command.AsyncExecute(Sophos.Commands.ICommandListener,System.Object)"/> will accept 
-            an object for the 'runtimeArg'. This is passed on to the abstract <see cref="M:Sophos.Commands.TaskCommand.CreateTask(System.Object,System.Threading.CancellationToken)" /> method.
-            </para>
-            <para>
-            This command returns from synchronous execution the bool value true. The 'result' parameter of
-            <see cref="M:Sophos.Commands.ICommandListener.CommandSucceeded(System.Object)"/> will be set to true as well. 
-            </para>
-            </remarks>
-        </member>
-        <member name="M:Sophos.Commands.TaskCommand.#ctor">
-            <summary>
-            Constructor for a top level command
-            </summary>
-        </member>
-        <member name="M:Sophos.Commands.TaskCommand.#ctor(Sophos.Commands.Command)">
-            <summary>
-            Constructor
-            </summary>
-            <param name="owner">
-            Specify null to indicate a top-level command. Otherwise, this command will be owned by 'owner'. Owned commands respond to
-            abort requests made of their owner. Also, owned commands are disposed of when the owner is disposed.
-            </param>
-        </member>
-        <member name="M:Sophos.Commands.TaskCommand.CreateTaskNoResult(System.Object,System.Threading.CancellationToken)">
-            <summary>
-            Concrete classes must implement this by returning a Task. If the delegate method takes significant
-            time, it is advisable to have it be responsive to abort requests by checking
-            <see cref="P:Sophos.Commands.Command.AbortRequested"/> or calling <see cref="M:Sophos.Commands.Command.CheckAbortFlag"/>.
-            </summary>
-            <param name="runtimeArg">
-            Concrete implementations decide what to do with this. This value is passed on from the runtimeArg
-            that was provided to the synchronous or asynchronous execution methods.
-            </param>
-            <param name="cancellationToken">
-            If your implementation will create tasks that require a cancellation token to be responsive
-            to abort requests, pass this token along.
-            </param>
-            <returns>
-            This value is passed along as the return value of synchronous execution routines, or the 'result' parameter
-            of <see cref="M:Sophos.Commands.ICommandListener.CommandSucceeded(System.Object)"/> for asynchronous execution routines.
-            </returns>
-        </member>
-        <member name="M:Sophos.Commands.TaskCommand.CreateTask(System.Object,System.Threading.CancellationToken)">
+        <member name="M:Sophos.Commands.TaskCommand`1.CreateTask(`0,System.Threading.CancellationToken)">
             <inheritdoc />
         </member>
         <member name="T:Sophos.Commands.TimeLimitedCommand">

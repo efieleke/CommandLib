@@ -10,7 +10,7 @@ namespace Sophos.Commands
     /// the <see cref="Command.AbortRequested"/> flag on the command that is the owner of this command.
     /// </summary>
     /// <typeparam name="TResult">The type returned by the delegate</typeparam>
-	public sealed class DelegateCommand<TResult> : TaskCommand<TResult>
+	public sealed class DelegateCommand<TResult> : TaskCommand<object, TResult>
 	{
 		/// <summary>
 		/// Constructs a command that will run the provided function, with no owner

@@ -5,7 +5,8 @@ namespace Sophos.Commands
 	/// <summary>
 	/// Implements ICommandListener by using provided delegates.
 	/// </summary>
-	public class DelegateCommandListener : ICommandListener
+	/// <typeparam name="TResult">The type returned by the function delegate</typeparam>
+	public class DelegateCommandListener<TResult> : ICommandListener
 	{
 		/// <summary>
 		/// Instantiates an ICommandListener that can be passed to Command.AsyncExecute()
@@ -13,7 +14,7 @@ namespace Sophos.Commands
 		/// <param name="onSuccess">Method to be called when a <see cref="Command"/> succeeds synchronously</param>
 		/// <param name="onAbort">Method to be called when a <see cref="Command"/> is aborted</param>
 		/// <param name="onFail">Method to be called when a <see cref="Command"/> fails</param>
-		public DelegateCommandListener(Action<object> onSuccess, Action onAbort, Action<Exception> onFail)
+		public DelegateCommandListener(Action<TResult> onSuccess, Action onAbort, Action<Exception> onFail)
 		{
 			_onSuccess = onSuccess?? throw new ArgumentNullException(nameof(onSuccess));
 			_onAbort = onAbort ?? throw new ArgumentNullException(nameof(onAbort));
@@ -23,7 +24,7 @@ namespace Sophos.Commands
 		/// <inheritdoc />
 		public void CommandSucceeded(object result)
 		{
-			_onSuccess(result);
+			_onSuccess((TResult)result);
 		}
 
 		/// <inheritdoc />
@@ -38,7 +39,7 @@ namespace Sophos.Commands
 			_onFail(exc);
 		}
 
-		private readonly Action<object> _onSuccess;
+		private readonly Action<TResult> _onSuccess;
 		private readonly Action _onAbort;
 		private readonly Action<Exception> _onFail;
 	}

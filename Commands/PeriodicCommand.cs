@@ -147,7 +147,7 @@ namespace Sophos.Commands
                         throw new ArgumentException($"Unknown interval type {intervalType}", nameof(intervalType));
                 }
 
-                var parallelCmds = new ParallelCommands(true, this);
+                var parallelCmds = new ParallelCommands(ParallelCommands.Behavior.AbortUponFailure, this);
                 parallelCmds.Add(command);
                 parallelCmds.Add(_pause);
                 _collectionCmd = parallelCmds;
@@ -291,7 +291,7 @@ namespace Sophos.Commands
 
                     try
                     {
-                        _collectionCmd.SyncExecute<object>(runtimeArg);
+                        _collectionCmd.SyncExecute(runtimeArg);
                     }
                     finally
                     {
@@ -300,7 +300,7 @@ namespace Sophos.Commands
                 }
                 else
                 {
-                    _collectionCmd.SyncExecute<object>(runtimeArg);
+                    _collectionCmd.SyncExecute(runtimeArg);
                 }
             }
 

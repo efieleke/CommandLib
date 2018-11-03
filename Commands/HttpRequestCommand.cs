@@ -6,22 +6,22 @@ using System.Threading.Tasks;
 
 namespace Sophos.Commands
 {
-	/// <summary>
-	/// A <see cref="Command"/> wrapper for <see cref="HttpClient.SendAsync(HttpRequestMessage)"/>
-	/// </summary>
-	/// <remarks>
-	/// <para>
-	/// <see cref="Command.SyncExecute(object)"/> and <see cref="Command.AsyncExecute(ICommandListener, object)"/> will accept 
-	/// an object of type IHttpRequestGenerator for the 'runtimeArg', If not null, that will be used instead of the
-	/// IHttpRequestGenerator passed to the constructor.
-	/// </para>
-	/// <para>
-	/// This command returns from synchronous execution a .HttpResponseMessage that represents the server response from  the HTTP
-	/// operation. The 'result' parameter of <see cref="ICommandListener.CommandSucceeded"/> will be set in similar fashion. It is the caller's
-	/// responsibility to dispose of this response object.
-	/// </para>
-	/// </remarks>
-	public class HttpRequestCommand : TaskCommand<HttpResponseMessage>
+    /// <summary>
+    /// A <see cref="Command"/> wrapper for <see cref="HttpClient.SendAsync(HttpRequestMessage)"/>
+    /// </summary>
+    /// <remarks>
+    /// <para>
+    /// <see cref="Command.SyncExecute(object)"/> and <see cref="Command.AsyncExecute(ICommandListener, object)"/> will accept 
+    /// an object of type HttpRequestCommand.IRequestGenerator for the 'runtimeArg', If not null, that will be used instead of the
+    /// IHttpRequestGenerator passed to the constructor.
+    /// </para>
+    /// <para>
+    /// This command returns from synchronous execution an HttpResponseMessage that represents the server response from  the HTTP
+    /// operation. The 'result' parameter of <see cref="ICommandListener.CommandSucceeded"/> will be set in similar fashion. It is the caller's
+    /// responsibility to dispose of this response object.
+    /// </para>
+    /// </remarks>
+    public class HttpRequestCommand : TaskCommand<HttpRequestCommand.IRequestGenerator, HttpResponseMessage>
     {
         /// <summary>
         /// Users of HttpRequestCommand must implement this interface and pass an instance to either the constructor or SyncExecute.
@@ -233,9 +233,9 @@ namespace Sophos.Commands
 		/// <param name="runtimeArg"></param>
 		/// <param name="cancellationToken"></param>
 		/// <returns>the task</returns>
-		protected sealed override async Task<HttpResponseMessage> CreateTask(object runtimeArg, CancellationToken cancellationToken)
+		protected sealed override async Task<HttpResponseMessage> CreateTask(IRequestGenerator runtimeArg, CancellationToken cancellationToken)
 		{
-			IRequestGenerator generator = runtimeArg == null ? _requestGenerator : (IRequestGenerator) runtimeArg;
+			IRequestGenerator generator = runtimeArg ?? _requestGenerator;
 
 			using (HttpRequestMessage request = generator.GenerateRequest())
 			{

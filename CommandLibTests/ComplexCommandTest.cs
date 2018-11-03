@@ -84,7 +84,7 @@ namespace CommandLibTests
                 parallel.Add(GenerateParallelCommands(maxPauseMS, insertFailure));
                 seq.Add(GenerateParallelCommands(maxPauseMS, insertFailure));
                 seq.Add(GenerateSequentialCommands(maxPauseMS, insertFailure));
-                ParallelCommands combined = new ParallelCommands(false);
+                var combined = new ParallelCommands(0);
                 combined.Add(seq);
                 combined.Add(parallel);
                 _cmd = new PeriodicCommand(
@@ -118,7 +118,7 @@ namespace CommandLibTests
                 {
                     string _ = "test";
                     
-                    if (pauseCmd.SyncExecute<string>(_, this) != _)
+                    if ((string)pauseCmd.SyncExecute(_, this) != _)
                     {
                         throw new Exception("Unexpected return value from pause command execution");
                     }
@@ -129,7 +129,7 @@ namespace CommandLibTests
 
             private static ParallelCommands GenerateParallelCommands(int maxPauseMS, bool insertFailure)
             {
-                ParallelCommands cmds = new ParallelCommands(false);
+                var cmds = new ParallelCommands(0);
 
                 foreach (Command cmd in GenerateCommands(maxPauseMS, insertFailure))
                 {

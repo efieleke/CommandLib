@@ -26,7 +26,7 @@ namespace CommandLibTests
                 cmd.Abort(); // should be a no-op
 
 	            // Only doing this hooey-booey for code coverage reasons
-                object result = runtimeArg == null ? cmd.SyncExecute<object>() : cmd.SyncExecute<object>(runtimeArg);
+                object result = runtimeArg == null ? cmd.SyncExecute() : cmd.SyncExecute(runtimeArg);
 
                 if (compare == null)
                 {

@@ -14,7 +14,7 @@ namespace Sophos.Commands
     /// ignore the 'runtimeArg' value that is passed in
     /// </para>
     /// </remarks>
-    public class DelayCommand : TaskCommand
+    public class DelayCommand : TaskCommand<TimeSpan?>
     {
         /// <summary>
         /// Constructor for a top-level command
@@ -61,9 +61,9 @@ namespace Sophos.Commands
         }
 
         /// <inheritdoc />
-        protected override Task CreateTaskNoResult(object runtimeArg, CancellationToken cancellationToken)
+        protected override Task CreateTaskNoResult(TimeSpan? runtimeArg, CancellationToken cancellationToken)
         {
-            return Task.Delay(Duration, cancellationToken);
+            return Task.Delay(runtimeArg ?? Duration, cancellationToken);
         }
 
         private TimeSpan _duration;

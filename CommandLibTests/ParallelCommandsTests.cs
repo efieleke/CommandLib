@@ -16,11 +16,14 @@ namespace CommandLibTests
 
         private void TestHappyPath(bool abortUponFailure)
         {
-            ParallelCommands parallelCmds = new ParallelCommands(abortUponFailure);
-            Assert.IsFalse(parallelCmds.Commands.GetEnumerator().MoveNext());
+            ParallelCommands.Behavior behavior = abortUponFailure
+                ? ParallelCommands.Behavior.AbortUponFailure | ParallelCommands.Behavior.AggregateErrors
+                : ParallelCommands.Behavior.AggregateErrors;
+
+            var parallelCmds = new ParallelCommands(behavior);
             HappyPathTest.Run(parallelCmds, null, null);
             parallelCmds.Dispose();
-            parallelCmds = new ParallelCommands(abortUponFailure);
+            parallelCmds = new ParallelCommands(behavior);
             const int count = 10;
 
             for (int i = 0; i < count; ++i)
@@ -28,15 +31,6 @@ namespace CommandLibTests
                 parallelCmds.Add(new AddCommand(1));
             }
 
-            int addedCount = 0;
-
-            foreach(Command cmd in parallelCmds.Commands)
-            {
-                Assert.IsTrue(cmd is AddCommand);
-                ++addedCount;
-            }
-
-            Assert.AreEqual(addedCount, count);
             HappyPathTest.Run(parallelCmds, 0, null);
             parallelCmds.Clear();
             HappyPathTest.Run(parallelCmds, 0, null);
@@ -52,21 +46,25 @@ namespace CommandLibTests
 
         private void TestAbort(bool abortUponFailure)
         {
-            using (ParallelCommands parallelCmds = new ParallelCommands(abortUponFailure))
+            ParallelCommands.Behavior behavior = abortUponFailure
+                ? ParallelCommands.Behavior.AbortUponFailure | ParallelCommands.Behavior.AggregateErrors
+                : ParallelCommands.Behavior.AggregateErrors;
+
+            using (var parallelCmds = new ParallelCommands(behavior))
             {
                 parallelCmds.Add(new PauseCommand(TimeSpan.FromMilliseconds(10)));
                 parallelCmds.Add(new NeverEndingAsyncCommand());
                 AbortTest.Run(parallelCmds, null, 5);
             }
 
-            using (ParallelCommands parallelCmds = new ParallelCommands(abortUponFailure))
+            using (var parallelCmds = new ParallelCommands(behavior))
             {
                 parallelCmds.Add(new NeverEndingAsyncCommand());
                 parallelCmds.Add(new PauseCommand(TimeSpan.FromMilliseconds(10)));
                 AbortTest.Run(parallelCmds, null, 20);
             }
 
-            using (ParallelCommands parallelCmds = new ParallelCommands(abortUponFailure))
+            using (var parallelCmds = new ParallelCommands(behavior))
             {
                 parallelCmds.Add(new NeverEndingAsyncCommand());
                 parallelCmds.Add(new NeverEndingAsyncCommand());
@@ -83,22 +81,27 @@ namespace CommandLibTests
 
         private void TestFail(bool abortUponFailure)
         {
-            ParallelCommands parallelCmds = new ParallelCommands(abortUponFailure);
+            ParallelCommands.Behavior behavior = abortUponFailure
+                ? ParallelCommands.Behavior.AbortUponFailure | ParallelCommands.Behavior.AggregateErrors
+                : ParallelCommands.Behavior.AggregateErrors;
+
+            var parallelCmds = new ParallelCommands(behavior);
             parallelCmds.Add(new PauseCommand(TimeSpan.FromMilliseconds(0)));
             parallelCmds.Add(new FailingCommand());
-            FailTest.Run<FailingCommand.FailException>(parallelCmds, null);
+            FailTest.Run<AggregateException>(parallelCmds, null);
+            //FailTest.Run<FailingCommand.FailException>(parallelCmds, null);
             parallelCmds.Dispose();
 
-            parallelCmds = new ParallelCommands(abortUponFailure);
+            parallelCmds = new ParallelCommands(behavior);
             parallelCmds.Add(new FailingCommand());
             parallelCmds.Add(new PauseCommand(TimeSpan.FromMilliseconds(0)));
-            FailTest.Run<FailingCommand.FailException>(parallelCmds, null);
+            FailTest.Run<AggregateException>(parallelCmds, null);
             parallelCmds.Dispose();
 
-            parallelCmds = new ParallelCommands(abortUponFailure);
+            parallelCmds = new ParallelCommands(behavior);
             parallelCmds.Add(new PauseCommand(TimeSpan.FromMilliseconds(0)));
             parallelCmds.Add(new FailingCommand());
-            FailTest.Run<FailingCommand.FailException>(parallelCmds, null);
+            FailTest.Run<AggregateException>(parallelCmds, null);
             parallelCmds.Dispose();
         }
     }

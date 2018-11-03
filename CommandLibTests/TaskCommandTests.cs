@@ -144,7 +144,7 @@ namespace CommandLibTests
             });
         }
 
-        private class DoNothingCommand : TaskCommand<int>
+        private class DoNothingCommand : TaskCommand<int, int>
         {
             internal enum Behavior
             {
@@ -164,7 +164,7 @@ namespace CommandLibTests
                 _behavior = behavior;
             }
 
-            protected override Task<int> CreateTask(object runtimeArg, CancellationToken cancellationToken)
+            protected override Task<int> CreateTask(int runtimeArg, CancellationToken cancellationToken)
             {
                 switch (_behavior)
                 {
@@ -182,7 +182,7 @@ namespace CommandLibTests
                                 case Behavior.Abort when _abortEvent.WaitOne():
                                     throw new CommandAbortedException();
                                 default:
-                                    return (int) runtimeArg;
+                                    return runtimeArg;
                             }
                         });
                 }

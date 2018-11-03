@@ -21,8 +21,121 @@ namespace Sophos.Commands
     /// </para>
     /// </remarks>
     /// <typeparam name="TResult">The type returned with the Task</typeparam>
-	public abstract class TaskCommand<TResult> : AsyncCommand
+    /// <typeparam name="TArg">The type of argument passed to the method that generates the task</typeparam>
+    public abstract class TaskCommand<TArg, TResult> : AsyncCommand
     {
+        /// <summary>
+        /// Covariant implementation of <see cref="Command.SyncExecute()"/>
+        /// </summary>
+        /// <returns>the same value that the underlying task returns</returns>
+        /// <remarks>See <see cref="Command.SyncExecute()"/> for further details.</remarks>
+        public new TResult SyncExecute()
+        {
+            return (TResult)base.SyncExecute();
+        }
+
+        /// <summary>
+        /// Covariant implementation of <see cref="Command.SyncExecute(object)"/>
+        /// </summary>
+        /// <param name="runtimeArg">this is passed to the task instantiation method</param>
+        /// <returns>the same value that the underlying task returns</returns>
+        /// <remarks>See <see cref="Command.SyncExecute(object)"/> for further details.</remarks>
+        public new TResult SyncExecute(object runtimeArg)
+        {
+            return (TResult)base.SyncExecute(runtimeArg);
+        }
+
+        /// <summary>
+        /// Covariant implementation of <see cref="Command.SyncExecute(object)"/>
+        /// </summary>
+        /// <param name="runtimeArg">this is passed to the task instantiation method</param>
+        /// <returns>the same value that the underlying task returns</returns>
+        /// <remarks>See <see cref="Command.SyncExecute(object)"/> for further details.</remarks>
+        public TResult SyncExecute(TArg runtimeArg)
+        {
+            return (TResult)base.SyncExecute(runtimeArg);
+        }
+
+        /// <summary>
+        /// Covariant implementation of <see cref="Command.SyncExecute(object, Command)"/>
+        /// </summary>
+        /// <param name="runtimeArg">this is passed to the task instantiation method</param>
+        /// <param name="owner">
+        /// If you want this command to pay attention to abort requests of a different command, set this value to that command.
+        /// Note that if this Command is already assigned an owner, passing a non-null value will raise an exception. Also note
+        /// that the owner assignment is only in effect during the scope of this call. Upon return, this command will revert to
+        /// having no owner.
+        /// </param>
+        /// <returns>the same value that the underlying task returns</returns>
+        /// <remarks>See <see cref="Command.SyncExecute(object, Command)"/> for further details.</remarks>
+        public new TResult SyncExecute(object runtimeArg, Command owner)
+        {
+            return (TResult)base.SyncExecute(runtimeArg, owner);
+        }
+
+        /// <summary>
+        /// Covariant implementation of <see cref="Command.SyncExecute(object, Command)"/>
+        /// </summary>
+        /// <param name="runtimeArg">this is passed to the task instantiation method</param>
+        /// <param name="owner">
+        /// If you want this command to pay attention to abort requests of a different command, set this value to that command.
+        /// Note that if this Command is already assigned an owner, passing a non-null value will raise an exception. Also note
+        /// that the owner assignment is only in effect during the scope of this call. Upon return, this command will revert to
+        /// having no owner.
+        /// </param>
+        /// <returns>the same value that the underlying task returns</returns>
+        /// <remarks>See <see cref="Command.SyncExecute(object, Command)"/> for further details.</remarks>
+        public TResult SyncExecute(TArg runtimeArg, Command owner)
+        {
+            return (TResult)base.SyncExecute(runtimeArg, owner);
+        }
+
+        /// <summary>
+        /// Covariant implementation of <see cref="Command.AsyncExecute(Action{object}, Action, Action{Exception})"/>
+        /// </summary>
+        /// <param name="onSuccess">Callback for successful operation</param>
+        /// <param name="onAbort">Callback for aborted operation</param>
+        /// <param name="onFail">Callback for failed operation</param>
+        /// <remarks>See <see cref="Command.AsyncExecute(Action{object}, Action, Action{Exception})"/> for further details</remarks>
+        public void AsyncExecute(Action<TResult> onSuccess, Action onAbort, Action<Exception> onFail)
+        {
+            AsyncExecute(new DelegateCommandListener<TResult>(onSuccess, onAbort, onFail));
+        }
+
+        /// <summary>
+        /// Covariant implementation of <see cref="Command.AsyncExecute(ICommandListener)"/>
+        /// </summary>
+        /// <param name="listener">One of this member's methods will be called upon completion of the command</param>
+        /// <remarks>See <see cref="Command.AsyncExecute(ICommandListener)"/> for further details</remarks>
+        public void AsyncExecute(ICommandListener<TResult> listener)
+        {
+            base.AsyncExecute(new CovariantListener<TResult>(listener));
+        }
+
+        /// <summary>
+        /// Covariant implementation of <see cref="Command.AsyncExecute(Action{object}, Action, Action{Exception}, object)"/>
+        /// </summary>
+        /// <param name="onSuccess">Callback for successful operation</param>
+        /// <param name="onAbort">Callback for aborted operation</param>
+        /// <param name="onFail">Callback for failed operation</param>
+        /// <param name="runtimeArg">This value is passed to the method that instantiates the task</param>
+        /// <remarks>See <see cref="Command.AsyncExecute(Action{object}, Action, Action{Exception}, object)"/> for further details</remarks>
+        public void AsyncExecute(Action<TResult> onSuccess, Action onAbort, Action<Exception> onFail, TArg runtimeArg)
+        {
+            AsyncExecute(new DelegateCommandListener<TResult>(onSuccess, onAbort, onFail), runtimeArg);
+        }
+
+        /// <summary>
+        /// Covariant implementation of <see cref="Command.AsyncExecute(ICommandListener, object)"/>
+        /// </summary>
+        /// <param name="listener">One of this member's methods will be called upon completion of the command</param>
+        /// <param name="runtimeArg">This value is passed to the method that instantiates the task</param>
+        /// <remarks>See <see cref="Command.AsyncExecute(ICommandListener, object)"/> for further details</remarks>
+        public void AsyncExecute(ICommandListener<TResult> listener, TArg runtimeArg)
+        {
+            base.AsyncExecute(new CovariantListener<TResult>(listener), runtimeArg);
+        }
+
         /// <summary>
         /// Constructor for a top-level command
         /// </summary>
@@ -69,7 +182,7 @@ namespace Sophos.Commands
 
             try
             {
-                _task = CreateTask(runtimeArg, CancellationToken);
+                _task = CreateTask((TArg)runtimeArg, CancellationToken);
             }
             catch (Exception e)
             {
@@ -186,7 +299,7 @@ namespace Sophos.Commands
         /// This value is passed along as the return value of synchronous execution routines, or the 'result' parameter
         /// of <see cref="ICommandListener.CommandSucceeded"/> for asynchronous execution routines.
         /// </returns>
-        protected abstract Task<TResult> CreateTask(object runtimeArg, CancellationToken cancellationToken);
+        protected abstract Task<TResult> CreateTask(TArg runtimeArg, CancellationToken cancellationToken);
 
         private volatile Task<TResult> _task;
     }
@@ -206,7 +319,8 @@ namespace Sophos.Commands
     /// <see cref="ICommandListener.CommandSucceeded"/> will be set to true as well. 
     /// </para>
     /// </remarks>
-    public abstract class TaskCommand : TaskCommand<bool>
+    /// <typeparam name="TArg">The type of argument passed to method that creates the task</typeparam>
+    public abstract class TaskCommand<TArg> : TaskCommand<TArg, bool>
     {
         /// <summary>
         /// Constructor for a top level command
@@ -243,10 +357,10 @@ namespace Sophos.Commands
         /// This value is passed along as the return value of synchronous execution routines, or the 'result' parameter
         /// of <see cref="ICommandListener.CommandSucceeded"/> for asynchronous execution routines.
         /// </returns>
-        protected abstract Task CreateTaskNoResult(object runtimeArg, CancellationToken cancellationToken);
+        protected abstract Task CreateTaskNoResult(TArg runtimeArg, CancellationToken cancellationToken);
 
         /// <inheritdoc />
-        protected sealed override Task<bool> CreateTask(object runtimeArg, CancellationToken cancellationToken)
+        protected sealed override Task<bool> CreateTask(TArg runtimeArg, CancellationToken cancellationToken)
         {
             return CreateTaskNoResult(runtimeArg, cancellationToken).ContinueWith(t => true, cancellationToken);
         }

@@ -50,7 +50,7 @@ namespace CommandLibSample
 
 		private class PrepareDinnerCmd : ParallelCommands
 		{
-			internal PrepareDinnerCmd() : base(abortUponFailure: true)
+			internal PrepareDinnerCmd() : base(ParallelCommands.Behavior.AbortUponFailure)
 			{
 				// Preparing the noodles consists of three operations that must be performed in sequence.
 				var prepareNoodlesCmd = new SequentialCommands();
@@ -67,7 +67,7 @@ namespace CommandLibSample
 				// The following operations can be done in tandem (none are dependent upon any
 				// of the others being complete before they are initiated), so they are placed into a
 				// ParallelCommands instance.
-				var prepareNoodlesAndSauceCmd = new ParallelCommands(abortUponFailure: true);
+				var prepareNoodlesAndSauceCmd = new ParallelCommands(ParallelCommands.Behavior.AbortUponFailure);
 				prepareNoodlesAndSauceCmd.Add(new HeatSauceCmd());
 				prepareNoodlesAndSauceCmd.Add(prepareGarlicCmd);
 				prepareNoodlesAndSauceCmd.Add(prepareNoodlesCmd);
@@ -81,7 +81,7 @@ namespace CommandLibSample
 				// The lettuce doesn't have to be rinsed before the veggies are chopped. (Perhaps
 				// there are two chefs in the kitchen, or the one chef likes to alternate rinsing
 				// and chopping until both tasks are done.)
-				var rinseLettuceAndChopVeggiesCmd = new ParallelCommands(abortUponFailure: true);
+				var rinseLettuceAndChopVeggiesCmd = new ParallelCommands(ParallelCommands.Behavior.AbortUponFailure);
 				rinseLettuceAndChopVeggiesCmd.Add(new RinseLettuceCmd());
 				rinseLettuceAndChopVeggiesCmd.Add(new ChopVeggiesCmd());
 
