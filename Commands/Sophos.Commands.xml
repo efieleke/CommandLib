@@ -110,7 +110,7 @@
             <para>
             Command extends the notion of a Task, in that it works both with tasks and with non-task-based asynchronous operations, and
             offers features not readily available with tasks. <see cref="T:Sophos.Commands.TaskCommand`1"/>, <see cref="T:Sophos.Commands.DelegateCommand`1"/>,
-            <see cref="T:Sophos.Commands.DelayCommand"/>, <see cref="M:Sophos.Commands.Command.FromTask``1(System.Threading.Tasks.Task{``0},Sophos.Commands.Command)"/> and
+            <see cref="M:Sophos.Commands.Command.FromTask``1(System.Threading.Tasks.Task{``0},Sophos.Commands.Command)"/> and
             <see cref="M:Sophos.Commands.Command.AsTask``1(System.Boolean,System.Object,Sophos.Commands.Command)"/> offer easy integration with Tasks and delegates.
             </para>
             <para>
@@ -1097,8 +1097,9 @@
         </member>
         <member name="T:Sophos.Commands.DelayCommand">
             <summary>
-            Wraps Task.Delay() into a Command object. Use this in preference over <see cref="T:Sophos.Commands.PauseCommand"/>,
-            when possible, for minimal latency.
+            Wraps Task.Delay() into a Command object. <see cref="T:Sophos.Commands.PauseCommand"/> is more efficient when
+            run synchronously (SyncExecute), but this class is more efficient when run asynchronously
+            (AsyncExecute). PauseCommand offers a few more features than this class.
             </summary>
             <remarks>
             <para>
@@ -1591,7 +1592,11 @@
             <param name="runtimeArg">Not applicable</param>
         </member>
         <member name="T:Sophos.Commands.PauseCommand">
-            <summary>A <see cref="T:Sophos.Commands.Command"/> that efficiently does nothing for a specified duration.</summary>
+            <summary>
+            A <see cref="T:Sophos.Commands.Command"/> that efficiently does nothing for a specified duration. <see cref="T:Sophos.Commands.DelayCommand"/> is more efficient when
+            run asynchronously (AsyncExecute), but this class is more efficient when run synchronously
+            (SyncExecute). This offers offers a few more features than DelayCommand.
+            </summary>
             <remarks>
             <para>
             <see cref="M:Sophos.Commands.Command.SyncExecute(System.Object)"/> and <see cref="M:Sophos.Commands.Command.AsyncExecute(Sophos.Commands.ICommandListener,System.Object)"/>

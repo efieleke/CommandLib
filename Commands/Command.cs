@@ -19,7 +19,7 @@ namespace Sophos.Commands
     /// <para>
     /// Command extends the notion of a Task, in that it works both with tasks and with non-task-based asynchronous operations, and
     /// offers features not readily available with tasks. <see cref="TaskCommand{TResult}"/>, <see cref="DelegateCommand{TResult}"/>,
-    /// <see cref="DelayCommand"/>, <see cref="Command.FromTask{TResult}(Task{TResult},Command)"/> and
+    /// <see cref="Command.FromTask{TResult}(Task{TResult},Command)"/> and
     /// <see cref="Command.AsTask{TResult}(bool, object, Command)"/> offer easy integration with Tasks and delegates.
     /// </para>
     /// <para>

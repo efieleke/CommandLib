@@ -50,7 +50,7 @@ namespace CommandLibSample
 
 		private class PrepareDinnerCmd : ParallelCommands
 		{
-			internal PrepareDinnerCmd() : base(ParallelCommands.Behavior.AbortUponFailure)
+			internal PrepareDinnerCmd() : base(Behavior.AbortUponFailure)
 			{
 				// Preparing the noodles consists of three operations that must be performed in sequence.
 				var prepareNoodlesCmd = new SequentialCommands();
@@ -67,7 +67,7 @@ namespace CommandLibSample
 				// The following operations can be done in tandem (none are dependent upon any
 				// of the others being complete before they are initiated), so they are placed into a
 				// ParallelCommands instance.
-				var prepareNoodlesAndSauceCmd = new ParallelCommands(ParallelCommands.Behavior.AbortUponFailure);
+				var prepareNoodlesAndSauceCmd = new ParallelCommands(Behavior.AbortUponFailure);
 				prepareNoodlesAndSauceCmd.Add(new HeatSauceCmd());
 				prepareNoodlesAndSauceCmd.Add(prepareGarlicCmd);
 				prepareNoodlesAndSauceCmd.Add(prepareNoodlesCmd);
@@ -81,7 +81,7 @@ namespace CommandLibSample
 				// The lettuce doesn't have to be rinsed before the veggies are chopped. (Perhaps
 				// there are two chefs in the kitchen, or the one chef likes to alternate rinsing
 				// and chopping until both tasks are done.)
-				var rinseLettuceAndChopVeggiesCmd = new ParallelCommands(ParallelCommands.Behavior.AbortUponFailure);
+				var rinseLettuceAndChopVeggiesCmd = new ParallelCommands(Behavior.AbortUponFailure);
 				rinseLettuceAndChopVeggiesCmd.Add(new RinseLettuceCmd());
 				rinseLettuceAndChopVeggiesCmd.Add(new ChopVeggiesCmd());
 
@@ -153,19 +153,19 @@ namespace CommandLibSample
 		{
 			internal PretendCmd(TimeSpan duration, string desc) : base(null)
 			{
-			    _delayCmd = new DelayCommand(duration, this);
+			    _pauseCmd = new PauseCommand(duration, null, this);
 				_desc = desc;
 			}
 
 			protected override object SyncExeImpl(object runtimeArg)
 			{
 				Console.Out.WriteLine("Started " + _desc);
-			    _delayCmd.SyncExecute();
+			    _pauseCmd.SyncExecute();
 				Console.Out.WriteLine("Finished " + _desc);
 				return null;
 			}
 
-			private readonly DelayCommand _delayCmd;
+			private readonly PauseCommand _pauseCmd;
 			private readonly string _desc;
 		}
 

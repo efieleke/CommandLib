@@ -87,7 +87,7 @@ namespace Sophos.Commands
         {
             _command = command;
             TakeOwnership(command);
-            _delayCmd = new DelayCommand(TimeSpan.FromMilliseconds(0), this);
+            _pauseCmd = new PauseCommand(TimeSpan.FromMilliseconds(0), null, this);
             _callback = callback;
         }
 
@@ -135,8 +135,8 @@ namespace Sophos.Commands
                         throw;
                     }
 
-                    _delayCmd.Duration = waitTime;
-                    _delayCmd.SyncExecute();
+                    _pauseCmd.Duration = waitTime;
+                    _pauseCmd.SyncExecute();
                 }
             }
         }
@@ -157,7 +157,7 @@ namespace Sophos.Commands
         }
 
         private readonly Command _command;
-        private readonly DelayCommand _delayCmd;
+        private readonly PauseCommand _pauseCmd;
         private readonly IRetryCallback _callback;
     }
 }

@@ -5,8 +5,9 @@ using System.Threading.Tasks;
 namespace Sophos.Commands
 {
     /// <summary>
-    /// Wraps Task.Delay() into a Command object. Use this in preference over <see cref="PauseCommand"/>,
-    /// when possible, for minimal latency.
+    /// Wraps Task.Delay() into a Command object. <see cref="PauseCommand"/> is more efficient when
+    /// run synchronously (SyncExecute), but this class is more efficient when run asynchronously
+    /// (AsyncExecute). PauseCommand offers a few more features than this class.
     /// </summary>
     /// <remarks>
     /// <para>
