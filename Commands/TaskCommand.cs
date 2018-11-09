@@ -182,7 +182,7 @@ namespace Sophos.Commands
 
             try
             {
-                _task = CreateTask((TArg)runtimeArg, CancellationToken);
+                _task = CreateTask(runtimeArg == null ? default(TArg) : (TArg)runtimeArg, CancellationToken);
             }
             catch (Exception e)
             {
@@ -322,13 +322,6 @@ namespace Sophos.Commands
     /// <typeparam name="TArg">The type of argument passed to method that creates the task</typeparam>
     public abstract class TaskCommand<TArg> : TaskCommand<TArg, bool>
     {
-        /// <summary>
-        /// Constructor for a top level command
-        /// </summary>
-        protected TaskCommand() : this(null)
-        {
-        }
-
         /// <summary>
         /// Constructor
         /// </summary>

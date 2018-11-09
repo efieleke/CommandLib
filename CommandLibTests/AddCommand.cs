@@ -15,7 +15,7 @@ namespace CommandLibTests
 
         protected sealed override object SyncExeImpl(object runtimeArg)
         {
-            return (int)runtimeArg + _amount;
+            return (int?) runtimeArg + _amount ?? _amount;
         }
 
         private readonly int _amount;

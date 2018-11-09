@@ -14,15 +14,13 @@ namespace CommandLibTests
         {
             using (var cmd = new DoNothingCommand())
             {
-                using (Task<int> task = cmd.AsTask<int>(false, 7))
+                using (Task<int> task = cmd.AsTask<int>(7))
                 {
-                    task.Start();
                     Assert.AreEqual(7, task.Result);
                 }
 
-                using (Task<int> task = cmd.AsTask<int>(false, 5))
+                using (Task<int> task = cmd.AsTask<int>(5))
                 {
-                    task.Start();
                     Assert.AreEqual(5, task.Result);
                 }
             }
@@ -33,8 +31,24 @@ namespace CommandLibTests
         {
             using (var cmd = new DoNothingCommand())
             {
+                HappyPathTest.Run(cmd, null, 0);
                 HappyPathTest.Run(cmd, 5, 5);
                 HappyPathTest.Run(cmd, 4, 4);
+
+                Assert.AreEqual(0, cmd.SyncExecute());
+                Assert.AreEqual(1, cmd.SyncExecute(1));
+                Assert.AreEqual(4, cmd.SyncExecute((object)4));
+                Assert.AreEqual(7, cmd.SyncExecute(7, null));
+                Assert.AreEqual(7, cmd.SyncExecute((object)7, null));
+
+                cmd.AsyncExecute(i => Assert.AreEqual(0, i), () => { }, e => { });
+                cmd.Wait();
+                cmd.AsyncExecute(i => Assert.AreEqual(2, i), () => { }, e => { }, 2);
+                cmd.Wait();
+                cmd.AsyncExecute(new TestCommandListener<int>(0));
+                cmd.Wait();
+                cmd.AsyncExecute(new TestCommandListener<int>(3), 3);
+                cmd.Wait();
             }
 
             using (var cmd = new DoNothingCommand(DoNothingCommand.Behavior.SucceedSynchronously))
@@ -44,6 +58,30 @@ namespace CommandLibTests
             }
         }
 
+        internal class TestCommandListener<TResult> : ICommandListener<TResult>
+        {
+            internal TestCommandListener(TResult expected)
+            {
+                _expected = expected;
+            }
+
+            public void CommandSucceeded(TResult result)
+            {
+                Assert.AreEqual(_expected, result);
+            }
+
+            public void CommandAborted()
+            {
+                throw new NotImplementedException();
+            }
+
+            public void CommandFailed(Exception exc)
+            {
+                throw exc;
+            }
+
+            private readonly TResult _expected;
+        }
         [TestMethod]
         public void TaskCommand_TestError()
         {
@@ -144,7 +182,7 @@ namespace CommandLibTests
             });
         }
 
-        private class DoNothingCommand : TaskCommand<int, int>
+        private class DoNothingCommand : TaskCommand<int?, int>
         {
             internal enum Behavior
             {
@@ -164,14 +202,14 @@ namespace CommandLibTests
                 _behavior = behavior;
             }
 
-            protected override Task<int> CreateTask(int runtimeArg, CancellationToken cancellationToken)
+            protected override Task<int> CreateTask(int? runtimeArg, CancellationToken cancellationToken)
             {
                 switch (_behavior)
                 {
                     case Behavior.FailUpFront:
                         throw new NotSupportedException();
                     case Behavior.SucceedSynchronously:
-                        return Task.FromResult((int) runtimeArg);
+                        return Task.FromResult(runtimeArg ?? 0);
                     default:
                         return Task.Run(() =>
                         {
@@ -182,7 +220,7 @@ namespace CommandLibTests
                                 case Behavior.Abort when _abortEvent.WaitOne():
                                     throw new CommandAbortedException();
                                 default:
-                                    return runtimeArg;
+                                    return runtimeArg ?? 0;
                             }
                         });
                 }

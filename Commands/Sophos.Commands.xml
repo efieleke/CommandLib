@@ -73,6 +73,9 @@
             If your implementation makes use of asynchronous Tasks (i.e. the Task class), inherit from TaskCommand instead.
             </summary>
         </member>
+        <member name="M:Sophos.Commands.AsyncCommand.AsTask``1(System.Object,Sophos.Commands.Command)">
+            <inheritdoc />
+        </member>
         <member name="M:Sophos.Commands.AsyncCommand.#ctor(Sophos.Commands.Command)">
             <summary>
             Constructs and AsyncCommand object.
@@ -111,7 +114,7 @@
             Command extends the notion of a Task, in that it works both with tasks and with non-task-based asynchronous operations, and
             offers features not readily available with tasks. <see cref="T:Sophos.Commands.TaskCommand`1"/>, <see cref="T:Sophos.Commands.DelegateCommand`1"/>,
             <see cref="M:Sophos.Commands.Command.FromTask``1(System.Threading.Tasks.Task{``0},Sophos.Commands.Command)"/> and
-            <see cref="M:Sophos.Commands.Command.AsTask``1(System.Boolean,System.Object,Sophos.Commands.Command)"/> offer easy integration with Tasks and delegates.
+            <see cref="M:Sophos.Commands.Command.AsTask``1(System.Object,Sophos.Commands.Command)"/> offer easy integration with Tasks and delegates.
             </para>
             <para>
             <see cref="T:Sophos.Commands.PeriodicCommand"/> repeats its action at a given interval, <see cref="T:Sophos.Commands.ScheduledCommand"/> runs once at a specific
@@ -380,7 +383,7 @@
             A command, that when executed, will run the provided task (if it is not already running).
             </returns>
         </member>
-        <member name="M:Sophos.Commands.Command.AsTask``1(System.Boolean)">
+        <member name="M:Sophos.Commands.Command.AsTask``1">
             <summary>
             Returns a task that, when run, will execute this command passed as an argument. Note that this command must
             not be disposed before the task is disposed. Also, note that behavior is undefined if this command is executing
@@ -391,19 +394,14 @@
             The type the command returns from SynExecute. If you don't care about the return value, it is safe to
             specify Object as the type.
             </typeparam>
-            <param name="startTask">
-            If true, the task will be started before it is returned. Otherwise, the caller must
-            start the task in order for it to run (via its Start method, for example).
-            </param>
             <returns>
-            The Task, which will have been started if 'startTask' was set to true.
+            The Task, which will have been started.
             </returns>
             <remarks>
-            The returned Task may only be aborted during its execution if this Command is aborted. The Task will be in the Faulted state
-            in that case (not the Canceled state). The underlying exception that the Task will report is CommandAbortedException.
+            The returned Task may only be aborted during its execution if this Command is aborted.
             </remarks>
         </member>
-        <member name="M:Sophos.Commands.Command.AsTask``1(System.Boolean,System.Object)">
+        <member name="M:Sophos.Commands.Command.AsTask``1(System.Object)">
             <summary>
             Returns a task that, when run, will execute this command passed as an argument. Note that this command must
             not be disposed before the task is disposed. Also, note that behavior is undefined if this command is executing
@@ -414,23 +412,18 @@
             The type the command returns from SynExecute. If you don't care about the return value, it is safe to
             specify Object as the type.
             </typeparam>
-            <param name="startTask">
-            If true, the task will be started before it is returned. Otherwise, the caller must
-            start the task in order for it to run (via its Start method, for example).
-            </param>
             <param name="runtimeArg">
             Some commands may expect some sort of argument at the time of execution, and some commands do not.
             See the concrete command class of interest for details.
             </param>
             <returns>
-            The Task, which will have been started if 'startTask' was set to true.
+            The Task, which will have been started.
             </returns>
             <remarks>
-            The returned Task may only be aborted during its execution if this Command is aborted. The Task will be in the Faulted state
-            in that case (not the Canceled state). The underlying exception that the Task will report is CommandAbortedException.
+            The returned Task may only be aborted during its execution if this Command is aborted.
             </remarks>
         </member>
-        <member name="M:Sophos.Commands.Command.AsTask``1(System.Boolean,System.Object,Sophos.Commands.Command)">
+        <member name="M:Sophos.Commands.Command.AsTask``1(System.Object,Sophos.Commands.Command)">
             <summary>
             Returns a task that, when run, will execute this command passed as an argument. Note that this command must
             not be disposed before the task is disposed. Also, note that behavior is undefined if this command is executing
@@ -441,10 +434,6 @@
             The type the command returns from SynExecute. If you don't care about the return value, it is safe to
             specify Object as the type.
             </typeparam>
-            <param name="startTask">
-            If true, the task will be started before it is returned. Otherwise, the caller must
-            start the task in order for it to run (via its Start method, for example).
-            </param>
             <param name="runtimeArg">
             Some commands may expect some sort of argument at the time of execution, and some commands do not.
             See the concrete command class of interest for details.
@@ -456,82 +445,10 @@
             this command will revert to having no owner.
             </param>
             <returns>
-            The Task, which will have been started if 'startTask' was set to true.
+            The Task, which will have been started.
             </returns>
             <remarks>
-            The returned Task may only be aborted during its execution if this Command is aborted. The Task will be in the Faulted state
-            in that case (not the Canceled state). The underlying exception that the Task will report is CommandAbortedException.
-            </remarks>
-        </member>
-        <member name="M:Sophos.Commands.Command.AsTask(System.Boolean)">
-            <summary>
-            Returns a task that, when run, will execute this command passed as an argument. Note that this command must
-            not be disposed before the task is disposed. Also, note that behavior is undefined if this command is executing
-            at the time the task is run. This method is meant as a potential convenience. The more natural
-            way to execute commands is via the various Execute* methods.
-            </summary>
-            <param name="startTask">
-            If true, the task will be started before it is returned. Otherwise, the caller must
-            start the task in order for it to run (via its Start method, for example).
-            </param>
-            <returns>
-            The Task, which will have been started if 'startTask' was set to true.
-            </returns>
-            <remarks>
-            The returned Task may only be aborted during its execution if this Command is aborted. The Task will be in the Faulted state
-            in that case (not the Canceled state). The underlying exception that the Task will report is CommandAbortedException.
-            </remarks>
-        </member>
-        <member name="M:Sophos.Commands.Command.AsTask(System.Boolean,System.Object)">
-            <summary>
-            Returns a task that, when run, will execute this command passed as an argument. Note that this command must
-            not be disposed before the task is disposed. Also, note that behavior is undefined if this command is executing
-            at the time the task is run. This method is meant as a potential convenience. The more natural
-            way to execute commands is via the various Execute* methods.
-            </summary>
-            <param name="startTask">
-            If true, the task will be started before it is returned. Otherwise, the caller must
-            start the task in order for it to run (via its Start method, for example).
-            </param>
-            <param name="runtimeArg">
-            Some commands may expect some sort of argument at the time of execution, and some commands do not.
-            See the concrete command class of interest for details.
-            </param>
-            <returns>
-            The Task, which will have been started if 'startTask' was set to true.
-            </returns>
-            <remarks>
-            The returned Task may only be aborted during its execution if this Command is aborted. The Task will be in the Faulted state
-            in that case (not the Canceled state). The underlying exception that the Task will report is CommandAbortedException.
-            </remarks>
-        </member>
-        <member name="M:Sophos.Commands.Command.AsTask(System.Boolean,System.Object,Sophos.Commands.Command)">
-            <summary>
-            Returns a task that, when run, will execute this command passed as an argument. Note that this command must
-            not be disposed before the task is disposed. Also, note that behavior is undefined if this command is executing
-            at the time the task is run. This method is meant as a potential convenience. The more natural
-            way to execute commands is via the various Execute* methods.
-            </summary>
-            <param name="startTask">
-            If true, the task will be started before it is returned. Otherwise, the caller must
-            start the task in order for it to run (via its Start method, for example).
-            </param>
-            <param name="runtimeArg">
-            Some commands may expect some sort of argument at the time of execution, and some commands do not.
-            See the concrete command class of interest for details.
-            </param>
-            <param name="owner">
-            If you want this Command to pay attention to abort requests of a different command while running the returned Task,
-            set this value to that command. Note that if this Command is already assigned an owner, passing a non-null value will
-            raise an exception. Also note that the owner assignment is only in effect during the scope of this call. Upon return,
-            this command will revert to having no owner.
-            </param>
-            <returns>
-            The Task, which will have been started if 'startTask' was set to true.
-            </returns>
-            <remarks>
-            The returned Task may only be aborted during its execution if this Command is aborted. The Task will be in the Faulted state
-            in that case (not the Canceled state). The underlying exception that the Task will report is CommandAbortedException.
+            The returned Task may only be aborted during its execution if this Command is aborted.
             </remarks>
         </member>
         <member name="M:Sophos.Commands.Command.Dispose">
@@ -2153,17 +2070,18 @@
         </member>
         <member name="T:Sophos.Commands.SequentialCommands">
             <summary>
-            SequentialCommands is a <see cref="T:Sophos.Commands.Command"/> object which contains a collection of commands which are run in sequence
+            SequentialCommands is a <see cref="T:Sophos.Commands.Command"/> object which contains a collection of commands which are run in sequence.
+            Each command is run in its most natural form: commands inherited from <see cref="T:Sophos.Commands.SyncCommand"/> are executed synchronously,
+            and other commands are run asynchronously (but still in sequence).
             </summary>
             <remarks>
             <para>
             The 'runtimeArg' parameter passed to <see cref="M:Sophos.Commands.Command.SyncExecute(System.Object)"/> and <see cref="M:Sophos.Commands.Command.AsyncExecute(Sophos.Commands.ICommandListener,System.Object)"/>
-            will be passed to the first command in the collection when it executes. The return value of the first command is passed as
-            'runtimeArg' to the next command in the collection, and so on.
+            is ignored.
             </para>
             <para>
-            Synchronous execution will return the value the last command in the collection returned, and the 'result'
-            parameter of <see cref="M:Sophos.Commands.ICommandListener.CommandSucceeded(System.Object)"/> will be set in similar fashion.
+            Synchronous execution will return null, and the 'result'
+            parameter of <see cref="M:Sophos.Commands.ICommandListener.CommandSucceeded(System.Object)"/> will be null.
             </para>
             </remarks>
         </member>
@@ -2208,18 +2126,23 @@
             The returned text includes the number of commands in the collection
             </returns>
         </member>
-        <member name="M:Sophos.Commands.SequentialCommands.SyncExeImpl(System.Object)">
-            <summary>
-            Do not call this method from a derived class. It is called by the framework.
-            </summary>
-            <param name="runtimeArg">Not applicable</param>
-            <returns>Not applicable</returns>
+        <member name="M:Sophos.Commands.SequentialCommands.AsTask``1(System.Object,Sophos.Commands.Command)">
+            <inheritdoc />
+        </member>
+        <member name="M:Sophos.Commands.SequentialCommands.SyncExecuteImpl(System.Object)">
+            <inheritdoc />
+        </member>
+        <member name="M:Sophos.Commands.SequentialCommands.AsyncExecuteImpl(Sophos.Commands.ICommandListener,System.Object)">
+            <inheritdoc />
         </member>
         <member name="T:Sophos.Commands.SyncCommand">
             <summary>
             Represents a <see cref="T:Sophos.Commands.Command"/> which is most naturally synchronous in its implementation. If you inherit from this class,
             you are responsible for implementing <see cref="M:Sophos.Commands.SyncCommand.SyncExeImpl(System.Object)"/>. This class implements <see cref="M:Sophos.Commands.SyncCommand.AsyncExecuteImpl(Sophos.Commands.ICommandListener,System.Object)"/>.
             </summary>
+        </member>
+        <member name="M:Sophos.Commands.SyncCommand.AsTask``1(System.Object,Sophos.Commands.Command)">
+            <inheritdoc />
         </member>
         <member name="M:Sophos.Commands.SyncCommand.#ctor(Sophos.Commands.Command)">
             <summary>
@@ -2436,11 +2359,6 @@
             </para>
             </remarks>
             <typeparam name="TArg">The type of argument passed to method that creates the task</typeparam>
-        </member>
-        <member name="M:Sophos.Commands.TaskCommand`1.#ctor">
-            <summary>
-            Constructor for a top level command
-            </summary>
         </member>
         <member name="M:Sophos.Commands.TaskCommand`1.#ctor(Sophos.Commands.Command)">
             <summary>

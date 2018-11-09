@@ -20,7 +20,7 @@ namespace Sophos.Commands
     /// Command extends the notion of a Task, in that it works both with tasks and with non-task-based asynchronous operations, and
     /// offers features not readily available with tasks. <see cref="TaskCommand{TResult}"/>, <see cref="DelegateCommand{TResult}"/>,
     /// <see cref="Command.FromTask{TResult}(Task{TResult},Command)"/> and
-    /// <see cref="Command.AsTask{TResult}(bool, object, Command)"/> offer easy integration with Tasks and delegates.
+    /// <see cref="Command.AsTask{TResult}(object, Command)"/> offer easy integration with Tasks and delegates.
     /// </para>
     /// <para>
     /// <see cref="PeriodicCommand"/> repeats its action at a given interval, <see cref="ScheduledCommand"/> runs once at a specific
@@ -379,20 +379,15 @@ namespace Sophos.Commands
         /// The type the command returns from SynExecute. If you don't care about the return value, it is safe to
         /// specify Object as the type.
         /// </typeparam>
-        /// <param name="startTask">
-        /// If true, the task will be started before it is returned. Otherwise, the caller must
-        /// start the task in order for it to run (via its Start method, for example).
-        /// </param>
         /// <returns>
-        /// The Task, which will have been started if 'startTask' was set to true.
+        /// The Task, which will have been started.
         /// </returns>
         /// <remarks>
-        /// The returned Task may only be aborted during its execution if this Command is aborted. The Task will be in the Faulted state
-        /// in that case (not the Canceled state). The underlying exception that the Task will report is CommandAbortedException.
+        /// The returned Task may only be aborted during its execution if this Command is aborted.
         /// </remarks>
-        public Task<TResult> AsTask<TResult>(bool startTask)
+        public Task<TResult> AsTask<TResult>()
         {
-            return AsTask<TResult>(startTask, null);
+            return AsTask<TResult>(null);
         }
 
         /// <summary>
@@ -405,24 +400,19 @@ namespace Sophos.Commands
         /// The type the command returns from SynExecute. If you don't care about the return value, it is safe to
         /// specify Object as the type.
         /// </typeparam>
-        /// <param name="startTask">
-        /// If true, the task will be started before it is returned. Otherwise, the caller must
-        /// start the task in order for it to run (via its Start method, for example).
-        /// </param>
         /// <param name="runtimeArg">
         /// Some commands may expect some sort of argument at the time of execution, and some commands do not.
         /// See the concrete command class of interest for details.
         /// </param>
         /// <returns>
-        /// The Task, which will have been started if 'startTask' was set to true.
+        /// The Task, which will have been started.
         /// </returns>
         /// <remarks>
-        /// The returned Task may only be aborted during its execution if this Command is aborted. The Task will be in the Faulted state
-        /// in that case (not the Canceled state). The underlying exception that the Task will report is CommandAbortedException.
+        /// The returned Task may only be aborted during its execution if this Command is aborted.
         /// </remarks>
-        public Task<TResult> AsTask<TResult>(bool startTask, object runtimeArg)
+        public Task<TResult> AsTask<TResult>(object runtimeArg)
         {
-            return AsTask<TResult>(startTask, runtimeArg, null);
+            return AsTask<TResult>(runtimeArg, null);
         }
 
         /// <summary>
@@ -435,10 +425,6 @@ namespace Sophos.Commands
         /// The type the command returns from SynExecute. If you don't care about the return value, it is safe to
         /// specify Object as the type.
         /// </typeparam>
-        /// <param name="startTask">
-        /// If true, the task will be started before it is returned. Otherwise, the caller must
-        /// start the task in order for it to run (via its Start method, for example).
-        /// </param>
         /// <param name="runtimeArg">
         /// Some commands may expect some sort of argument at the time of execution, and some commands do not.
         /// See the concrete command class of interest for details.
@@ -450,103 +436,12 @@ namespace Sophos.Commands
         /// this command will revert to having no owner.
         /// </param>
         /// <returns>
-        /// The Task, which will have been started if 'startTask' was set to true.
+        /// The Task, which will have been started.
         /// </returns>
         /// <remarks>
-        /// The returned Task may only be aborted during its execution if this Command is aborted. The Task will be in the Faulted state
-        /// in that case (not the Canceled state). The underlying exception that the Task will report is CommandAbortedException.
+        /// The returned Task may only be aborted during its execution if this Command is aborted.
         /// </remarks>
-        public Task<TResult> AsTask<TResult>(bool startTask, object runtimeArg, Command owner)
-        {
-            var task = new Task<TResult>(() => (TResult)SyncExecute(runtimeArg, owner));
-
-            if (startTask)
-            {
-                task.Start();
-            }
-
-            return task;
-        }
-
-        /// <summary>
-        /// Returns a task that, when run, will execute this command passed as an argument. Note that this command must
-        /// not be disposed before the task is disposed. Also, note that behavior is undefined if this command is executing
-        /// at the time the task is run. This method is meant as a potential convenience. The more natural
-        /// way to execute commands is via the various Execute* methods.
-        /// </summary>
-        /// <param name="startTask">
-        /// If true, the task will be started before it is returned. Otherwise, the caller must
-        /// start the task in order for it to run (via its Start method, for example).
-        /// </param>
-        /// <returns>
-        /// The Task, which will have been started if 'startTask' was set to true.
-        /// </returns>
-        /// <remarks>
-        /// The returned Task may only be aborted during its execution if this Command is aborted. The Task will be in the Faulted state
-        /// in that case (not the Canceled state). The underlying exception that the Task will report is CommandAbortedException.
-        /// </remarks>
-        public Task AsTask(bool startTask)
-        {
-            return AsTask(startTask, null);
-        }
-
-        /// <summary>
-        /// Returns a task that, when run, will execute this command passed as an argument. Note that this command must
-        /// not be disposed before the task is disposed. Also, note that behavior is undefined if this command is executing
-        /// at the time the task is run. This method is meant as a potential convenience. The more natural
-        /// way to execute commands is via the various Execute* methods.
-        /// </summary>
-        /// <param name="startTask">
-        /// If true, the task will be started before it is returned. Otherwise, the caller must
-        /// start the task in order for it to run (via its Start method, for example).
-        /// </param>
-        /// <param name="runtimeArg">
-        /// Some commands may expect some sort of argument at the time of execution, and some commands do not.
-        /// See the concrete command class of interest for details.
-        /// </param>
-        /// <returns>
-        /// The Task, which will have been started if 'startTask' was set to true.
-        /// </returns>
-        /// <remarks>
-        /// The returned Task may only be aborted during its execution if this Command is aborted. The Task will be in the Faulted state
-        /// in that case (not the Canceled state). The underlying exception that the Task will report is CommandAbortedException.
-        /// </remarks>
-        public Task AsTask(bool startTask, object runtimeArg)
-        {
-            return AsTask(startTask, runtimeArg, null);
-        }
-
-        /// <summary>
-        /// Returns a task that, when run, will execute this command passed as an argument. Note that this command must
-        /// not be disposed before the task is disposed. Also, note that behavior is undefined if this command is executing
-        /// at the time the task is run. This method is meant as a potential convenience. The more natural
-        /// way to execute commands is via the various Execute* methods.
-        /// </summary>
-        /// <param name="startTask">
-        /// If true, the task will be started before it is returned. Otherwise, the caller must
-        /// start the task in order for it to run (via its Start method, for example).
-        /// </param>
-        /// <param name="runtimeArg">
-        /// Some commands may expect some sort of argument at the time of execution, and some commands do not.
-        /// See the concrete command class of interest for details.
-        /// </param>
-        /// <param name="owner">
-        /// If you want this Command to pay attention to abort requests of a different command while running the returned Task,
-        /// set this value to that command. Note that if this Command is already assigned an owner, passing a non-null value will
-        /// raise an exception. Also note that the owner assignment is only in effect during the scope of this call. Upon return,
-        /// this command will revert to having no owner.
-        /// </param>
-        /// <returns>
-        /// The Task, which will have been started if 'startTask' was set to true.
-        /// </returns>
-        /// <remarks>
-        /// The returned Task may only be aborted during its execution if this Command is aborted. The Task will be in the Faulted state
-        /// in that case (not the Canceled state). The underlying exception that the Task will report is CommandAbortedException.
-        /// </remarks>
-        public Task AsTask(bool startTask, object runtimeArg, Command owner)
-        {
-            return AsTask<object>(startTask, runtimeArg, owner);
-        }
+        public abstract Task<TResult> AsTask<TResult>(object runtimeArg, Command owner);
         #endregion
 
         /// <summary>

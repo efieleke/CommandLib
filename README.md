@@ -11,7 +11,7 @@ RetryableCommand provides the option to keep retrying a failed command until the
 
 All of the above Command classes are simply containers for other Command objects that presumably do something of interest. They can be combined in ways that offer a lot of customization. For example, to make an HttpRequest at a given time, with a timeout and a configurable number of retries, you could create a ScheduledCommand containing a RetryableCommand containing a TimeLimitedCommand containing an HttpRequestCommand.
 
-TaskCommand, DelegateCommand, DelayCommand, Command.FromTask() and Command.AsTask() offer easy integration with tasks and delegates.
+TaskCommand, DelegateCommand, Command.FromTask() and Command.AsTask() offer easy integration with tasks and delegates.
 
 Guidelines for developing your own Command-derived class:
 

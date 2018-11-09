@@ -51,7 +51,7 @@ namespace CommandLibTests
                 cmd.AbortAndWait();
                 thread.Join();
 
-	            using (Task<object> task = cmd.AsTask<object>(true, runtimeArg))
+	            using (Task<object> task = cmd.AsTask<object>(runtimeArg))
 	            {
 		            try
 		            {
@@ -65,7 +65,7 @@ namespace CommandLibTests
 			            Exception inner = e.InnerException;
 						Assert.IsNotNull(inner);
 
-			            if (inner is CommandAbortedException)
+			            if (inner is TaskCanceledException)
 			            {
 				            Assert.IsTrue(Command.GetAttachedErrorInfo(inner) == null);
 						}

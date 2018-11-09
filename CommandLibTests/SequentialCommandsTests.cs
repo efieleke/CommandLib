@@ -30,10 +30,15 @@ namespace CommandLibTests
                 }
 
                 Assert.AreEqual(addedCount, count);
-                HappyPathTest.Run(seqCmds, 0, count);
+                HappyPathTest.Run(seqCmds, 0, null);
                 seqCmds.Clear();
-                HappyPathTest.Run(seqCmds, 1, 1);
+                HappyPathTest.Run(seqCmds, 1, null);
                 seqCmds.Clear();
+
+                seqCmds.Add(new PauseCommand(TimeSpan.FromTicks(1)));
+                seqCmds.Add(new DelayCommand(TimeSpan.FromTicks(1)));
+                seqCmds.Add(new PauseCommand(TimeSpan.FromTicks(1)));
+                HappyPathTest.Run(seqCmds, 0, null);
             }
         }
 
@@ -70,13 +75,6 @@ namespace CommandLibTests
                 seqCmds.Add(new FailingCommand());
                 seqCmds.Add(new PauseCommand(TimeSpan.FromMilliseconds(0)));
                 FailTest.Run<FailingCommand.FailException>(seqCmds, null);
-            }
-
-            using (SequentialCommands seqCmds = new SequentialCommands())
-            {
-                seqCmds.Add(new PauseCommand(TimeSpan.FromMilliseconds(0)));
-                seqCmds.Add(new AddCommand(1)); // won't get the right type passed in
-                FailTest.Run<InvalidCastException>(seqCmds, new object());
             }
         }
     }

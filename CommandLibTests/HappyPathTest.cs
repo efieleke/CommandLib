@@ -40,9 +40,8 @@ namespace CommandLibTests
                 cmd.Wait(); // should be a no-op
                 cmd.AbortAndWait(); // should be a no-op
 
-	            using (Task<object> task = cmd.AsTask<object>(false, runtimeArg))
+	            using (Task<object> task = cmd.AsTask<object>(runtimeArg))
 	            {
-		            task.Start();
 		            result = task.Result;
 
 		            if (compare == null)

@@ -10,7 +10,7 @@ namespace CommandLibTests
         [TestMethod]
         public void PauseCommand_TestAbort()
         {
-            using (PauseCommand pauseCmd = new PauseCommand(TimeSpan.FromDays(1)))
+            using (var pauseCmd = new PauseCommand(TimeSpan.FromDays(1)))
             {
                 AbortTest.Run(pauseCmd, null, 10);
             }
@@ -19,22 +19,22 @@ namespace CommandLibTests
         [TestMethod]
         public void PauseCommand_TestHappyPath()
         {
-            using (PauseCommand pauseCmd = new PauseCommand(TimeSpan.FromMilliseconds(1)))
+            using (var pauseCmd = new PauseCommand(TimeSpan.FromMilliseconds(1)))
             {
                 HappyPathTest.Run(pauseCmd, null, null);
             }
 
-            using (PauseCommand shortPause = new PauseCommand(TimeSpan.FromMilliseconds(100)))
+            using (var shortPause = new PauseCommand(TimeSpan.FromMilliseconds(100)))
             {
                 shortPause.AsyncExecute(new CmdListener(CmdListener.CallbackType.Succeeded, null));
 
-                using (PauseCommand pauseCmd = new PauseCommand(TimeSpan.MaxValue, shortPause.DoneEvent))
+                using (var pauseCmd = new PauseCommand(TimeSpan.MaxValue, shortPause.DoneEvent))
                 {
                     HappyPathTest.Run(pauseCmd, null, null);
                 }
             }
 
-            PauseCommand disposed = new PauseCommand(TimeSpan.FromMilliseconds(9));
+            var disposed = new PauseCommand(TimeSpan.FromMilliseconds(9));
             disposed.Dispose();
 
             try
@@ -50,9 +50,9 @@ namespace CommandLibTests
         [TestMethod]
         public void PauseCommand_TestReset()
         {
-            using (PauseCommand pauseCmd = new PauseCommand(TimeSpan.FromDays(1)))
+            using (var pauseCmd = new PauseCommand(TimeSpan.FromDays(1)))
             {
-                CmdListener listener = new CmdListener(CmdListener.CallbackType.Succeeded, null);
+                var listener = new CmdListener(CmdListener.CallbackType.Succeeded, null);
                 pauseCmd.AsyncExecute(listener);
                 System.Threading.Thread.Sleep(10); // give time for the command to start
                 pauseCmd.Duration = TimeSpan.FromMilliseconds(1);
@@ -85,9 +85,9 @@ namespace CommandLibTests
         [TestMethod]
         public void PauseCommand_TestCutShort()
         {
-            using (PauseCommand pauseCmd = new PauseCommand(TimeSpan.FromDays(1)))
+            using (var pauseCmd = new PauseCommand(TimeSpan.FromDays(1)))
             {
-                CmdListener listener = new CmdListener(CmdListener.CallbackType.Succeeded, null);
+                var listener = new CmdListener(CmdListener.CallbackType.Succeeded, null);
                 pauseCmd.AsyncExecute(listener);
                 System.Threading.Thread.Sleep(20); // give the async routine a moment to get going
                 pauseCmd.CutShort();
