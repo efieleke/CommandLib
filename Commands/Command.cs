@@ -12,7 +12,7 @@ namespace Sophos.Commands
     /// <para></para>
     /// <para>
     /// Using <see cref="ParallelCommands"/>, you can run a collection of <see cref="Command"/> objects concurrently, and using
-    /// <see cref="SequentialCommands"/>, you can run a collection of <see cref="Command"/> objects in sequence. Any command
+    /// <see crefAs="SequentialCommands"/>, you can run a collection of <see cref="Command"/> objects in sequence. Any command
     /// can be added to these two types (including <see cref="ParallelCommands"/> and <see cref="SequentialCommands"/> themselves,
     /// because they are <see cref="Command"/> objects), so it's possible to create a deep nesting of coordinated activities.
     /// </para>
@@ -370,10 +370,10 @@ namespace Sophos.Commands
         }
 
         /// <summary>
-        /// Returns a task that, when run, will execute this command passed as an argument. Note that this command must
-        /// not be disposed before the task is disposed. Also, note that behavior is undefined if this command is executing
-        /// at the time the task is run. This method is meant as a potential convenience. The more natural
-        /// way to execute commands is via the various Execute* methods.
+        /// Returns a task that, when run, will execute this command. Note that this command must
+        /// not be disposed, because it will be auto-disposed when the task completes. Also, this operation will fail if this
+        /// command is not a top-level command (in other words, it must not have parents).
+        /// Also, note that behavior is undefined if this command is executing at the time the task is run.
         /// </summary>
         /// <typeparam name="TResult">
         /// The type the command returns from SynExecute. If you don't care about the return value, it is safe to
@@ -382,19 +382,16 @@ namespace Sophos.Commands
         /// <returns>
         /// The Task, which will have been started.
         /// </returns>
-        /// <remarks>
-        /// The returned Task may only be aborted during its execution if this Command is aborted.
-        /// </remarks>
         public Task<TResult> AsTask<TResult>()
         {
             return AsTask<TResult>(null);
         }
 
         /// <summary>
-        /// Returns a task that, when run, will execute this command passed as an argument. Note that this command must
-        /// not be disposed before the task is disposed. Also, note that behavior is undefined if this command is executing
-        /// at the time the task is run. This method is meant as a potential convenience. The more natural
-        /// way to execute commands is via the various Execute* methods.
+        /// Returns a task that, when run, will execute this command. Note that this command must
+        /// not be disposed, because it will be auto-disposed when the task completes. Also, this operation will fail if this
+        /// command is not a top-level command (in other words, it must not have parents).
+        /// Also, note that behavior is undefined if this command is executing at the time the task is run.
         /// </summary>
         /// <typeparam name="TResult">
         /// The type the command returns from SynExecute. If you don't care about the return value, it is safe to
@@ -407,19 +404,16 @@ namespace Sophos.Commands
         /// <returns>
         /// The Task, which will have been started.
         /// </returns>
-        /// <remarks>
-        /// The returned Task may only be aborted during its execution if this Command is aborted.
-        /// </remarks>
         public Task<TResult> AsTask<TResult>(object runtimeArg)
         {
             return AsTask<TResult>(runtimeArg, null);
         }
 
         /// <summary>
-        /// Returns a task that, when run, will execute this command passed as an argument. Note that this command must
-        /// not be disposed before the task is disposed. Also, note that behavior is undefined if this command is executing
-        /// at the time the task is run. This method is meant as a potential convenience. The more natural
-        /// way to execute commands is via the various Execute* methods.
+        /// Returns a task that, when run, will execute this command. Note that this command must
+        /// not be disposed, because it will be auto-disposed when the task completes. Also, this operation will fail if this
+        /// command is not a top-level command (in other words, it must not have parents).
+        /// Also, note that behavior is undefined if this command is executing at the time the task is run.
         /// </summary>
         /// <typeparam name="TResult">
         /// The type the command returns from SynExecute. If you don't care about the return value, it is safe to
@@ -438,11 +432,67 @@ namespace Sophos.Commands
         /// <returns>
         /// The Task, which will have been started.
         /// </returns>
-        /// <remarks>
-        /// The returned Task may only be aborted during its execution if this Command is aborted.
-        /// </remarks>
-        public abstract Task<TResult> AsTask<TResult>(object runtimeArg, Command owner);
+        public Task<TResult> AsTask<TResult>(object runtimeArg, Command owner)
+        {
+            CheckDisposed();
+            if (Parent != null) { throw new InvalidOperationException("Only top level commands can be run as a Task"); }
+            return IsNaturallySynchronous() ? AsSyncTask<TResult>(runtimeArg, owner) : AsAsyncTask<TResult>(runtimeArg, owner);
+        }
+
+        private Task<TResult> AsSyncTask<TResult>(object runtimeArg, Command owner)
+        {
+            // ReSharper disable once MethodSupportsCancellation
+            return Task.Factory.StartNew(() =>
+            {
+                try
+                {
+                    TResult result = (TResult)SyncExecute(runtimeArg, owner);
+                    Dispose();
+                    return result;
+                }
+                catch (CommandAbortedException)
+                {
+                    Dispose();
+                    throw new TaskCanceledException();
+                }
+                catch (Exception)
+                {
+                    Dispose();
+                    throw;
+                }
+            });
+        }
+
+        private async Task<TResult> AsAsyncTask<TResult>(object runtimeArg, Command owner)
+        {
+            Command cmd = owner == null ? this : new AbortSignaledCommand(this, owner);
+            TResult result = default(TResult);
+            Exception error = null;
+
+            // ReSharper disable once AccessToDisposedClosure
+            // ReSharper disable once MethodSupportsCancellation
+            using (Task task = Task.Factory.StartNew(() => cmd.AsyncExecute(
+                 o => result = (TResult)o,
+                 () => error = new TaskCanceledException(),
+                 e => error = e,
+                 runtimeArg)))
+            {
+                await task;
+                cmd.DoneEvent.WaitOne();
+                cmd.Dispose();
+
+                if (error != null) { throw error; }
+                return result;
+            }
+        }
         #endregion
+
+        /// <summary>
+        /// Returns true if this <see cref="Command"/> most efficient form of execution is synchronous.
+        /// This information is used on occasion to determine how to best execute a command.
+        /// </summary>
+        /// <returns>true, if this command is most efficient when run synchronously</returns>
+        public abstract bool IsNaturallySynchronous();
 
         /// <summary>
         /// Call to dispose this command and release any resources that it holds. Only call this on top-level commands (i.e. commands that have no owner)
@@ -678,10 +728,10 @@ namespace Sophos.Commands
         /// </remarks>
         public void Abort()
         {
+            CheckDisposed();
+
             try
             {
-                CheckDisposed();
-
                 // Calling Abort on a child command makes no sense, because children follow the parent in this regard.
                 if (_owner != null)
                 {
@@ -1159,7 +1209,10 @@ namespace Sophos.Commands
                     }
                 }
 
-                _doneEvent.Set();
+                if (!Disposed) // only possible if converting this command to a task (via AsTask)
+                {
+                    _doneEvent.Set();
+                }
             }
         }
 

@@ -10,28 +10,18 @@ namespace CommandLibTests
         [TestMethod]
         public void PauseCommand_TestAbort()
         {
-            using (var pauseCmd = new PauseCommand(TimeSpan.FromDays(1)))
-            {
-                AbortTest.Run(pauseCmd, null, 10);
-            }
+            AbortTest.Run(new PauseCommand(TimeSpan.FromDays(1)), null, 10);
         }
 
         [TestMethod]
         public void PauseCommand_TestHappyPath()
         {
-            using (var pauseCmd = new PauseCommand(TimeSpan.FromMilliseconds(1)))
-            {
-                HappyPathTest.Run(pauseCmd, null, null);
-            }
+            HappyPathTest.Run(new PauseCommand(TimeSpan.FromMilliseconds(1)), null, null);
 
             using (var shortPause = new PauseCommand(TimeSpan.FromMilliseconds(100)))
             {
                 shortPause.AsyncExecute(new CmdListener(CmdListener.CallbackType.Succeeded, null));
-
-                using (var pauseCmd = new PauseCommand(TimeSpan.MaxValue, shortPause.DoneEvent))
-                {
-                    HappyPathTest.Run(pauseCmd, null, null);
-                }
+                HappyPathTest.Run(new PauseCommand(TimeSpan.MaxValue, shortPause.DoneEvent), null, null);
             }
 
             var disposed = new PauseCommand(TimeSpan.FromMilliseconds(9));

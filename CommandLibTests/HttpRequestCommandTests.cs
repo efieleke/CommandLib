@@ -51,39 +51,36 @@ namespace CommandLibTests
         [TestMethod]
         public void DownloadStringCommand_TestHappyPath()
         {
-            using (HttpRequestCommand cmd = new HttpRequestCommand(null, new HttpRequestCommand.EnsureSuccessStatusCodeResponseChecker()))
-            {
-                HappyPathTest.Run(
-                    cmd,
-                    new TestRequestGenerator(System.Net.Http.HttpMethod.Get, TestServer + "/get"),
-                    "http://httpbin.org/get", CompareResults);
-            }
+            HappyPathTest.Run(
+                new HttpRequestCommand(null,new HttpRequestCommand.EnsureSuccessStatusCodeResponseChecker()),
+                new TestRequestGenerator(System.Net.Http.HttpMethod.Get, TestServer + "/get"),
+                "http://httpbin.org/get",
+                CompareResults);
 
-            using (HttpRequestCommand cmd = new HttpRequestCommand(
-                new TestRequestGenerator(System.Net.Http.HttpMethod.Get, TestServer + "/get"), new HttpRequestCommand.EnsureSuccessStatusCodeResponseChecker()))
-            {
-                HappyPathTest.Run(cmd, null, "http://httpbin.org/get", CompareResults);
-            }
+            HappyPathTest.Run(
+                new HttpRequestCommand(
+                    new TestRequestGenerator(System.Net.Http.HttpMethod.Get, TestServer + "/get"),
+                    new HttpRequestCommand.EnsureSuccessStatusCodeResponseChecker()),
+                null,
+                "http://httpbin.org/get",
+                CompareResults);
         }
 
         [TestMethod]
         public void DownloadStringCommand_TestFail()
         {
-            using (HttpRequestCommand cmd = new HttpRequestCommand(null, new HttpRequestCommand.EnsureSuccessStatusCodeResponseChecker()))
-            {
-                FailTest.Run<System.Net.Http.HttpRequestException>(
-                    cmd,
-                    new TestRequestGenerator(System.Net.Http.HttpMethod.Get, TestServer + "/status/404"));
-            }
+            FailTest.Run<System.Net.Http.HttpRequestException>(
+                new HttpRequestCommand(null, new HttpRequestCommand.EnsureSuccessStatusCodeResponseChecker()),
+                new TestRequestGenerator(System.Net.Http.HttpMethod.Get, TestServer + "/status/404"));
         }
 
         [TestMethod]
         public void DownloadStringCommand_TestAbort()
         {
-            using (HttpRequestCommand cmd = new HttpRequestCommand(null, new HttpRequestCommand.EnsureSuccessStatusCodeResponseChecker()))
-            {
-                AbortTest.Run(cmd, new TestRequestGenerator(System.Net.Http.HttpMethod.Get, TestServer + "/delay/5"), 100);
-            }
+            AbortTest.Run(
+                new HttpRequestCommand(null, new HttpRequestCommand.EnsureSuccessStatusCodeResponseChecker()),
+                new TestRequestGenerator(System.Net.Http.HttpMethod.Get, TestServer + "/delay/5"),
+                100);
         }
 
         private int CompareUploadResults(object expected, object actual)
@@ -103,39 +100,41 @@ namespace CommandLibTests
         {
             byte[] data = new byte[] { 0xa, 0xb };
 
-            using (HttpRequestCommand cmd = new HttpRequestCommand(null, new HttpRequestCommand.EnsureSuccessStatusCodeResponseChecker()))
-            {
-                HappyPathTest.Run(cmd, new TestRequestGenerator(System.Net.Http.HttpMethod.Put, TestServer + "/put", data), data, CompareUploadResults);
-            }
-
-            using (HttpRequestCommand cmd = new HttpRequestCommand(
+            HappyPathTest.Run(
+                new HttpRequestCommand(null, new HttpRequestCommand.EnsureSuccessStatusCodeResponseChecker()),
                 new TestRequestGenerator(System.Net.Http.HttpMethod.Put, TestServer + "/put", data),
-                new HttpRequestCommand.EnsureSuccessStatusCodeResponseChecker()))
-            {
-                HappyPathTest.Run(cmd, null, data, CompareUploadResults);
-            }
+                data,
+                CompareUploadResults);
 
-            using (HttpRequestCommand cmd = new HttpRequestCommand(null, new HttpRequestCommand.EnsureSuccessStatusCodeResponseChecker()))
-            {
-                HappyPathTest.Run(cmd, new TestRequestGenerator(System.Net.Http.HttpMethod.Post, TestServer + "/post", data), data, CompareUploadResults);
-            }
+            HappyPathTest.Run(
+                new HttpRequestCommand(
+                    new TestRequestGenerator(System.Net.Http.HttpMethod.Put, TestServer + "/put", data),
+                    new HttpRequestCommand.EnsureSuccessStatusCodeResponseChecker()),
+                null,
+                data,
+                CompareUploadResults);
 
-            using (HttpRequestCommand cmd = new HttpRequestCommand(
+            HappyPathTest.Run(
+                new HttpRequestCommand(null, new HttpRequestCommand.EnsureSuccessStatusCodeResponseChecker()),
                 new TestRequestGenerator(System.Net.Http.HttpMethod.Post, TestServer + "/post", data),
-                new HttpRequestCommand.EnsureSuccessStatusCodeResponseChecker()))
-            {
-                HappyPathTest.Run(cmd, null, data, CompareUploadResults);
-            }
+                data,
+                CompareUploadResults);
+
+            HappyPathTest.Run(
+                new HttpRequestCommand(
+                    new TestRequestGenerator(System.Net.Http.HttpMethod.Post, TestServer + "/post", data),
+                    new HttpRequestCommand.EnsureSuccessStatusCodeResponseChecker()),
+                null,
+                data,
+                CompareUploadResults);
         }
         
         [TestMethod]
         public void UploadDataCommand_TestFail()
         {
-            using (HttpRequestCommand cmd = new HttpRequestCommand(null, new HttpRequestCommand.EnsureSuccessStatusCodeResponseChecker()))
-            {
-                FailTest.Run<System.Net.Http.HttpRequestException>(
-                    cmd, new TestRequestGenerator(System.Net.Http.HttpMethod.Put, TestServer, new byte[] { 0xa, 0xb }));
-            }
+            FailTest.Run<System.Net.Http.HttpRequestException>(
+                new HttpRequestCommand(null, new HttpRequestCommand.EnsureSuccessStatusCodeResponseChecker()),
+                new TestRequestGenerator(System.Net.Http.HttpMethod.Put, TestServer, new byte[] { 0xa, 0xb }));
         }
         
         [TestMethod]
@@ -143,10 +142,10 @@ namespace CommandLibTests
         {
             byte[] data = new byte[1024 * 1024];
 
-            using (HttpRequestCommand cmd = new HttpRequestCommand(null, new HttpRequestCommand.EnsureSuccessStatusCodeResponseChecker()))
-            {
-                AbortTest.Run(cmd, new TestRequestGenerator(System.Net.Http.HttpMethod.Put, TestServer + "/put", data), 5);
-            }
+            AbortTest.Run(
+                new HttpRequestCommand(null, new HttpRequestCommand.EnsureSuccessStatusCodeResponseChecker()),
+                new TestRequestGenerator(System.Net.Http.HttpMethod.Put, TestServer + "/put", data),
+                5);
         }
     }
 }

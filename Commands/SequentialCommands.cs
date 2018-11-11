@@ -2,13 +2,12 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
-using System.Threading.Tasks;
 
 namespace Sophos.Commands
 {
     /// <summary>
     /// SequentialCommands is a <see cref="Command"/> object which contains a collection of commands which are run in sequence.
-    /// Each command is run in its most natural form: commands inherited from <see cref="SyncCommand"/> are executed synchronously,
+    /// When possible, each command is run in its most natural form: commands inherited from <see cref="SyncCommand"/> are executed synchronously,
     /// and other commands are run asynchronously (but still in sequence).
     /// </summary>
     /// <remarks>
@@ -39,6 +38,12 @@ namespace Sophos.Commands
         /// </param>
         public SequentialCommands(Command owner) : base(owner)
         {
+        }
+
+        /// <inheritdoc />
+        public sealed override bool IsNaturallySynchronous()
+        {
+            return _commands.All(c => c.IsNaturallySynchronous());
         }
 
         /// <summary>Adds a <see cref="Command"/> to the collection to execute.</summary>
@@ -94,70 +99,32 @@ namespace Sophos.Commands
         }
 
         /// <inheritdoc />
-        public sealed override Task<TResult> AsTask<TResult>(object runtimeArg, Command owner)
-        {
-            var taskCompletionSource = new TaskCompletionSource<TResult>();
-
-            if (_commands.All(c => c is SyncCommand))
-            {
-                Task.Factory.StartNew(() =>
-                {
-                    try
-                    {
-                        SyncExecute(runtimeArg, owner);
-                        taskCompletionSource.SetResult(default(TResult));
-                    }
-                    catch (CommandAbortedException)
-                    {
-                        taskCompletionSource.SetCanceled();
-                    }
-                    catch (Exception e)
-                    {
-                        taskCompletionSource.SetException(e);
-                    }
-                });
-            }
-            else
-            {
-                Command cmd = owner == null ? (Command)this : new AbortSignaledCommand(this, owner);
-
-                Task.Factory.StartNew(() => cmd.AsyncExecute(
-                    o => taskCompletionSource.SetResult(default(TResult)),
-                    () => taskCompletionSource.SetCanceled(),
-                    e => taskCompletionSource.SetException(e),
-                    runtimeArg));
-            }
-
-            return taskCompletionSource.Task;
-        }
-
-        /// <inheritdoc />
         protected override object SyncExecuteImpl(object runtimeArg)
         {
-            if (_commands.All(c => c is SyncCommand))
+            LinkedListNode<Command> node = _commands.First;
+
+            while (node != null && node.Value.IsNaturallySynchronous())
             {
-                // If every one of the commands is synchronous, we have a special case
-                // where we can optimize by not waiting on an event handle to know
-                // when we are done.
-                foreach (Command cmd in _commands)
-                {
-                    CheckAbortFlag();
-                    cmd.SyncExecute();
-                }
+                CheckAbortFlag();
+                node.Value.SyncExecute();
+                node = node.Next;
             }
-            else
+
+            if (node != null)
             {
+                // We encountered a command that is asynchronous in nature.
                 var resetEvent = new ManualResetEvent(false);
                 Exception error = null;
 
-                AsyncExecuteImpl(new DelegateCommandListener<object>( 
-                    // ReSharper disable once AccessToDisposedClosure
-                    o => resetEvent.Set(),
-                    // ReSharper disable once AccessToDisposedClosure
-                    () => { error = new CommandAbortedException(); resetEvent.Set(); },
-                    // ReSharper disable once AccessToDisposedClosure
-                    e => { error = e; resetEvent.Set(); }),
-                    null);
+                DoAsyncExecute(
+                    new DelegateCommandListener<object>( 
+                        // ReSharper disable once AccessToDisposedClosure
+                        o => resetEvent.Set(),
+                        // ReSharper disable once AccessToDisposedClosure
+                        () => { error = new CommandAbortedException(); resetEvent.Set(); },
+                        // ReSharper disable once AccessToDisposedClosure
+                        e => { error = e; resetEvent.Set(); }),
+                    node);
 
                 resetEvent.WaitOne();
                 resetEvent.Dispose();
@@ -184,29 +151,12 @@ namespace Sophos.Commands
                 return;
             }
 
-            // We have to execute at least one command asynchronously in order to finish on a different thread.
-            if (!_commands.All(c => c is SyncCommand))
-            {
-                try
-                {
-                    // ReSharper disable once PossibleNullReferenceException
-                    while (node.Value is SyncCommand)
-                    {
-                        CheckAbortFlag();
-                        node.Value.SyncExecute();
-                        node = node.Next;
-                    }
-                }
-                catch (Exception e)
-                {
-                    // need to call back on the listener from a different thread
-                    _asyncWrapperCmd = new DelegateCommand<object>(o => throw e, this);
-                    _asyncWrapperCmd.AsyncExecute(listener);
-                    return;
-                }
-            }
+            // We execute the first command asynchronously regardless of whether it is naturally asynchronous, because this call must not block.
+            DoAsyncExecute(listener, node);
+        }
 
-            // The code above guarantees that when we reach this point, 'node' will not be null.
+        private void DoAsyncExecute(ICommandListener listener, LinkedListNode<Command> node)
+        {
             _listener.ExternalListener = listener;
             _listener.CurrentNode = node;
             node.Value.AsyncExecute(_listener);
@@ -233,7 +183,7 @@ namespace Sophos.Commands
                 {
                     ExternalListener.CommandAborted();
                 }
-                else if (_currentNode.Value is SyncCommand)
+                else if (_currentNode.Value.IsNaturallySynchronous())
                 {
                     try
                     {

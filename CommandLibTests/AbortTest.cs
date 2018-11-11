@@ -8,6 +8,7 @@ namespace CommandLibTests
 {
     internal static class AbortTest
     {
+        // This call takes ownership of 'cmd' (it disposes of it)
         internal static void Run(Command cmd, object runtimeArg, int maxDelayTime)
         {
             string tempFile = System.IO.Path.GetTempFileName();
@@ -51,13 +52,33 @@ namespace CommandLibTests
                 cmd.AbortAndWait();
                 thread.Join();
 
-	            using (Task<object> task = cmd.AsTask<object>(runtimeArg))
+                bool succeeded = false;
+                bool aborted = false;
+                bool failed = false;
+                cmd.AsyncExecute(r => succeeded = true, () => aborted = true, e => failed = true, runtimeArg);
+                System.Threading.Thread.Sleep(maxDelayTime); // give time for the command to start executing
+                cmd.AbortAndWait();
+                Assert.IsFalse(succeeded);
+                Assert.IsTrue(aborted);
+                Assert.IsFalse(failed);
+
+                using (Task<object> task = cmd.AsTask<object>(runtimeArg))
 	            {
 		            try
 		            {
 						System.Threading.Thread.Sleep(maxDelayTime); // give time for the command to start executing
-			            cmd.Abort(); // there is no way to directly abort the task other than by aborting the underlying command
-			            task.Wait();
+
+		                try
+		                {
+                            cmd.Abort();
+		                }
+		                catch (ObjectDisposedException)
+		                {
+		                    // AsTask took ownership of cmd, so we cannot assume it has not already been disposed.
+		                    // If we get an object disposed exception, we can infer that the task was already complete.
+		                }
+
+		                task.Wait();
 			            Assert.Fail("Command succeeded when it was expected to be aborted");
 					}
 					catch (AggregateException e)
@@ -76,16 +97,6 @@ namespace CommandLibTests
 						}
 					}
 	            }
-
-	            bool succeeded = false;
-	            bool aborted = false;
-	            bool failed = false;
-	            cmd.AsyncExecute(r => succeeded = true, () => aborted = true, e => failed = true, runtimeArg);
-	            System.Threading.Thread.Sleep(maxDelayTime); // give time for the command to start executing
-	            cmd.AbortAndWait();
-				Assert.IsFalse(succeeded);
-	            Assert.IsTrue(aborted);
-				Assert.IsFalse(failed);
 			}
 			finally
             {

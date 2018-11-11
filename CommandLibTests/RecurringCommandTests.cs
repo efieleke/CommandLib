@@ -41,85 +41,71 @@ namespace CommandLibTests
         [TestMethod]
         public void RecurringCommand_TestAbort()
         {
-            using (RecurringCommand recurringCmd = new RecurringCommand(
+            AbortTest.Run(new RecurringCommand(
                 new AddCommand(0),
-                new RecurCallback(TimeSpan.FromDays(1), TimeSpan.FromDays(1), 99)))
-            {
-                AbortTest.Run(recurringCmd, 2, 20);
-            }
+                new RecurCallback(TimeSpan.FromDays(1), TimeSpan.FromDays(1), 99)),
+                2,
+                20);
 
-            using (RecurringCommand recurringCmd = new RecurringCommand(
+            AbortTest.Run(new RecurringCommand(
                 new AddCommand(0),
-                new RecurCallback(TimeSpan.FromDays(1).Negate(), TimeSpan.FromDays(1), 99)))
-            {
-                AbortTest.Run(recurringCmd, 3, 20);
-            }
+                new RecurCallback(TimeSpan.FromDays(1).Negate(), TimeSpan.FromDays(1), 99)),
+                3,
+                20);
 
-            using (RecurringCommand recurringCmd = new RecurringCommand(
+            AbortTest.Run(new RecurringCommand(
                 new PauseCommand(TimeSpan.FromDays(1)),
-                new RecurCallback(TimeSpan.FromDays(1).Negate(), TimeSpan.FromDays(1).Negate(), 99)))
-            {
-                AbortTest.Run(recurringCmd, 1, 20);
-            }
+                new RecurCallback(TimeSpan.FromDays(1).Negate(), TimeSpan.FromDays(1).Negate(), 99)),
+                1,
+                20);
 
             var recurCallback = new RecurCallback(TimeSpan.FromDays(1), TimeSpan.FromDays(1), 99);
 
-            using (RecurringCommand recurringCmd = new RecurringCommand(
+            AbortTest.Run(new RecurringCommand(
                 new AddCommand(0),
-                (out DateTime d) => recurCallback.GetFirstExecutionTime(out d),
-                (ref DateTime d) => recurCallback.GetNextExecutionTime(ref d)))
-            {
-                AbortTest.Run(recurringCmd, 2, 20);
-            }
+                (out DateTime d) => recurCallback.GetFirstExecutionTime(out d), (ref DateTime d) => recurCallback.GetNextExecutionTime(ref d)),
+                2,
+                20);
         }
 
         [TestMethod]
         public void RecurringCommand_TestHappyPath()
         {
-            using (RecurringCommand recurringCmd = new RecurringCommand(
+            HappyPathTest.Run(new RecurringCommand(
                 new AddCommand(0),
-                new RecurCallback(TimeSpan.FromMilliseconds(5), TimeSpan.FromMilliseconds(5), 7)))
-            {
-                HappyPathTest.Run(recurringCmd, 2, null);
-            }
+                new RecurCallback(TimeSpan.FromMilliseconds(5), TimeSpan.FromMilliseconds(5), 7)),
+                2,
+                null);
 
-            using (RecurringCommand recurringCmd = new RecurringCommand(
+            HappyPathTest.Run(new RecurringCommand(
                 new AddCommand(0),
-                new RecurCallback(TimeSpan.FromDays(1).Negate(), TimeSpan.FromDays(1).Negate(), 7)))
-            {
-                HappyPathTest.Run(recurringCmd, 2, null);
-            }
+                new RecurCallback(TimeSpan.FromDays(1).Negate(), TimeSpan.FromDays(1).Negate(), 7)),
+                2,
+                null);
 
             var recurCallback = new RecurCallback(TimeSpan.FromMilliseconds(5), TimeSpan.FromMilliseconds(5), 7);
 
-            using (RecurringCommand recurringCmd = new RecurringCommand(
+            HappyPathTest.Run(new RecurringCommand(
                 new AddCommand(0),
-                (out DateTime d) => recurCallback.GetFirstExecutionTime(out d),
-                (ref DateTime d) => recurCallback.GetNextExecutionTime(ref d)))
-            {
-                HappyPathTest.Run(recurringCmd, 2, null);
-            }
+                (out DateTime d) => recurCallback.GetFirstExecutionTime(out d), (ref DateTime d) => recurCallback.GetNextExecutionTime(ref d)),
+                2,
+                null);
         }
 
         [TestMethod]
         public void RecurringCommand_TestFail()
         {
-            using (RecurringCommand recurringCmd = new RecurringCommand(
+            FailTest.Run<FailingCommand.FailException>(new RecurringCommand(
                 new FailingCommand(),
-                new RecurCallback(TimeSpan.FromMilliseconds(5), TimeSpan.FromMilliseconds(5), 7)))
-            {
-                FailTest.Run<FailingCommand.FailException>(recurringCmd, 2);
-            }
+                new RecurCallback(TimeSpan.FromMilliseconds(5), TimeSpan.FromMilliseconds(5), 7)),
+                2);
 
             var recurCallback = new RecurCallback(TimeSpan.FromMilliseconds(5), TimeSpan.FromMilliseconds(5), 7);
 
-            using (RecurringCommand recurringCmd = new RecurringCommand(
+            FailTest.Run<FailingCommand.FailException>(new RecurringCommand(
                 new FailingCommand(),
-                (out DateTime d) => recurCallback.GetFirstExecutionTime(out d),
-                (ref DateTime d) => recurCallback.GetNextExecutionTime(ref d)))
-            {
-                FailTest.Run<FailingCommand.FailException>(recurringCmd, 2);
-            }
+                (out DateTime d) => recurCallback.GetFirstExecutionTime(out d), (ref DateTime d) => recurCallback.GetNextExecutionTime(ref d)),
+                2);
         }
 
         [TestMethod]

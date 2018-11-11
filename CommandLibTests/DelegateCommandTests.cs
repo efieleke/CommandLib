@@ -1,5 +1,4 @@
-﻿using System;
-using Microsoft.VisualStudio.TestTools.UnitTesting;
+﻿using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Sophos.Commands;
 
 namespace CommandLibTests
@@ -10,15 +9,8 @@ namespace CommandLibTests
 		[TestMethod]
 		public void TestDelegateCommand()
 		{
-			using (var cmd = new DelegateCommand<int>(() => 7))
-			{
-				HappyPathTest.Run(cmd, null, 7);
-			}
-
-			using (var cmd = new DelegateCommand<int>(i => (int)i))
-			{
-				HappyPathTest.Run(cmd, 5, 5);
-			}
+            HappyPathTest.Run(new DelegateCommand<int>(() => 7), null, 7);
+            HappyPathTest.Run(new DelegateCommand<int>(i => (int)i), 5, 5);
 		}
 	}
 }

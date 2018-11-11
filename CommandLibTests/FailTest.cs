@@ -8,6 +8,7 @@ namespace CommandLibTests
 {
     internal static class FailTest
     {
+        // This call takes ownership of 'cmd' (it disposes of it)
         internal static void Run<T>(Command cmd, object runtimeArg) where T : Exception
         {
             string tempFile = System.IO.Path.GetTempFileName();
@@ -41,7 +42,24 @@ namespace CommandLibTests
                     Assert.Fail("Caught unexpected type of exception: " + exc);
                 }
 
-	            using (Task<object> task = cmd.AsTask<object>(runtimeArg))
+                bool succeeded = false;
+                Exception failure = null;
+                bool aborted = false;
+                bool failed = false;
+
+                cmd.AsyncExecute(
+                    r => succeeded = true,
+                    () => aborted = true,
+                    e => { failed = true; failure = e; },
+                    runtimeArg);
+
+                cmd.Wait();
+                Assert.IsFalse(succeeded);
+                Assert.IsFalse(aborted);
+                Assert.IsTrue(failed);
+                Assert.IsTrue(failure is T);
+
+                using (Task<object> task = cmd.AsTask<object>(runtimeArg))
 	            {
 		            try
 		            {
@@ -62,23 +80,6 @@ namespace CommandLibTests
 						}
 					}
 	            }
-
-	            bool succeeded = false;
-	            Exception failure = null;
-	            bool aborted = false;
-	            bool failed = false;
-
-	            cmd.AsyncExecute(
-		            r => succeeded = true,
-		            () => aborted = true,
-		            e => { failed = true; failure = e; },
-		            runtimeArg);
-
-	            cmd.Wait();
-	            Assert.IsFalse(succeeded);
-	            Assert.IsFalse(aborted);
-	            Assert.IsTrue(failed);
-	            Assert.IsTrue(failure is T);
 			}
 			finally
             {

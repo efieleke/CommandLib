@@ -10,44 +10,21 @@ namespace CommandLibTests
         [TestMethod]
         public void TimeLimitedCommand_TestAbort()
         {
-            using (TimeLimitedCommand timeLimitedCmd = new TimeLimitedCommand(
-                new PauseCommand(TimeSpan.FromDays(1)),
-                int.MaxValue))
-            {
-                AbortTest.Run(timeLimitedCmd, null, 10);
-            }
+            AbortTest.Run(new TimeLimitedCommand(new PauseCommand(TimeSpan.FromDays(1)), int.MaxValue), null, 10);
         }
 
         [TestMethod]
         public void TimeLimitedCommand_TestHappyPath()
         {
-            using (TimeLimitedCommand timeLimitedCmd = new TimeLimitedCommand(new AddCommand(4), int.MaxValue))
-            {
-                HappyPathTest.Run(timeLimitedCmd, 10, 14);
-            }
-
-            using (TimeLimitedCommand timeLimitedCmd = new TimeLimitedCommand(
-                new PauseCommand(TimeSpan.FromMilliseconds(10)),
-                100))
-            {
-                HappyPathTest.Run(timeLimitedCmd, null, null);
-            }
+            HappyPathTest.Run(new TimeLimitedCommand(new AddCommand(4), int.MaxValue), 10, 14);
+            HappyPathTest.Run(new TimeLimitedCommand(new PauseCommand(TimeSpan.FromMilliseconds(10)), 100), null, null);
         }
 
         [TestMethod]
         public void TimeLimitedCommand_TestFail()
         {
-            using (TimeLimitedCommand timeLimitedCmd = new TimeLimitedCommand(new FailingCommand(), int.MaxValue))
-            {
-                FailTest.Run<FailingCommand.FailException>(timeLimitedCmd, null);
-            }
-
-            using (TimeLimitedCommand timeLimitedCmd = new TimeLimitedCommand(
-                new PauseCommand(TimeSpan.FromMilliseconds(100)),
-                10))
-            {
-                FailTest.Run<TimeoutException>(timeLimitedCmd, null);
-            }
+            FailTest.Run<FailingCommand.FailException>(new TimeLimitedCommand(new FailingCommand(), int.MaxValue), null);
+            FailTest.Run<TimeoutException>(new TimeLimitedCommand(new PauseCommand(TimeSpan.FromMilliseconds(100)), 10), null);
         }
 
         [TestMethod]

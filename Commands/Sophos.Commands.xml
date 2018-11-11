@@ -73,7 +73,7 @@
             If your implementation makes use of asynchronous Tasks (i.e. the Task class), inherit from TaskCommand instead.
             </summary>
         </member>
-        <member name="M:Sophos.Commands.AsyncCommand.AsTask``1(System.Object,Sophos.Commands.Command)">
+        <member name="M:Sophos.Commands.AsyncCommand.IsNaturallySynchronous">
             <inheritdoc />
         </member>
         <member name="M:Sophos.Commands.AsyncCommand.#ctor(Sophos.Commands.Command)">
@@ -106,7 +106,7 @@
             <para></para>
             <para>
             Using <see cref="T:Sophos.Commands.ParallelCommands"/>, you can run a collection of <see cref="T:Sophos.Commands.Command"/> objects concurrently, and using
-            <see cref="T:Sophos.Commands.SequentialCommands"/>, you can run a collection of <see cref="T:Sophos.Commands.Command"/> objects in sequence. Any command
+            <see crefAs="SequentialCommands"/>, you can run a collection of <see cref="T:Sophos.Commands.Command"/> objects in sequence. Any command
             can be added to these two types (including <see cref="T:Sophos.Commands.ParallelCommands"/> and <see cref="T:Sophos.Commands.SequentialCommands"/> themselves,
             because they are <see cref="T:Sophos.Commands.Command"/> objects), so it's possible to create a deep nesting of coordinated activities.
             </para>
@@ -385,10 +385,10 @@
         </member>
         <member name="M:Sophos.Commands.Command.AsTask``1">
             <summary>
-            Returns a task that, when run, will execute this command passed as an argument. Note that this command must
-            not be disposed before the task is disposed. Also, note that behavior is undefined if this command is executing
-            at the time the task is run. This method is meant as a potential convenience. The more natural
-            way to execute commands is via the various Execute* methods.
+            Returns a task that, when run, will execute this command. Note that this command must
+            not be disposed, because it will be auto-disposed when the task completes. Also, this operation will fail if this
+            command is not a top-level command (in other words, it must not have parents).
+            Also, note that behavior is undefined if this command is executing at the time the task is run.
             </summary>
             <typeparam name="TResult">
             The type the command returns from SynExecute. If you don't care about the return value, it is safe to
@@ -397,16 +397,13 @@
             <returns>
             The Task, which will have been started.
             </returns>
-            <remarks>
-            The returned Task may only be aborted during its execution if this Command is aborted.
-            </remarks>
         </member>
         <member name="M:Sophos.Commands.Command.AsTask``1(System.Object)">
             <summary>
-            Returns a task that, when run, will execute this command passed as an argument. Note that this command must
-            not be disposed before the task is disposed. Also, note that behavior is undefined if this command is executing
-            at the time the task is run. This method is meant as a potential convenience. The more natural
-            way to execute commands is via the various Execute* methods.
+            Returns a task that, when run, will execute this command. Note that this command must
+            not be disposed, because it will be auto-disposed when the task completes. Also, this operation will fail if this
+            command is not a top-level command (in other words, it must not have parents).
+            Also, note that behavior is undefined if this command is executing at the time the task is run.
             </summary>
             <typeparam name="TResult">
             The type the command returns from SynExecute. If you don't care about the return value, it is safe to
@@ -419,16 +416,13 @@
             <returns>
             The Task, which will have been started.
             </returns>
-            <remarks>
-            The returned Task may only be aborted during its execution if this Command is aborted.
-            </remarks>
         </member>
         <member name="M:Sophos.Commands.Command.AsTask``1(System.Object,Sophos.Commands.Command)">
             <summary>
-            Returns a task that, when run, will execute this command passed as an argument. Note that this command must
-            not be disposed before the task is disposed. Also, note that behavior is undefined if this command is executing
-            at the time the task is run. This method is meant as a potential convenience. The more natural
-            way to execute commands is via the various Execute* methods.
+            Returns a task that, when run, will execute this command. Note that this command must
+            not be disposed, because it will be auto-disposed when the task completes. Also, this operation will fail if this
+            command is not a top-level command (in other words, it must not have parents).
+            Also, note that behavior is undefined if this command is executing at the time the task is run.
             </summary>
             <typeparam name="TResult">
             The type the command returns from SynExecute. If you don't care about the return value, it is safe to
@@ -447,9 +441,13 @@
             <returns>
             The Task, which will have been started.
             </returns>
-            <remarks>
-            The returned Task may only be aborted during its execution if this Command is aborted.
-            </remarks>
+        </member>
+        <member name="M:Sophos.Commands.Command.IsNaturallySynchronous">
+            <summary>
+            Returns true if this <see cref="T:Sophos.Commands.Command"/> most efficient form of execution is synchronous.
+            This information is used on occasion to determine how to best execute a command.
+            </summary>
+            <returns>true, if this command is most efficient when run synchronously</returns>
         </member>
         <member name="M:Sophos.Commands.Command.Dispose">
             <summary>
@@ -1428,7 +1426,7 @@
             <remarks>
             <para>
             The 'runtimeArg' parameter passed to <see cref="M:Sophos.Commands.Command.SyncExecute(System.Object)"/> and <see cref="M:Sophos.Commands.Command.AsyncExecute(Sophos.Commands.ICommandListener,System.Object)"/>
-            will be passed to every command in the collection when it executes.
+            is ignored.
             </para>
             <para>
             Synchronous execution will return null, and the 'result' parameter of <see cref="M:Sophos.Commands.ICommandListener.CommandSucceeded(System.Object)"/> will also be set to null.
@@ -2071,7 +2069,7 @@
         <member name="T:Sophos.Commands.SequentialCommands">
             <summary>
             SequentialCommands is a <see cref="T:Sophos.Commands.Command"/> object which contains a collection of commands which are run in sequence.
-            Each command is run in its most natural form: commands inherited from <see cref="T:Sophos.Commands.SyncCommand"/> are executed synchronously,
+            When possible, each command is run in its most natural form: commands inherited from <see cref="T:Sophos.Commands.SyncCommand"/> are executed synchronously,
             and other commands are run asynchronously (but still in sequence).
             </summary>
             <remarks>
@@ -2098,6 +2096,9 @@
             Specify null to indicate a top-level command. Otherwise, this command will be owned by 'owner'. Owned commands respond to
             abort requests made of their owner. Also, owned commands are disposed of when the owner is disposed.
             </param>
+        </member>
+        <member name="M:Sophos.Commands.SequentialCommands.IsNaturallySynchronous">
+            <inheritdoc />
         </member>
         <member name="M:Sophos.Commands.SequentialCommands.Add(Sophos.Commands.Command)">
             <summary>Adds a <see cref="T:Sophos.Commands.Command"/> to the collection to execute.</summary>
@@ -2126,9 +2127,6 @@
             The returned text includes the number of commands in the collection
             </returns>
         </member>
-        <member name="M:Sophos.Commands.SequentialCommands.AsTask``1(System.Object,Sophos.Commands.Command)">
-            <inheritdoc />
-        </member>
         <member name="M:Sophos.Commands.SequentialCommands.SyncExecuteImpl(System.Object)">
             <inheritdoc />
         </member>
@@ -2141,7 +2139,7 @@
             you are responsible for implementing <see cref="M:Sophos.Commands.SyncCommand.SyncExeImpl(System.Object)"/>. This class implements <see cref="M:Sophos.Commands.SyncCommand.AsyncExecuteImpl(Sophos.Commands.ICommandListener,System.Object)"/>.
             </summary>
         </member>
-        <member name="M:Sophos.Commands.SyncCommand.AsTask``1(System.Object,Sophos.Commands.Command)">
+        <member name="M:Sophos.Commands.SyncCommand.IsNaturallySynchronous">
             <inheritdoc />
         </member>
         <member name="M:Sophos.Commands.SyncCommand.#ctor(Sophos.Commands.Command)">

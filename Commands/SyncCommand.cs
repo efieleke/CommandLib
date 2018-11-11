@@ -1,7 +1,4 @@
 ﻿
-using System;
-using System.Threading.Tasks;
-
 namespace Sophos.Commands
 {
     /// <summary>
@@ -11,28 +8,7 @@ namespace Sophos.Commands
     public abstract class SyncCommand : Command
     {
         /// <inheritdoc />
-        public sealed override Task<TResult> AsTask<TResult>(object runtimeArg, Command owner)
-        {
-            var taskCompletionSource = new TaskCompletionSource<TResult>();
-
-            Task.Factory.StartNew(() =>
-            {
-                try
-                {
-                    taskCompletionSource.SetResult((TResult)SyncExecute(runtimeArg, owner));
-                }
-                catch (CommandAbortedException)
-                {
-                    taskCompletionSource.SetCanceled();
-                }
-                catch (Exception e)
-                {
-                    taskCompletionSource.SetException(e);
-                }
-            });
-
-            return taskCompletionSource.Task;
-        }
+        public sealed override bool IsNaturallySynchronous() { return true; }
 
         /// <summary>
         /// Constructs a SyncCommand object

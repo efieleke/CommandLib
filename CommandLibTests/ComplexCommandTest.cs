@@ -12,10 +12,7 @@ namespace CommandLibTests
         {
             using (System.Threading.ManualResetEvent abortEvent = new System.Threading.ManualResetEvent(false))
             {
-                using (Command test = GenerateComplexCommand(abortEvent, 1, false))
-                {
-                    HappyPathTest.Run(test, null, null);
-                }
+                HappyPathTest.Run(GenerateComplexCommand(abortEvent, 1, false), null, null);
             }
         }
 
@@ -24,10 +21,7 @@ namespace CommandLibTests
         {
             using (System.Threading.ManualResetEvent abortEvent = new System.Threading.ManualResetEvent(false))
             {
-                using (Command test = GenerateComplexCommand(abortEvent, 1, true))
-                {
-                    FailTest.Run<FailingCommand.FailException>(test, null);
-                }
+                FailTest.Run<FailingCommand.FailException>(GenerateComplexCommand(abortEvent, 1, true), null);
             }
         }
 
@@ -48,24 +42,22 @@ namespace CommandLibTests
         {
             using (System.Threading.ManualResetEvent abortEvent = new System.Threading.ManualResetEvent(false))
             {
-                using (Command test = GenerateComplexCommand(abortEvent, 1, false))
-                {
-                    CmdListener listener = new CmdListener(CmdListener.CallbackType.Aborted, null);
-                    test.AsyncExecute(listener, null);
-                    abortEvent.Set();
-                    test.Wait();
-                    abortEvent.Reset();
-                    listener.Check();
+                Command test = GenerateComplexCommand(abortEvent, 1, false);
+                CmdListener listener = new CmdListener(CmdListener.CallbackType.Aborted, null);
+                test.AsyncExecute(listener, null);
+                abortEvent.Set();
+                test.Wait();
+                abortEvent.Reset();
+                listener.Check();
 
-                    listener.Reset(CmdListener.CallbackType.Aborted, null);
-                    test.AsyncExecute(listener, null);
-                    System.Threading.Thread.Sleep(10);
-                    abortEvent.Set();
-                    test.Wait();
-                    listener.Check();
+                listener.Reset(CmdListener.CallbackType.Aborted, null);
+                test.AsyncExecute(listener, null);
+                System.Threading.Thread.Sleep(10);
+                abortEvent.Set();
+                test.Wait();
+                listener.Check();
 
-                    AbortTest.Run(test, null, 10);
-                }
+                AbortTest.Run(test, null, 10);
             }
         }
 

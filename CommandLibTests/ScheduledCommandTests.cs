@@ -25,29 +25,15 @@ namespace CommandLibTests
         [TestMethod]
         public void ScheduledCommand_TestAbort()
         {
-            using (ScheduledCommand scheduledCmd = new ScheduledCommand(new AddCommand(0), Tomorrow(), false))
-            {
-                AbortTest.Run(scheduledCmd, null, 20);
-            }
-
-            using (ScheduledCommand scheduledCmd = new ScheduledCommand(new NeverEndingAsyncCommand(), Yesterday(), true))
-            {
-                AbortTest.Run(scheduledCmd, null, 20);
-            }
+            AbortTest.Run(new ScheduledCommand(new AddCommand(0), Tomorrow(), false), null, 20);
+            AbortTest.Run(new ScheduledCommand(new NeverEndingAsyncCommand(), Yesterday(), true), null, 20);
         }
 
         [TestMethod]
         public void ScheduledCommand_TestHappyPath()
         {
-            using (ScheduledCommand scheduledCmd = new ScheduledCommand(new AddCommand(3), Yesterday(), true))
-            {
-                HappyPathTest.Run(scheduledCmd, 0, 3);
-            }
-
-            using (ScheduledCommand scheduledCmd = new ScheduledCommand(new AddCommand(2), RealSoon(), true))
-            {
-                HappyPathTest.Run(scheduledCmd, 0, 2);
-            }
+            HappyPathTest.Run(new ScheduledCommand(new AddCommand(3), Yesterday(), true), 0, 3);
+            HappyPathTest.Run(new ScheduledCommand(new AddCommand(2), RealSoon(), true), 0, 2);
 
             using (ScheduledCommand scheduledCmd = new ScheduledCommand(new AddCommand(2), RealSoon(), false))
             {
@@ -58,15 +44,8 @@ namespace CommandLibTests
         [TestMethod]
         public void ScheduledCommand_TestFail()
         {
-            using (ScheduledCommand scheduledCmd = new ScheduledCommand(new AddCommand(0), Yesterday(), false))
-            {
-                FailTest.Run<InvalidOperationException>(scheduledCmd, 0);
-            }
-
-            using (ScheduledCommand scheduledCmd = new ScheduledCommand(new FailingCommand(), RealSoon(), true))
-            {
-                FailTest.Run<FailingCommand.FailException>(scheduledCmd, 0);
-            }
+            FailTest.Run<InvalidOperationException>(new ScheduledCommand(new AddCommand(0), Yesterday(), false), 0);
+            FailTest.Run<FailingCommand.FailException>(new ScheduledCommand(new FailingCommand(), RealSoon(), true), 0);
         }
 
         [TestMethod]

@@ -1,5 +1,4 @@
 ﻿using System;
-using System.Threading.Tasks;
 
 namespace Sophos.Commands
 {
@@ -11,19 +10,7 @@ namespace Sophos.Commands
     public abstract class AsyncCommand : Command
     {
         /// <inheritdoc />
-        public sealed override Task<TResult> AsTask<TResult>(object runtimeArg, Command owner)
-        {
-            Command cmd = owner == null ? (Command)this : new AbortSignaledCommand(this, owner);
-            var taskCompletionSource = new TaskCompletionSource<TResult>();
-
-            Task.Factory.StartNew(() => cmd.AsyncExecute(
-                o => taskCompletionSource.SetResult((TResult) o),
-                () => taskCompletionSource.SetCanceled(),
-                e => taskCompletionSource.SetException(e),
-                runtimeArg));
-
-            return taskCompletionSource.Task;
-        }
+        public sealed override bool IsNaturallySynchronous() { return false; }
 
         /// <summary>
         /// Constructs and AsyncCommand object.

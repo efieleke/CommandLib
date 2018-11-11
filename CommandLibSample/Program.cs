@@ -46,8 +46,14 @@ namespace CommandLibSample
 			{
 				System.IO.File.Delete(tempFile);
 			}
+
+            MakeDinnerCmd.Dispose();
 		}
 
+        // This class is a ParallelCommands-derived type that adds Command objects to its
+        // collection. When the PrepareDinnerCommand instance is executed, its contained
+        // commands will execute concurrently (those two commands are preparing the spaghetti
+        // and preparing the salad; see the last two statements in the constructor).
 		private class PrepareDinnerCmd : ParallelCommands
 		{
 			internal PrepareDinnerCmd() : base(Behavior.AbortUponFailure)
@@ -159,9 +165,9 @@ namespace CommandLibSample
 
 			protected override object SyncExeImpl(object runtimeArg)
 			{
-				Console.Out.WriteLine("Started " + _desc);
+				Console.Out.WriteLine($"Started {_desc}");
 			    _pauseCmd.SyncExecute();
-				Console.Out.WriteLine("Finished " + _desc);
+				Console.Out.WriteLine($"Finished {_desc}");
 				return null;
 			}
 

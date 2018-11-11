@@ -81,10 +81,7 @@ namespace CommandLibTests
         {
             using (System.Threading.ManualResetEvent abortEvent = new System.Threading.ManualResetEvent(false))
             {
-                using (AbortSignaledCommand abortSignaledPauseCmd = new AbortSignaledCommand(new NeverEndingAsyncCommand(), abortEvent))
-                {
-                    AbortTest.Run(abortSignaledPauseCmd, null, 10);
-                }
+                AbortTest.Run(new AbortSignaledCommand(new NeverEndingAsyncCommand(), abortEvent), null, 10);
             }
         }
 
@@ -94,10 +91,7 @@ namespace CommandLibTests
             using (System.Threading.ManualResetEvent abortEvent = new System.Threading.ManualResetEvent(false))
             {
                 PauseCommand pauseCmd = new PauseCommand(TimeSpan.FromMilliseconds(10));
-                using (AbortSignaledCommand abortSignaledPauseCmd = new AbortSignaledCommand(pauseCmd, abortEvent))
-                {
-                    HappyPathTest.Run(abortSignaledPauseCmd, null, null);
-                }
+                HappyPathTest.Run(new AbortSignaledCommand(pauseCmd, abortEvent), null, null);
             }
         }
 
@@ -106,9 +100,8 @@ namespace CommandLibTests
         {
             using (System.Threading.ManualResetEvent abortEvent = new System.Threading.ManualResetEvent(false))
             {
-                AbortSignaledCommand abortSignaledCmd = new AbortSignaledCommand(new FailingCommand(), abortEvent);
+                var abortSignaledCmd = new AbortSignaledCommand(new FailingCommand(), abortEvent);
                 FailTest.Run<FailingCommand.FailException>(abortSignaledCmd, null);
-                abortSignaledCmd.Dispose();
             }
         }
 

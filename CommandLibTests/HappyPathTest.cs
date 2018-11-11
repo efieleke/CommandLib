@@ -8,6 +8,7 @@ namespace CommandLibTests
 {
     internal static class HappyPathTest
     {
+        // Takes ownership of 'cmd'. Caller should not dispose
         internal static void Run(Command cmd, object runtimeArg, object expectedResult, Comparison<object> compare = null)
         {
             Assert.IsTrue(Command.Monitors == null);
@@ -18,6 +19,7 @@ namespace CommandLibTests
                 Command.Monitors = new LinkedList<ICommandMonitor>();
                 Command.Monitors.AddLast(new CommandTracer());
                 Command.Monitors.AddLast(new CommandLogger(tempFile));
+                
                 CmdListener listener = new CmdListener(CmdListener.CallbackType.Succeeded, expectedResult, compare);
                 cmd.Abort(); // should be a no-op
                 cmd.AsyncExecute(listener, runtimeArg);
@@ -39,20 +41,6 @@ namespace CommandLibTests
 
                 cmd.Wait(); // should be a no-op
                 cmd.AbortAndWait(); // should be a no-op
-
-	            using (Task<object> task = cmd.AsTask<object>(runtimeArg))
-	            {
-		            result = task.Result;
-
-		            if (compare == null)
-		            {
-			            Assert.AreEqual(expectedResult, result);
-		            }
-		            else if (compare(expectedResult, result) != 0)
-		            {
-			            Assert.Fail($"expectedResult != result ({expectedResult} != {result}");
-		            }
-	            }
 
 	            bool succeeded = false;
 	            result = null;
@@ -79,8 +67,22 @@ namespace CommandLibTests
 
 	            Assert.IsFalse(aborted);
 	            Assert.IsFalse(failed);
+
+                using (Task<object> task = cmd.AsTask<object>(runtimeArg))
+                {
+                    result = task.Result;
+
+                    if (compare == null)
+                    {
+                        Assert.AreEqual(expectedResult, result);
+                    }
+                    else if (compare(expectedResult, result) != 0)
+                    {
+                        Assert.Fail($"expectedResult != result ({expectedResult} != {result}");
+                    }
+                }
             }
-			finally
+            finally
             {
 	            Assert.IsNotNull(Command.Monitors);
 

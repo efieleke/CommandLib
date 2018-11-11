@@ -8,7 +8,7 @@ namespace Sophos.Commands
 	/// <remarks>
 	/// <para>
 	/// The 'runtimeArg' parameter passed to <see cref="Command.SyncExecute(object)"/> and <see cref="Command.AsyncExecute(ICommandListener, object)"/>
-	/// will be passed to every command in the collection when it executes.
+	/// is ignored.
 	/// </para>
 	/// <para>
 	/// Synchronous execution will return null, and the 'result' parameter of <see cref="ICommandListener.CommandSucceeded"/> will also be set to null.
@@ -155,7 +155,7 @@ namespace Sophos.Commands
             if (_commands.Count == 0)
             {
                 var dummyCmd = new AbortSignaledCommand(new DelegateCommand<object>(o => null), this);
-                dummyCmd.AsyncExecute(listener, runtimeArg);
+                dummyCmd.AsyncExecute(listener);
             }
             else
             {
@@ -163,7 +163,7 @@ namespace Sophos.Commands
 
                 foreach (var command in _commands)
                 {
-                    command.AsyncExecute(eventHandler, runtimeArg);
+                    command.AsyncExecute(eventHandler);
                 }
             }
         }

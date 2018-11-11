@@ -12,50 +12,46 @@ namespace CommandLibTests
         [TestMethod]
         public void Command_TestFromCommand()
         {
-            using (var cmd = new DoNothingCommand())
-            {
-                using (Task<int> task = cmd.AsTask<int>(7))
-                {
-                    Assert.AreEqual(7, task.Result);
-                }
+            var cmd = new DoNothingCommand();
 
-                using (Task<int> task = cmd.AsTask<int>(5))
-                {
-                    Assert.AreEqual(5, task.Result);
-                }
+            using (Task<int> task = cmd.AsTask<int>(7))
+            {
+                Assert.AreEqual(7, task.Result);
+            }
+
+            cmd = new DoNothingCommand();
+
+            using (Task<int> task = cmd.AsTask<int>(5))
+            {
+                Assert.AreEqual(5, task.Result);
             }
         }
 
         [TestMethod]
         public void TaskCommand_TestSuccess()
         {
-            using (var cmd = new DoNothingCommand())
-            {
-                HappyPathTest.Run(cmd, null, 0);
-                HappyPathTest.Run(cmd, 5, 5);
-                HappyPathTest.Run(cmd, 4, 4);
+            HappyPathTest.Run(new DoNothingCommand(), null, 0);
+            HappyPathTest.Run(new DoNothingCommand(), 5, 5);
+            HappyPathTest.Run(new DoNothingCommand(), 4, 4);
 
-                Assert.AreEqual(0, cmd.SyncExecute());
-                Assert.AreEqual(1, cmd.SyncExecute(1));
-                Assert.AreEqual(4, cmd.SyncExecute((object)4));
-                Assert.AreEqual(7, cmd.SyncExecute(7, null));
-                Assert.AreEqual(7, cmd.SyncExecute((object)7, null));
+            var cmd = new DoNothingCommand();
+            Assert.AreEqual(0, cmd.SyncExecute());
+            Assert.AreEqual(1, cmd.SyncExecute(1));
+            Assert.AreEqual(4, cmd.SyncExecute((object)4));
+            Assert.AreEqual(7, cmd.SyncExecute(7, null));
+            Assert.AreEqual(7, cmd.SyncExecute((object)7, null));
 
-                cmd.AsyncExecute(i => Assert.AreEqual(0, i), () => { }, e => { });
-                cmd.Wait();
-                cmd.AsyncExecute(i => Assert.AreEqual(2, i), () => { }, e => { }, 2);
-                cmd.Wait();
-                cmd.AsyncExecute(new TestCommandListener<int>(0));
-                cmd.Wait();
-                cmd.AsyncExecute(new TestCommandListener<int>(3), 3);
-                cmd.Wait();
-            }
+            cmd.AsyncExecute(i => Assert.AreEqual(0, i), () => { }, e => { });
+            cmd.Wait();
+            cmd.AsyncExecute(i => Assert.AreEqual(2, i), () => { }, e => { }, 2);
+            cmd.Wait();
+            cmd.AsyncExecute(new TestCommandListener<int>(0));
+            cmd.Wait();
+            cmd.AsyncExecute(new TestCommandListener<int>(3), 3);
+            cmd.Wait();
 
-            using (var cmd = new DoNothingCommand(DoNothingCommand.Behavior.SucceedSynchronously))
-            {
-                HappyPathTest.Run(cmd, 5, 5);
-                HappyPathTest.Run(cmd, 4, 4);
-            }
+            HappyPathTest.Run(new DoNothingCommand(DoNothingCommand.Behavior.SucceedSynchronously), 5, 5);
+            HappyPathTest.Run(new DoNothingCommand(DoNothingCommand.Behavior.SucceedSynchronously), 4, 4);
         }
 
         internal class TestCommandListener<TResult> : ICommandListener<TResult>
@@ -85,34 +81,21 @@ namespace CommandLibTests
         [TestMethod]
         public void TaskCommand_TestError()
         {
-            using (var cmd = new DoNothingCommand(DoNothingCommand.Behavior.FailUpFront))
-            {
-                FailTest.Run<NotSupportedException>(cmd, 7);
-            }
-
-            using (var cmd = new DoNothingCommand(DoNothingCommand.Behavior.FailInTask))
-            {
-                FailTest.Run<InvalidOperationException>(cmd, 7);
-            }
+            FailTest.Run<NotSupportedException>(new DoNothingCommand(DoNothingCommand.Behavior.FailUpFront), 7);
+            FailTest.Run<InvalidOperationException>(new DoNothingCommand(DoNothingCommand.Behavior.FailInTask), 7);
         }
 
         [TestMethod]
         public void TaskCommand_TestAbort()
         {
-            using (var cmd = new DoNothingCommand(DoNothingCommand.Behavior.Abort))
-            {
-                AbortTest.Run(cmd, 7, 0);
-            }
+            AbortTest.Run(new DoNothingCommand(DoNothingCommand.Behavior.Abort), 7, 0);
         }
 
         [TestMethod]
         public void FromTask_TestSuccess()
         {
-            using (var cmd = Command.FromTask(AddOneTask(1, null)))
-            {
-                HappyPathTest.Run(cmd, 0, 2);
-                HappyPathTest.Run(cmd, 0, 2);
-            }
+            HappyPathTest.Run(Command.FromTask(AddOneTask(1, null)), 0, 2);
+            HappyPathTest.Run(Command.FromTask(AddOneTask(1, null)), 0, 2);
         }
 
         [TestMethod]
@@ -136,15 +119,8 @@ namespace CommandLibTests
         [TestMethod]
         public void FromTask_TestFail()
         {
-            using (var cmd = Command.FromTask(FailTask(true)))
-            {
-                FailTest.Run<InvalidOperationException>(cmd, null);
-            }
-
-            using (var cmd = Command.FromTask(FailTask(false)))
-            {
-                FailTest.Run<ArgumentException>(cmd, null);
-            }
+            FailTest.Run<InvalidOperationException>(Command.FromTask(FailTask(true)), null);
+            FailTest.Run<ArgumentException>(Command.FromTask(FailTask(false)), null);
         }
 
         private static Task<int> AddOneTask(int input, CancellationTokenSource cancellationTokenSource)

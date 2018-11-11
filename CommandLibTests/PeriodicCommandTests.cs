@@ -10,79 +10,44 @@ namespace CommandLibTests
         [TestMethod]
         public void PeriodicCommand_TestAbort()
         {
-            using (PeriodicCommand periodicCmd = new PeriodicCommand(
-                new PauseCommand(TimeSpan.FromMilliseconds(10)),
-                int.MaxValue,
-                TimeSpan.FromDays(1),
-                PeriodicCommand.IntervalType.PauseAfter,
-                false))
-            {
-                AbortTest.Run(periodicCmd, null, 20);
-            }
+            AbortTest.Run(
+                new PeriodicCommand(new PauseCommand(TimeSpan.FromMilliseconds(10)), int.MaxValue, TimeSpan.FromDays(1), PeriodicCommand.IntervalType.PauseAfter, false),
+                null,
+                20);
 
-            using (PeriodicCommand periodicCmd = new PeriodicCommand(
-                new PauseCommand(TimeSpan.FromMilliseconds(10)),
-                int.MaxValue,
-                TimeSpan.FromDays(1),
-                PeriodicCommand.IntervalType.PauseBefore,
-                false))
-            {
-                AbortTest.Run(periodicCmd, null, 20);
-            }
+            AbortTest.Run(
+                new PeriodicCommand(new PauseCommand(TimeSpan.FromMilliseconds(10)), int.MaxValue, TimeSpan.FromDays(1), PeriodicCommand.IntervalType.PauseBefore, false),
+                null,
+                20);
 
-            using (PeriodicCommand periodicCmd = new PeriodicCommand(
-				new PauseCommand(TimeSpan.FromMilliseconds(10)),
-                int.MaxValue,
-                TimeSpan.FromDays(1),
-                PeriodicCommand.IntervalType.PauseAfter,
-                true))
-            {
-                AbortTest.Run(periodicCmd, null, 20);
-            }
+            AbortTest.Run(
+                new PeriodicCommand(new PauseCommand(TimeSpan.FromMilliseconds(10)), int.MaxValue, TimeSpan.FromDays(1), PeriodicCommand.IntervalType.PauseAfter, true),
+                null,
+                20);
         }
 
         [TestMethod]
         public void PeriodicCommand_TestHappyPath()
         {
-            using (PeriodicCommand periodicCmd = new PeriodicCommand(
-                new AddCommand(1),
-                5,
-                TimeSpan.FromMilliseconds(1),
-                PeriodicCommand.IntervalType.PauseAfter,
-                false))
-            {
-                HappyPathTest.Run(periodicCmd, 0, null);
-            }
-
-            using (PeriodicCommand periodicCmd = new PeriodicCommand(
-                new AddCommand(2),
-                5,
-                TimeSpan.FromMilliseconds(1),
-                PeriodicCommand.IntervalType.PauseBefore,
-                false))
-            {
-                HappyPathTest.Run(periodicCmd, 0, null);
-            }
-
-            using (PeriodicCommand periodicCmd = new PeriodicCommand(
-                new AddCommand(2),
-                5,
-                TimeSpan.FromMilliseconds(10),
-                PeriodicCommand.IntervalType.PauseAfter,
-                true))
-            {
-                HappyPathTest.Run(periodicCmd, 0, null);
-            }
-
-            using (PeriodicCommand periodicCmd = new PeriodicCommand(
-                new AddCommand(1),
+            HappyPathTest.Run(
+                new PeriodicCommand(new AddCommand(1), 5, TimeSpan.FromMilliseconds(1), PeriodicCommand.IntervalType.PauseAfter, false),
                 0,
-                TimeSpan.FromDays(1),
-                PeriodicCommand.IntervalType.PauseBefore,
-                true))
-            {
-                HappyPathTest.Run(periodicCmd, 0, null);
-            }
+                null);
+
+            HappyPathTest.Run(
+                new PeriodicCommand(new AddCommand(2), 5, TimeSpan.FromMilliseconds(1), PeriodicCommand.IntervalType.PauseBefore, false),
+                0,
+                null);
+
+            HappyPathTest.Run(
+                new PeriodicCommand(new AddCommand(2), 5, TimeSpan.FromMilliseconds(10), PeriodicCommand.IntervalType.PauseAfter, true),
+                0,
+                null);
+
+            HappyPathTest.Run(
+                new PeriodicCommand(new AddCommand(1), 0, TimeSpan.FromDays(1), PeriodicCommand.IntervalType.PauseBefore, true),
+                0,
+                null);
 
             try
             {
@@ -104,35 +69,17 @@ namespace CommandLibTests
         [TestMethod]
         public void PeriodicCommand_TestFail()
         {
-            using (PeriodicCommand periodicCmd = new PeriodicCommand(
-                new FailingCommand(),
-                5,
-                TimeSpan.FromMilliseconds(1),
-                PeriodicCommand.IntervalType.PauseAfter,
-                false))
-            {
-                FailTest.Run<FailingCommand.FailException>(periodicCmd, null);
-            }
+            FailTest.Run<FailingCommand.FailException>(
+                new PeriodicCommand(new FailingCommand(), 5, TimeSpan.FromMilliseconds(1), PeriodicCommand.IntervalType.PauseAfter, false),
+                null);
 
-            using (PeriodicCommand periodicCmd = new PeriodicCommand(
-                new FailingCommand(),
-                5,
-                TimeSpan.FromMilliseconds(1),
-                PeriodicCommand.IntervalType.PauseBefore,
-                false))
-            {
-                FailTest.Run<FailingCommand.FailException>(periodicCmd, null);
-            }
+            FailTest.Run<FailingCommand.FailException>(
+                new PeriodicCommand(new FailingCommand(), 5, TimeSpan.FromMilliseconds(1), PeriodicCommand.IntervalType.PauseBefore, false),
+                null);
 
-            using (PeriodicCommand periodicCmd = new PeriodicCommand(
-                new FailingCommand(),
-                5,
-                TimeSpan.FromMilliseconds(1),
-                PeriodicCommand.IntervalType.PauseAfter,
-                true))
-            {
-                FailTest.Run<FailingCommand.FailException>(periodicCmd, null);
-            }
+            FailTest.Run<FailingCommand.FailException>(
+                new PeriodicCommand(new FailingCommand(), 5, TimeSpan.FromMilliseconds(1), PeriodicCommand.IntervalType.PauseAfter, true),
+                null);
         }
 
         [TestMethod]
