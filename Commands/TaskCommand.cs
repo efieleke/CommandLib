@@ -155,92 +155,70 @@ namespace Sophos.Commands
         }
 
         /// <summary>
-        /// Implementations should override only if they contain members that must be disposed. Remember to invoke the base class implementation from within any override.
-        /// </summary>
-        /// <param name="disposing">Will be true if this was called as a direct result of the object being explicitly disposed.</param>
-        protected override void Dispose(bool disposing)
-        {
-            if (!Disposed && disposing && _task != null)
-            {
-                _task.Dispose();
-                _task = null;
-            }
-
-            base.Dispose(disposing);
-        }
-
-        /// <summary>
         /// Do not call this method from a derived class. It is called by the framework.
         /// </summary>
         /// <param name="listener">Not applicable</param>
         /// <param name="runtimeArg">This is passed on to the underlying Task creation method.</param>
-        protected sealed override void AsyncExecuteImpl(ICommandListener listener, object runtimeArg)
+        protected sealed override async void AsyncExecuteImpl(ICommandListener listener, object runtimeArg)
         {
             int startingThreadId = Thread.CurrentThread.ManagedThreadId;
-
-            _task?.Dispose();
+            Task<TResult> task;
 
             try
             {
-                _task = CreateTask(runtimeArg == null ? default(TArg) : (TArg)runtimeArg, CancellationToken);
+                task = CreateTask(runtimeArg == null ? default(TArg) : (TArg)runtimeArg, CancellationToken);
             }
             catch (Exception e)
             {
                 // We failed synchronously. This is most likely due to an exception occuring before
                 // the first await. Let's be consistent about this and make the callback on the listener.
                 // That must be done on a different thread.
-                _task = new Task<TResult>(() => throw e);
+                task = new Task<TResult>(() => throw e);
             }
 
-            _task.ContinueWith(antecedent =>
-                {
-                    // Check to see if CreateTask() returned a Task that executed synchronously.
-                    // That would be poor usage of this class, but it is supported.
-                    if (Thread.CurrentThread.ManagedThreadId == startingThreadId)
-                    {
-                        // We must call the listener back asynchronously. That's the contract.
-                        var thread = new Thread(ExecuteAsyncRoutine)
-                        {
-                            Name = Description + ": TaskCommand.ExecuteAsyncRoutine"
-                        };
-
-                        try
-                        {
-                            // t.Result can throw an AggregateException
-                            thread.Start(new AsyncThreadArg(listener, antecedent.Result));
-                        }
-                        catch (AggregateException exc)
-                        {
-                            thread.Start(new AsyncThreadArg(listener, exc.InnerException));
-                        }
-                    }
-                    else
-                    {
-                        try
-                        {
-                            // t.Result can throw an AggregateException
-                            listener.CommandSucceeded(antecedent.Result);
-                        }
-                        catch (AggregateException exc)
-                        {
-                            switch (exc.InnerException)
-                            {
-                                case CommandAbortedException _:
-                                case TaskCanceledException _:
-                                    listener.CommandAborted();
-                                    break;
-                                default:
-                                    listener.CommandFailed(exc.InnerException);
-                                    break;
-                            }
-                        }
-                    }
-                },
-                TaskContinuationOptions.ExecuteSynchronously);
-
-            if (_task.Status == TaskStatus.Created)
+            using (task)
             {
-                _task.Start();
+                if (task.Status == TaskStatus.Created)
+                {
+                    task.Start();
+                }
+
+                TResult result = default(TResult);
+                Exception error = null;
+
+                try
+                {
+                    result = await task;
+                }
+                catch (Exception exc)
+                {
+                    error = exc is OperationCanceledException ? new CommandAbortedException() : exc;
+                }
+
+                // Check to see if the Task that executed synchronously.
+                // That would be poor usage of this class, but it is supported.
+                if (Thread.CurrentThread.ManagedThreadId == startingThreadId)
+                {
+                    // We must call the listener back asynchronously. That's the contract.
+                    var thread = new Thread(ExecuteAsyncRoutine)
+                    {
+                        Name = Description + ": TaskCommand.ExecuteAsyncRoutine"
+                    };
+
+                    thread.Start(error == null ? new AsyncThreadArg(listener, result) : new AsyncThreadArg(listener, error));
+                }
+                else switch (error)
+                {
+                    case null:
+                        listener.CommandSucceeded(result);
+                        break;
+                    case CommandAbortedException _:
+                        listener.CommandAborted();
+                        break;
+                    default:
+                        listener.CommandFailed(error);
+                        break;
+                }
             }
         }
 
@@ -273,7 +251,6 @@ namespace Sophos.Commands
                     threadArg.Listener.CommandSucceeded(threadArg.Result);
                     break;
                 case CommandAbortedException _:
-                case TaskCanceledException _:
                     threadArg.Listener.CommandAborted();
                     break;
                 default:
@@ -300,8 +277,6 @@ namespace Sophos.Commands
         /// of <see cref="ICommandListener.CommandSucceeded"/> for asynchronous execution routines.
         /// </returns>
         protected abstract Task<TResult> CreateTask(TArg runtimeArg, CancellationToken cancellationToken);
-
-        private volatile Task<TResult> _task;
     }
 
     /// <summary>
