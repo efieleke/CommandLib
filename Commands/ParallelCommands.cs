@@ -118,7 +118,7 @@ namespace Sophos.Commands
         /// </returns>
         public override string ExtendedDescription()
         {
-            return $"Number of commands: {_commands.Count - 1}; Flags: {_behavior}";
+            return $"Number of commands: {_commands.Count}; Flags: {_behavior}";
         }
 
         /// <summary>
