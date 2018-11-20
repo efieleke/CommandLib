@@ -113,6 +113,7 @@ namespace Sophos.Commands
             if (node != null)
             {
                 // We encountered a command that is asynchronous in nature.
+                CheckAbortFlag();
                 var resetEvent = new ManualResetEvent(false);
                 Exception error = null;
 

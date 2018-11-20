@@ -488,7 +488,7 @@ namespace Sophos.Commands
         #endregion
 
         /// <summary>
-        /// Returns true if this <see cref="Command"/> most efficient form of execution is synchronous.
+        /// Returns true if this <see cref="Command"/>'s most efficient form of execution is synchronous.
         /// This information is used on occasion to determine how to best execute a command.
         /// </summary>
         /// <returns>true, if this command is most efficient when run synchronously</returns>
