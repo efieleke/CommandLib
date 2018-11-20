@@ -13,7 +13,7 @@ namespace CommandLibTests
             _amount = amount;
         }
 
-        protected sealed override object SyncExeImpl(object runtimeArg)
+        protected sealed override object SyncExecuteImpl(object runtimeArg)
         {
             return (int?) runtimeArg + _amount ?? _amount;
         }

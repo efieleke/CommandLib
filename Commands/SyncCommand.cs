@@ -1,9 +1,12 @@
 ﻿
+using System;
+using System.Threading;
+
 namespace Sophos.Commands
 {
     /// <summary>
     /// Represents a <see cref="Command"/> which is most naturally synchronous in its implementation. If you inherit from this class,
-    /// you are responsible for implementing <see cref="SyncExeImpl"/>. This class implements <see cref="AsyncExecuteImpl"/>.
+    /// you are responsible for implementing <see cref="Command.SyncExecuteImpl"/>. This class implements <see cref="AsyncExecuteImpl"/>.
     /// </summary>
     public abstract class SyncCommand : Command
     {
@@ -23,53 +26,51 @@ namespace Sophos.Commands
         }
 
 		/// <summary>
-		/// This will be called just before command execution, on the same thread from which SyncExecute or AsyncExecute
-		/// was called.
-		/// </summary>
-		/// <param name="runtimeArg">This will be the same value that was passed to <see cref="Command.SyncExecute(object)"/> or
-		/// <see cref="Command.AsyncExecute(ICommandListener, object)"/>
-		/// </param>
-		/// <remarks>
-		/// Implementations may initialize values that need to be set just before the command runs (e.g. resetting event
-		/// handles and such). Doing so here will prevent timing issues when a command is asynchronously executed followed by
-		/// an immediate operation upon the command that is dependent upon it being in the executed state.
-		/// </remarks>
-		protected virtual void PrepareExecute(object runtimeArg)
-        {
-        }
-        
-	    /// <summary>Executes the command and does not return until it finishes.</summary>
-		/// <remarks>
-		/// Implementations that take noticeable time should be responsive to abort requests, if possible, by either periodically
-		/// calling <see cref="Command.CheckAbortFlag"/>, or by implementing this method via calls to owned commands. In  rare cases,
-		/// <see cref="Command.AbortImpl"/> may need to be overridden.
-		/// </remarks>
-		/// <param name="runtimeArg">The implementation of the command defines what this value should be (if it's interested).</param>
-		/// <returns>The implementation of the command defines what this value will be.</returns>
-		protected abstract object SyncExeImpl(object runtimeArg);
-
-		/// <summary>
 		/// Do not call this method from a derived class. It is called by the framework.
 		/// </summary>
 		/// <param name="listener">Not applicable</param>
 		/// <param name="runtimeArg">Not applicable</param>
 		protected sealed override void AsyncExecuteImpl(ICommandListener listener, object runtimeArg)
 		{
-			_asyncWrapperCmd = new DelegateCommand<object>(SyncExecuteImpl, this);
-			_asyncWrapperCmd.AsyncExecute(listener, runtimeArg);
+		    var thread = new Thread(ExecuteAsyncRoutine)
+		    {
+		        Name = Description + ": TaskCommand.ExecuteAsyncRoutine"
+		    };
+
+		    thread.Start(new AsyncThreadArg(this, runtimeArg, listener));
         }
 
-        /// <summary>
-        /// Do not call this method from a derived class. It is called by the framework.
-        /// </summary>
-        /// <param name="runtimeArg">Not applicable</param>
-        /// <returns>Not applicable</returns>
-        protected sealed override object SyncExecuteImpl(object runtimeArg)
+        private class AsyncThreadArg
         {
-            PrepareExecute(runtimeArg);
-            return SyncExeImpl(runtimeArg);
+            internal AsyncThreadArg(SyncCommand command, object runtimeArg, ICommandListener listener)
+            {
+                Command = command;
+                RuntimeArg = runtimeArg;
+                Listener = listener;
+            }
+
+            internal SyncCommand Command { get; }
+            internal object RuntimeArg { get; }
+            internal ICommandListener Listener { get; }
         }
 
-		private volatile DelegateCommand<object> _asyncWrapperCmd;
+        private void ExecuteAsyncRoutine(object arg)
+        {
+            AsyncThreadArg threadArg = (AsyncThreadArg)arg;
+
+            try
+            {
+                object result = threadArg.Command.SyncExecuteImpl(threadArg.RuntimeArg);
+                threadArg.Listener.CommandSucceeded(result);
+            }
+            catch (CommandAbortedException)
+            {
+                threadArg.Listener.CommandAborted();
+            }
+            catch (Exception exc)
+            {
+                threadArg.Listener.CommandFailed(exc);
+            }
+        }
 	}
 }

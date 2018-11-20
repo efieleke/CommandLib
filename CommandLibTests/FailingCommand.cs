@@ -18,7 +18,7 @@ namespace CommandLibTests
         {
         }
 
-        protected sealed override object SyncExeImpl(object runtimeArg)
+        protected sealed override object SyncExecuteImpl(object runtimeArg)
         {
             throw new FailException();
         }

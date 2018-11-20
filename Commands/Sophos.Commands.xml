@@ -60,7 +60,7 @@
             Gets the underlying command to run.
             </summary>
         </member>
-        <member name="M:Sophos.Commands.AbortSignaledCommand.SyncExeImpl(System.Object)">
+        <member name="M:Sophos.Commands.AbortSignaledCommand.SyncExecuteImpl(System.Object)">
             <inheritdoc />
         </member>
         <member name="M:Sophos.Commands.AbortSignaledCommand.MustBeTopLevel">
@@ -1090,7 +1090,7 @@
             disposed of when the owner is disposed.
             </param>
         </member>
-        <member name="M:Sophos.Commands.DelegateCommand`1.CreateTask(System.Object,System.Threading.CancellationToken)">
+        <member name="M:Sophos.Commands.DelegateCommand`1.SyncExecuteImpl(System.Object)">
             <inheritdoc />
         </member>
         <member name="T:Sophos.Commands.DelegateCommandListener`1">
@@ -1575,13 +1575,7 @@
             </summary>
             <param name="disposing">Will be true if this was called as a direct result of the object being explicitly disposed.</param>
         </member>
-        <member name="M:Sophos.Commands.PauseCommand.PrepareExecute(System.Object)">
-            <summary>
-            Do not call this method from a derived class. It is called by the framework.
-            </summary>
-            <param name="runtimeArg">Not applicable</param>
-        </member>
-        <member name="M:Sophos.Commands.PauseCommand.SyncExeImpl(System.Object)">
+        <member name="M:Sophos.Commands.PauseCommand.SyncExecuteImpl(System.Object)">
             <summary>
             Do not call this method from a derived class. It is called by the framework.
             </summary>
@@ -1728,7 +1722,7 @@
             as well as whether an external stop event is defined
             </returns>
         </member>
-        <member name="M:Sophos.Commands.PeriodicCommand.SyncExeImpl(System.Object)">
+        <member name="M:Sophos.Commands.PeriodicCommand.SyncExecuteImpl(System.Object)">
             <summary>
             Do not call this method from a derived class. It is called by the framework.
             </summary>
@@ -1884,7 +1878,7 @@
             This is a no-op if this RecurringCommand object is not currently executing.
             </remarks>
         </member>
-        <member name="M:Sophos.Commands.RecurringCommand.SyncExeImpl(System.Object)">
+        <member name="M:Sophos.Commands.RecurringCommand.SyncExecuteImpl(System.Object)">
             <summary>
             Do not call this method from a derived class. It is called by the framework.
             </summary>
@@ -1981,7 +1975,7 @@
             abort requests made of their owner. Also, owned commands are disposed of when the owner is disposed.
             </param>
         </member>
-        <member name="M:Sophos.Commands.RetryableCommand.SyncExeImpl(System.Object)">
+        <member name="M:Sophos.Commands.RetryableCommand.SyncExecuteImpl(System.Object)">
             <summary>
             Do not call this method from a derived class. It is called by the framework.
             </summary>
@@ -2059,7 +2053,7 @@
             The returned text includes the time to execute as well as whether to run immediately if the scheduled time is in the past.
             </returns>
         </member>
-        <member name="M:Sophos.Commands.ScheduledCommand.SyncExeImpl(System.Object)">
+        <member name="M:Sophos.Commands.ScheduledCommand.SyncExecuteImpl(System.Object)">
             <summary>
             Do not call this method from a derived class. It is called by the framework.
             </summary>
@@ -2136,7 +2130,7 @@
         <member name="T:Sophos.Commands.SyncCommand">
             <summary>
             Represents a <see cref="T:Sophos.Commands.Command"/> which is most naturally synchronous in its implementation. If you inherit from this class,
-            you are responsible for implementing <see cref="M:Sophos.Commands.SyncCommand.SyncExeImpl(System.Object)"/>. This class implements <see cref="M:Sophos.Commands.SyncCommand.AsyncExecuteImpl(Sophos.Commands.ICommandListener,System.Object)"/>.
+            you are responsible for implementing <see cref="M:Sophos.Commands.Command.SyncExecuteImpl(System.Object)"/>. This class implements <see cref="M:Sophos.Commands.SyncCommand.AsyncExecuteImpl(Sophos.Commands.ICommandListener,System.Object)"/>.
             </summary>
         </member>
         <member name="M:Sophos.Commands.SyncCommand.IsNaturallySynchronous">
@@ -2151,43 +2145,12 @@
             abort requests made of their owner. Also, owned commands are disposed of when the owner is disposed.
             </param>
         </member>
-        <member name="M:Sophos.Commands.SyncCommand.PrepareExecute(System.Object)">
-            <summary>
-            This will be called just before command execution, on the same thread from which SyncExecute or AsyncExecute
-            was called.
-            </summary>
-            <param name="runtimeArg">This will be the same value that was passed to <see cref="M:Sophos.Commands.Command.SyncExecute(System.Object)"/> or
-            <see cref="M:Sophos.Commands.Command.AsyncExecute(Sophos.Commands.ICommandListener,System.Object)"/>
-            </param>
-            <remarks>
-            Implementations may initialize values that need to be set just before the command runs (e.g. resetting event
-            handles and such). Doing so here will prevent timing issues when a command is asynchronously executed followed by
-            an immediate operation upon the command that is dependent upon it being in the executed state.
-            </remarks>
-        </member>
-        <member name="M:Sophos.Commands.SyncCommand.SyncExeImpl(System.Object)">
-            <summary>Executes the command and does not return until it finishes.</summary>
-            <remarks>
-            Implementations that take noticeable time should be responsive to abort requests, if possible, by either periodically
-            calling <see cref="M:Sophos.Commands.Command.CheckAbortFlag"/>, or by implementing this method via calls to owned commands. In  rare cases,
-            <see cref="M:Sophos.Commands.Command.AbortImpl"/> may need to be overridden.
-            </remarks>
-            <param name="runtimeArg">The implementation of the command defines what this value should be (if it's interested).</param>
-            <returns>The implementation of the command defines what this value will be.</returns>
-        </member>
         <member name="M:Sophos.Commands.SyncCommand.AsyncExecuteImpl(Sophos.Commands.ICommandListener,System.Object)">
             <summary>
             Do not call this method from a derived class. It is called by the framework.
             </summary>
             <param name="listener">Not applicable</param>
             <param name="runtimeArg">Not applicable</param>
-        </member>
-        <member name="M:Sophos.Commands.SyncCommand.SyncExecuteImpl(System.Object)">
-            <summary>
-            Do not call this method from a derived class. It is called by the framework.
-            </summary>
-            <param name="runtimeArg">Not applicable</param>
-            <returns>Not applicable</returns>
         </member>
         <member name="T:Sophos.Commands.TaskCommand`2">
             <summary>
@@ -2444,7 +2407,7 @@
             </summary>
             <param name="disposing">Will be true if this was called as a direct result of the object being explicitly disposed.</param>
         </member>
-        <member name="M:Sophos.Commands.TimeLimitedCommand.SyncExeImpl(System.Object)">
+        <member name="M:Sophos.Commands.TimeLimitedCommand.SyncExecuteImpl(System.Object)">
             <summary>
             Do not call this method from a derived class. It is called by the framework.
             </summary>

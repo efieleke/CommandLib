@@ -90,7 +90,7 @@ namespace Sophos.Commands
         /// </summary>
         /// <param name="runtimeArg">Not applicable</param>
         /// <returns>Not applicable</returns>
-        protected sealed override object SyncExeImpl(object runtimeArg)
+        protected sealed override object SyncExecuteImpl(object runtimeArg)
         {
             _commandToRun.AsyncExecute(new Listener(this), runtimeArg);
             bool finished = _commandToRun.DoneEvent.WaitOne(_timeoutMS);

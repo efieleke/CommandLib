@@ -163,7 +163,7 @@ namespace CommandLibSample
 				_desc = desc;
 			}
 
-			protected override object SyncExeImpl(object runtimeArg)
+			protected override object SyncExecuteImpl(object runtimeArg)
 			{
 				Console.Out.WriteLine($"Started {_desc}");
 			    _pauseCmd.SyncExecute();

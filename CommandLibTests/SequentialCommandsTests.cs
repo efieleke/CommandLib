@@ -105,7 +105,7 @@ namespace CommandLibTests
                 _milliseconds = milliseconds;
             }
 
-            protected override object SyncExeImpl(object runtimeArg)
+            protected override object SyncExecuteImpl(object runtimeArg)
             {
                 System.Threading.Thread.Sleep(_milliseconds);
                 return null;

@@ -1,6 +1,4 @@
 ﻿using System;
-using System.Threading;
-using System.Threading.Tasks;
 
 namespace Sophos.Commands
 {
@@ -10,7 +8,7 @@ namespace Sophos.Commands
     /// the <see cref="Command.AbortRequested"/> flag on the command that is the owner of this command.
     /// </summary>
     /// <typeparam name="TResult">The type returned by the delegate</typeparam>
-	public sealed class DelegateCommand<TResult> : TaskCommand<object, TResult>
+	public sealed class DelegateCommand<TResult> : SyncCommand
 	{
 		/// <summary>
 		/// Constructs a command that will run the provided function, with no owner
@@ -53,9 +51,9 @@ namespace Sophos.Commands
 		}
 
 	    /// <inheritdoc />
-		protected override Task<TResult> CreateTask(object runtimeArg, CancellationToken cancellationToken)
+		protected override object SyncExecuteImpl(object runtimeArg)
 		{
-			return new Task<TResult>(_func, runtimeArg, cancellationToken);
+			return _func(runtimeArg);
 		}
 
 		private readonly Func<object, TResult> _func;

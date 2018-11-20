@@ -96,7 +96,7 @@ namespace CommandLibTests
                 base.Dispose(disposing);
             }
 
-            protected sealed override object SyncExeImpl(object runtimeArg)
+            protected sealed override object SyncExecuteImpl(object runtimeArg)
             {
                 try
                 {
@@ -173,7 +173,7 @@ namespace CommandLibTests
         {
         }
 
-        protected sealed override object SyncExeImpl(object runtimeArg)
+        protected sealed override object SyncExecuteImpl(object runtimeArg)
         {
             return null;
         }

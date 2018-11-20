@@ -85,7 +85,7 @@ namespace Sophos.Commands
         }
 
         /// <inheritdoc />
-        protected override object SyncExeImpl(object runtimeArg)
+        protected override object SyncExecuteImpl(object runtimeArg)
         {
             _commandToRun.AsyncExecute(new Listener(this), runtimeArg);
             int waitResult = System.Threading.WaitHandle.WaitAny(new[] { _commandToRun.DoneEvent, ExternalAbortEvent });

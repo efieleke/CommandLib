@@ -130,19 +130,11 @@ namespace Sophos.Commands
         /// Do not call this method from a derived class. It is called by the framework.
         /// </summary>
         /// <param name="runtimeArg">Not applicable</param>
-        protected sealed override void PrepareExecute(object runtimeArg)
+        /// <returns>Not applicable</returns>
+        protected sealed override object SyncExecuteImpl(object runtimeArg)
         {
             _cutShortEvent.Reset();
             _resetEvent.Reset();
-        }
-
-        /// <summary>
-        /// Do not call this method from a derived class. It is called by the framework.
-        /// </summary>
-        /// <param name="runtimeArg">Not applicable</param>
-        /// <returns>Not applicable</returns>
-        protected sealed override object SyncExeImpl(object runtimeArg)
-        {
             int result = WaitForDuration();
 
             while (result == 1)
