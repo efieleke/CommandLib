@@ -1,7 +1,10 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Runtime.InteropServices;
+using System.Threading;
+using System.Threading.Tasks;
 using Sophos.Commands;
+using Console = System.Console;
 
 // This application prepares a spaghetti and salad dinner.
 namespace CommandLibSample
@@ -155,24 +158,29 @@ namespace CommandLibSample
 			internal TossSaladCmd() : base(TimeSpan.FromSeconds(2), "tossing salad") {}
 		}
 
-		private class PretendCmd : SyncCommand
+	    private class WriteLineCmd : TaskCommand<object>
+	    {
+	        internal WriteLineCmd(string text) : base(null)
+	        {
+	            _text = text;
+	        }
+            
+	        protected override Task CreateTaskNoResult(object runtimeArg, CancellationToken cancellationToken)
+	        {
+	            return Console.Out.WriteLineAsync(_text);
+	        }
+
+	        private readonly string _text;
+	    }
+
+		private class PretendCmd : SequentialCommands
 		{
 			internal PretendCmd(TimeSpan duration, string desc) : base(null)
 			{
-			    _pauseCmd = new PauseCommand(duration, null, this);
-				_desc = desc;
+			    Add(new WriteLineCmd($"Started {desc}"));
+                Add(new DelayCommand(duration));
+			    Add(new WriteLineCmd($"Finished {desc}"));
 			}
-
-			protected override object SyncExecuteImpl(object runtimeArg)
-			{
-				Console.Out.WriteLine($"Started {_desc}");
-			    _pauseCmd.SyncExecute();
-				Console.Out.WriteLine($"Finished {_desc}");
-				return null;
-			}
-
-			private readonly PauseCommand _pauseCmd;
-			private readonly string _desc;
 		}
 
 		[DllImport("Kernel32")]

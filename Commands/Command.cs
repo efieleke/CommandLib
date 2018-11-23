@@ -711,7 +711,7 @@ namespace Sophos.Commands
             }
             catch (Exception exc)
             {
-                DecrementExecuting(null, null, exc);
+                DecrementExecuting(null, null, exc, null);
                 throw;
             }
         }
@@ -873,8 +873,7 @@ namespace Sophos.Commands
         /// <param name="listener">One of the methods of the listener will be called upon command completion, on a separate thread.</param>
         /// <param name="runtimeArg">The implementation of the command defines what this value should be (if it's interested).</param>
         /// <remarks>
-        /// Implementations must invoke one of the listener methods on a thread other than the one this method was called from when execution finishes.
-        /// Also, implementations will likely need to override <see cref="AbortImpl"/> in order to respond to abort requests in a timely manner.
+        /// Implementations will likely need to override <see cref="AbortImpl"/> in order to respond to abort requests in a timely manner.
         /// <para>
         /// If a concrete Command class is most naturally implemented in synchronous fashion, it should inherit from <see cref="SyncCommand"/>.
         /// That class takes care of implementing AsyncExecuteImpl().
@@ -1116,12 +1115,12 @@ namespace Sophos.Commands
                     }
 
                     object result = SyncExecuteImpl(runtimeArg);
-                    DecrementExecuting(null, null, null);
+                    DecrementExecuting(null, null, null, null);
                     return result;
                 }
                 catch (Exception exc)
                 {
-                    DecrementExecuting(null, null, exc);
+                    DecrementExecuting(null, null, exc, null);
                     throw;
                 }
             }
@@ -1166,7 +1165,7 @@ namespace Sophos.Commands
             Interlocked.Increment(ref _executing);
         }
 
-        private void DecrementExecuting(ICommandListener listener, object result, Exception exc)
+        private void DecrementExecuting(ICommandListener listener, object result, Exception exc, int? asyncExeThreadId)
         {
             int refCount = Interlocked.Decrement(ref _executing);
 
@@ -1178,41 +1177,80 @@ namespace Sophos.Commands
 
             if (refCount == 0)
             {
-                bool aborted = exc is CommandAbortedException;
-
-                if (exc != null && !aborted)
+                if (asyncExeThreadId.HasValue && Thread.CurrentThread.ManagedThreadId == asyncExeThreadId.Value)
                 {
-                    AttachErrorInfo(exc);
-                }
+                    // Not ideal usage, but permitted.
+                    // We must call the listener back asynchronously. That's the contract.
+                    var thread = new Thread(ExecuteAsyncRoutine)
+                    {
+                        Name = Description + ": TaskCommand.ExecuteAsyncRoutine"
+                    };
 
-                if (Monitors != null)
-                {
-                    foreach (ICommandMonitor monitor in Monitors)
-                    {
-                        monitor.CommandFinished(this, exc);
-                    }
+                    thread.Start(new AsyncThreadArg(listener, result, exc));
                 }
+                else
+                {
+                    InformDone(listener, result, exc);
+                }
+            }
+        }
 
-                if (listener != null)
-                {
-                    if (exc == null)
-                    {
-                        listener.CommandSucceeded(result);
-                    }
-                    else if (aborted)
-                    {
-                        listener.CommandAborted();
-                    }
-                    else
-                    {
-                        listener.CommandFailed(exc);
-                    }
-                }
+        private class AsyncThreadArg
+        {
+            internal AsyncThreadArg(ICommandListener listener, object result, Exception exc)
+            {
+                Listener = listener;
+                Result = result;
+                Exception = exc;
+            }
 
-                if (!Disposed) // only possible if converting this command to a task (via AsTask)
+            internal ICommandListener Listener { get; }
+            internal object Result { get; }
+            internal Exception Exception { get; }
+        }
+
+        private void ExecuteAsyncRoutine(object arg)
+        {
+            AsyncThreadArg threadArg = (AsyncThreadArg)arg;
+            InformDone(threadArg.Listener, threadArg.Result, threadArg.Exception);
+        }
+
+        private void InformDone(ICommandListener listener, object result, Exception exc)
+        {
+            bool aborted = exc is CommandAbortedException;
+
+            if (exc != null && !aborted)
+            {
+                AttachErrorInfo(exc);
+            }
+
+            if (Monitors != null)
+            {
+                foreach (ICommandMonitor monitor in Monitors)
                 {
-                    _doneEvent.Set();
+                    monitor.CommandFinished(this, exc);
                 }
+            }
+
+            if (listener != null)
+            {
+                if (exc == null)
+                {
+                    listener.CommandSucceeded(result);
+                }
+                else if (aborted)
+                {
+                    listener.CommandAborted();
+                }
+                else
+                {
+                    listener.CommandFailed(exc);
+                }
+            }
+
+            if (!Disposed) // only possible if converting this command to a task (via AsTask)
+            {
+                _doneEvent.Set();
             }
         }
 
@@ -1227,32 +1265,17 @@ namespace Sophos.Commands
 
             public void CommandSucceeded(object result)
             {
-                if (Thread.CurrentThread.ManagedThreadId == _asyncExeThreadId)
-                {
-                    throw new InvalidOperationException("ICommandListener.CommandSucceeded called on same thread as AsyncExecute()");
-                }
-
-                _command.DecrementExecuting(_listener, result, null);
+                _command.DecrementExecuting(_listener, result, null, _asyncExeThreadId);
             }
 
             public void CommandAborted()
             {
-                if (Thread.CurrentThread.ManagedThreadId == _asyncExeThreadId)
-                {
-                    throw new InvalidOperationException("ICommandListener.CommandAborted called on same thread as AsyncExecute()");
-                }
-
-                _command.DecrementExecuting(_listener, null, new CommandAbortedException());
+                _command.DecrementExecuting(_listener, null, new CommandAbortedException(), _asyncExeThreadId);
             }
 
             public void CommandFailed(Exception exc)
             {
-                if (Thread.CurrentThread.ManagedThreadId == _asyncExeThreadId)
-                {
-                    throw new InvalidOperationException("ICommandListener.CommandFailed called on same thread as AsyncExecute()");
-                }
-
-                _command.DecrementExecuting(_listener, null, exc);
+                _command.DecrementExecuting(_listener, null, exc, _asyncExeThreadId);
             }
 
             private readonly Command _command;

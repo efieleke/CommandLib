@@ -161,7 +161,6 @@ namespace Sophos.Commands
         /// <param name="runtimeArg">This is passed on to the underlying Task creation method.</param>
         protected sealed override async void AsyncExecuteImpl(ICommandListener listener, object runtimeArg)
         {
-            int startingThreadId = Thread.CurrentThread.ManagedThreadId;
             Task<TResult> task;
 
             try
@@ -195,19 +194,7 @@ namespace Sophos.Commands
                     error = exc is OperationCanceledException ? new CommandAbortedException() : exc;
                 }
 
-                // Check to see if the Task that executed synchronously.
-                // That would be poor usage of this class, but it is supported.
-                if (Thread.CurrentThread.ManagedThreadId == startingThreadId)
-                {
-                    // We must call the listener back asynchronously. That's the contract.
-                    var thread = new Thread(ExecuteAsyncRoutine)
-                    {
-                        Name = Description + ": TaskCommand.ExecuteAsyncRoutine"
-                    };
-
-                    thread.Start(error == null ? new AsyncThreadArg(listener, result) : new AsyncThreadArg(listener, error));
-                }
-                else switch (error)
+                switch (error)
                 {
                     case null:
                         listener.CommandSucceeded(result);
@@ -219,43 +206,6 @@ namespace Sophos.Commands
                         listener.CommandFailed(error);
                         break;
                 }
-            }
-        }
-
-        private class AsyncThreadArg
-        {
-            internal AsyncThreadArg(ICommandListener listener, TResult result)
-            {
-                Listener = listener;
-                Result = result;
-            }
-
-            internal AsyncThreadArg(ICommandListener listener, Exception exception)
-            {
-                Listener = listener;
-                Exception = exception;
-            }
-
-            internal ICommandListener Listener { get; }
-            internal TResult Result { get; }
-            internal Exception Exception { get; }
-        }
-
-        private void ExecuteAsyncRoutine(object arg)
-        {
-            AsyncThreadArg threadArg = (AsyncThreadArg)arg;
-
-            switch (threadArg.Exception)
-            {
-                case null:
-                    threadArg.Listener.CommandSucceeded(threadArg.Result);
-                    break;
-                case CommandAbortedException _:
-                    threadArg.Listener.CommandAborted();
-                    break;
-                default:
-                    threadArg.Listener.CommandFailed(threadArg.Exception);
-                    break;
             }
         }
 

@@ -81,14 +81,9 @@ namespace CommandLibTests
         {
             using (BadAsyncCommand test = new BadAsyncCommand(BadAsyncCommand.FinishType.Succeed))
             {
-                try
-                {
-                    test.AsyncExecute(new CmdListener(CmdListener.CallbackType.Succeeded, null));
-                    Assert.Fail("Called back on same thread");
-                }
-                catch (InvalidOperationException)
-                {
-                }
+                // Poor usage, but supported
+                test.AsyncExecute(new CmdListener(CmdListener.CallbackType.Succeeded, null));
+                test.Wait();
 
                 try
                 {
@@ -106,14 +101,8 @@ namespace CommandLibTests
         {
             using (BadAsyncCommand test = new BadAsyncCommand(BadAsyncCommand.FinishType.Fail))
             {
-                try
-                {
-                    test.AsyncExecute(new CmdListener(CmdListener.CallbackType.Failed, null));
-                    Assert.Fail("Called back on same thread");
-                }
-                catch (InvalidOperationException)
-                {
-                }
+                // Called back on same thread, but should work anyway
+                test.AsyncExecute(new CmdListener(CmdListener.CallbackType.Failed, null));
             }
         }
 
@@ -122,14 +111,8 @@ namespace CommandLibTests
         {
             using (BadAsyncCommand test = new BadAsyncCommand(BadAsyncCommand.FinishType.Abort))
             {
-                try
-                {
-                    test.AsyncExecute(new CmdListener(CmdListener.CallbackType.Aborted, null));
-                    Assert.Fail("Called back on same thread");
-                }
-                catch (InvalidOperationException)
-                {
-                }
+                // Called back on same thread, but should work anyway
+                test.AsyncExecute(new CmdListener(CmdListener.CallbackType.Aborted, null));
             }
         }
     }

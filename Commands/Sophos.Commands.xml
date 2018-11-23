@@ -715,8 +715,7 @@
             <param name="listener">One of the methods of the listener will be called upon command completion, on a separate thread.</param>
             <param name="runtimeArg">The implementation of the command defines what this value should be (if it's interested).</param>
             <remarks>
-            Implementations must invoke one of the listener methods on a thread other than the one this method was called from when execution finishes.
-            Also, implementations will likely need to override <see cref="M:Sophos.Commands.Command.AbortImpl"/> in order to respond to abort requests in a timely manner.
+            Implementations will likely need to override <see cref="M:Sophos.Commands.Command.AbortImpl"/> in order to respond to abort requests in a timely manner.
             <para>
             If a concrete Command class is most naturally implemented in synchronous fashion, it should inherit from <see cref="T:Sophos.Commands.SyncCommand"/>.
             That class takes care of implementing AsyncExecuteImpl().
