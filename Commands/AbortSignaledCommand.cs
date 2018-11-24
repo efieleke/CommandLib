@@ -72,18 +72,6 @@ namespace Sophos.Commands
             }
         }
 
-        /// <summary>
-        /// Gets the underlying command to run.
-        /// </summary>
-        public Command CommandToRun
-        {
-            get
-            {
-                CheckDisposed();
-                return _commandToRun;
-            }
-        }
-
         /// <inheritdoc />
         protected override object SyncExecuteImpl(object runtimeArg)
         {
@@ -113,15 +101,7 @@ namespace Sophos.Commands
 
         private System.Threading.WaitHandle ExternalAbortEvent
         {
-            get
-            {
-                if (_abortEvent == null)
-                {
-                    return _commandToWatch.AbortEvent;
-                }
-
-                return _abortEvent;
-            }
+            get { return _abortEvent ?? _commandToWatch.AbortEvent; }
         }
 
         private class Listener : ICommandListener

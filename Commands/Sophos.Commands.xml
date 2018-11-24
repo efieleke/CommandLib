@@ -55,11 +55,6 @@
             This is for diagnostic purposes. Will be null if this command is not linked to another command.
             </summary>
         </member>
-        <member name="P:Sophos.Commands.AbortSignaledCommand.CommandToRun">
-            <summary>
-            Gets the underlying command to run.
-            </summary>
-        </member>
         <member name="M:Sophos.Commands.AbortSignaledCommand.SyncExecuteImpl(System.Object)">
             <inheritdoc />
         </member>
