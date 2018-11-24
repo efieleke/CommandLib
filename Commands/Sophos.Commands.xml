@@ -1092,6 +1092,50 @@
         <member name="M:Sophos.Commands.DelegateCommand`1.SyncExecuteImpl(System.Object)">
             <inheritdoc />
         </member>
+        <member name="T:Sophos.Commands.DelegateCommand">
+            <summary>
+            This class wraps a delegate as a Command. When the command is executed, the delegate is run.
+            In order for this command to be responsive to abort requests, the delegate method must check
+            the <see cref="P:Sophos.Commands.Command.AbortRequested"/> flag on the command that is the owner of this command.
+            </summary>
+        </member>
+        <member name="M:Sophos.Commands.DelegateCommand.#ctor(System.Action)">
+            <summary>
+            Constructs a command that will run the provided action, with no owner
+            </summary>
+            <param name="action">The action to run when this command is executed</param>
+        </member>
+        <member name="M:Sophos.Commands.DelegateCommand.#ctor(System.Action,Sophos.Commands.Command)">
+            <summary>
+            Constructs a command that will run the provided action, with no owner
+            </summary>
+            <param name="action">The action to run when this command is executed</param>
+            <param name="owner">
+            Specify null to indicate a top-level command. Otherwise, this command will be owned by 'owner'.
+            Owned commands respond to abort requests made of their owner. Also, owned commands are
+            disposed of when the owner is disposed.
+            </param>
+        </member>
+        <member name="M:Sophos.Commands.DelegateCommand.#ctor(System.Action{System.Object})">
+            <summary>
+            Constructs a command that will run the provided action, with no owner
+            </summary>
+            <param name="action">The action to run when this command is executed</param>
+        </member>
+        <member name="M:Sophos.Commands.DelegateCommand.#ctor(System.Action{System.Object},Sophos.Commands.Command)">
+            <summary>
+            Constructs a command that will run the provided action, with no owner
+            </summary>
+            <param name="action">The action to run when this command is executed</param>
+            <param name="owner">
+            Specify null to indicate a top-level command. Otherwise, this command will be owned by 'owner'.
+            Owned commands respond to abort requests made of their owner. Also, owned commands are
+            disposed of when the owner is disposed.
+            </param>
+        </member>
+        <member name="M:Sophos.Commands.DelegateCommand.SyncExecuteImpl(System.Object)">
+            <inheritdoc />
+        </member>
         <member name="T:Sophos.Commands.DelegateCommandListener`1">
             <summary>
             Implements ICommandListener by using provided delegates.

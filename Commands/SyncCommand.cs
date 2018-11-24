@@ -32,12 +32,7 @@ namespace Sophos.Commands
 		/// <param name="runtimeArg">Not applicable</param>
 		protected sealed override void AsyncExecuteImpl(ICommandListener listener, object runtimeArg)
 		{
-		    var thread = new Thread(ExecuteAsyncRoutine)
-		    {
-		        Name = Description + ": TaskCommand.ExecuteAsyncRoutine"
-		    };
-
-		    thread.Start(new AsyncThreadArg(this, runtimeArg, listener));
+		    ThreadPool.QueueUserWorkItem(ExecuteAsyncRoutine, new AsyncThreadArg(this, runtimeArg, listener));
         }
 
         private class AsyncThreadArg

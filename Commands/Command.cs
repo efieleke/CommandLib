@@ -1181,12 +1181,7 @@ namespace Sophos.Commands
                 {
                     // Not ideal usage, but permitted.
                     // We must call the listener back asynchronously. That's the contract.
-                    var thread = new Thread(ExecuteAsyncRoutine)
-                    {
-                        Name = Description + ": TaskCommand.ExecuteAsyncRoutine"
-                    };
-
-                    thread.Start(new AsyncThreadArg(listener, result, exc));
+                    ThreadPool.QueueUserWorkItem(ExecuteAsyncRoutine, new AsyncThreadArg(listener, result, exc));
                 }
                 else
                 {
