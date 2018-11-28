@@ -159,8 +159,15 @@ namespace CommandLibSample
 		{
 			internal PretendCmd(TimeSpan duration, string desc) : base(null)
 			{
-			    Add(new DelegateCommand(() => Console.Out.WriteLine($"Started {desc}")));
+                // The first and last commands added accomplish the same thing, but in different ways.
+
+                // This command wraps an asynchronous Task
+			    Add(TaskCommand<string>.Create(() => Console.Out.WriteLineAsync($"Started {desc}")));
+
                 Add(new DelayCommand(duration));
+
+                // This command wraps a synchronous function. Same end result as the async version above.
+                // Only did it both ways for demonstration purposes.
 			    Add(new DelegateCommand(() => Console.Out.WriteLine($"Finished {desc}")));
 			}
 		}

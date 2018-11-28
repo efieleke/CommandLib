@@ -19,8 +19,7 @@ namespace Sophos.Commands
     /// <para>
     /// Command extends the notion of a Task, in that it works both with tasks and with non-task-based asynchronous operations, and
     /// offers features not readily available with tasks. <see cref="TaskCommand{TResult}"/>, <see cref="DelegateCommand{TResult}"/>,
-    /// <see cref="Command.FromTask{TResult}(Task{TResult},Command)"/> and
-    /// <see cref="Command.AsTask{TResult}(object, Command)"/> offer easy integration with Tasks and delegates.
+    /// and <see cref="Command.RunAsTask{TResult}(object, Command)"/> offer easy integration with Tasks and delegates.
     /// </para>
     /// <para>
     /// <see cref="PeriodicCommand"/> repeats its action at a given interval, <see cref="ScheduledCommand"/> runs once at a specific
@@ -284,96 +283,10 @@ namespace Sophos.Commands
         #region Tasks
 
         /// <summary>
-        /// Converts a Task into a Command.
-        /// </summary>
-        /// <typeparam name="TResult">
-        /// The type of result that the task returns.
-        /// </typeparam>
-        /// <param name="task">
-        /// The task to convert to a Command. The returned Command will take ownership of this Task, and call Dispose() on it when the Command
-        /// is disposed. If this task is already running at the time this method is called, be aware of the side effects. For example, if the
-        /// Command returned from this method is added to a SequentialCommands instance, the underlying Task could be running before the
-        /// SequentialCommands is even executed. That behavior may be exactly what you want, but be aware of it.
-        /// </param>
-        /// <returns>
-        /// A command, that when executed, will run the provided task (if it is not already running). This command returns from synchronous execution
-        /// the value of type TResult that the underlying Task returns. The 'result' parameter of <see cref="ICommandListener.CommandSucceeded"/> will
-        /// be set in similar fashion. It is the caller's responsibility to dispose of this response object if needed.
-        /// </returns>
-        public static TaskCommand<object, TResult> FromTask<TResult>(Task<TResult> task)
-        {
-            return FromTask(task, null);
-        }
-
-        /// <summary>
-        /// Converts a Task into a Command.
-        /// </summary>
-        /// <typeparam name="TResult">
-        /// The type of result that the task returns.
-        /// </typeparam>
-        /// <param name="task">
-        /// The task to convert to a Command. The returned Command will take ownership of this Task, and call Dispose() on it when the Command
-        /// is disposed. If this task is already running at the time this method is called, be aware of the side effects. For example, if the
-        /// Command returned from this method is added to a SequentialCommands instance, the underlying Task could be running before the
-        /// SequentialCommands is even executed. That behavior may be exactly what you want, but be aware of it.
-        /// </param>
-        /// <param name="owner">
-        /// The owner of the returned command. Specify null to indicate a top-level command. Otherwise, the returned command will be owned by
-        /// 'owner'. Owned commands respond to abort requests made of their owner. Also, owned commands are disposed of when the owner is disposed.
-        /// </param>
-        /// <returns>
-        /// A command, that when executed, will run the provided task (if it is not already running). This command returns from synchronous execution
-        /// the value of type TResult that the underlying Task returns. The 'result' parameter of <see cref="ICommandListener.CommandSucceeded"/> will
-        /// be set in similar fashion. It is the caller's responsibility to dispose of this response object if needed.
-        /// </returns>
-        public static TaskCommand<object, TResult> FromTask<TResult>(Task<TResult> task, Command owner)
-        {
-            return new SimpleTaskCommand<TResult>(task, owner);
-        }
-
-        /// <summary>
-        /// Converts a Task into a top-level Command.
-        /// </summary>
-        /// <param name="task">
-        /// The task to convert to a Command. The returned Command will take ownership of this Task, and call Dispose() on it when the Command
-        /// is disposed. If this task is already running at the time this method is called, be aware of the side effects. For example, if the
-        /// Command returned from this method is added to a SequentialCommands instance, the underlying Task could be running before the
-        /// SequentialCommands is even executed. That behavior may be exactly what you want, but be aware of it.
-        /// </param>
-        /// <returns>
-        /// A command, that when executed, will run the provided task (if it is not already running).
-        /// </returns>
-        public static Command FromTask(Task task)
-        {
-            return FromTask(task, null);
-        }
-
-        /// <summary>
-        /// Converts a Task into a Command.
-        /// </summary>
-        /// <param name="task">
-        /// The task to convert to a Command. The returned Command will take ownership of this Task, and call Dispose() on it when the Command
-        /// is disposed. If this task is already running at the time this method is called, be aware of the side effects. For example, if the
-        /// Command returned from this method is added to a SequentialCommands instance, the underlying Task could be running before the
-        /// SequentialCommands is even executed. That behavior may be exactly what you want, but be aware of it.
-        /// </param>
-        /// <param name="owner">
-        /// The owner of the returned command. Specify null to indicate a top-level command. Otherwise, the returned command will be owned by
-        /// 'owner'. Owned commands respond to abort requests made of their owner. Also, owned commands are disposed of when the owner is disposed.
-        /// </param>
-        /// <returns>
-        /// A command, that when executed, will run the provided task (if it is not already running).
-        /// </returns>
-        public static Command FromTask(Task task, Command owner)
-        {
-            return new SimpleTaskCommand(task, owner);
-        }
-
-        /// <summary>
-        /// Returns a task that, when run, will execute this command. Note that this command must
+        /// Returns a task that executes this command. Note that this command must
         /// not be disposed, because it will be auto-disposed when the task completes. Also, this operation will fail if this
         /// command is not a top-level command (in other words, it must not have parents).
-        /// Also, note that behavior is undefined if this command is executing at the time the task is run.
+        /// Also, note that behavior is undefined if this command is executing at the time this method is called.
         /// </summary>
         /// <typeparam name="TResult">
         /// The type the command returns from SynExecute. If you don't care about the return value, it is safe to
@@ -382,16 +295,16 @@ namespace Sophos.Commands
         /// <returns>
         /// The Task, which will have been started.
         /// </returns>
-        public Task<TResult> AsTask<TResult>()
+        public Task<TResult> RunAsTask<TResult>()
         {
-            return AsTask<TResult>(null);
+            return RunAsTask<TResult>(null);
         }
 
         /// <summary>
-        /// Returns a task that, when run, will execute this command. Note that this command must
+        /// Returns a task that executes this command. Note that this command must
         /// not be disposed, because it will be auto-disposed when the task completes. Also, this operation will fail if this
         /// command is not a top-level command (in other words, it must not have parents).
-        /// Also, note that behavior is undefined if this command is executing at the time the task is run.
+        /// Also, note that behavior is undefined if this command is executing at the time this method is called.
         /// </summary>
         /// <typeparam name="TResult">
         /// The type the command returns from SynExecute. If you don't care about the return value, it is safe to
@@ -404,16 +317,16 @@ namespace Sophos.Commands
         /// <returns>
         /// The Task, which will have been started.
         /// </returns>
-        public Task<TResult> AsTask<TResult>(object runtimeArg)
+        public Task<TResult> RunAsTask<TResult>(object runtimeArg)
         {
-            return AsTask<TResult>(runtimeArg, null);
+            return RunAsTask<TResult>(runtimeArg, null);
         }
 
         /// <summary>
-        /// Returns a task that, when run, will execute this command. Note that this command must
+        /// Returns a task that executes this command. Note that this command must
         /// not be disposed, because it will be auto-disposed when the task completes. Also, this operation will fail if this
         /// command is not a top-level command (in other words, it must not have parents).
-        /// Also, note that behavior is undefined if this command is executing at the time the task is run.
+        /// Also, note that behavior is undefined if this command is executing at the time this method is called.
         /// </summary>
         /// <typeparam name="TResult">
         /// The type the command returns from SynExecute. If you don't care about the return value, it is safe to
@@ -432,14 +345,14 @@ namespace Sophos.Commands
         /// <returns>
         /// The Task, which will have been started.
         /// </returns>
-        public Task<TResult> AsTask<TResult>(object runtimeArg, Command owner)
+        public Task<TResult> RunAsTask<TResult>(object runtimeArg, Command owner)
         {
             CheckDisposed();
             if (Parent != null) { throw new InvalidOperationException("Only top level commands can be run as a Task"); }
-            return IsNaturallySynchronous() ? AsSyncTask<TResult>(runtimeArg, owner) : AsAsyncTask<TResult>(runtimeArg, owner);
+            return IsNaturallySynchronous() ? RunAsSyncTask<TResult>(runtimeArg, owner) : RunAsAsyncTask<TResult>(runtimeArg, owner);
         }
 
-        private Task<TResult> AsSyncTask<TResult>(object runtimeArg, Command owner)
+        private Task<TResult> RunAsSyncTask<TResult>(object runtimeArg, Command owner)
         {
             // ReSharper disable once MethodSupportsCancellation
             return Task.Factory.StartNew(() =>
@@ -463,7 +376,7 @@ namespace Sophos.Commands
             });
         }
 
-        private async Task<TResult> AsAsyncTask<TResult>(object runtimeArg, Command owner)
+        private async Task<TResult> RunAsAsyncTask<TResult>(object runtimeArg, Command owner)
         {
             Command cmd = owner == null ? this : new AbortSignaledCommand(this, owner);
             TResult result = default(TResult);
@@ -830,7 +743,7 @@ namespace Sophos.Commands
         }
 
         /// <summary>
-        /// Returns the CancellationToken for this command. The preferred way to cancel a command
+        /// Returns the CancellationToken for this command. The proper way to cancel a command
         /// is to call <see cref="Abort"/>, and the preferred way to check to see whether
         /// a command has an outstanding abort request is via <see cref="AbortRequested"/>.
         /// </summary>
@@ -1276,58 +1189,6 @@ namespace Sophos.Commands
             private readonly Command _command;
             private readonly ICommandListener _listener;
             private readonly int _asyncExeThreadId;
-        }
-
-        private class SimpleTaskCommand<TResult> : TaskCommand<object, TResult>
-        {
-            internal SimpleTaskCommand(Task<TResult> task, Command owner) : base(owner)
-            {
-                _task = task;
-            }
-
-            /// <inheritdoc />
-            protected override void Dispose(bool disposing)
-            {
-                if (!Disposed && disposing)
-                {
-                    _task.Dispose();
-                }
-
-                base.Dispose(disposing);
-            }
-
-            protected override Task<TResult> CreateTask(object runtimeArg, CancellationToken cancellationToken)
-            {
-                return _task;
-            }
-
-            private readonly Task<TResult> _task;
-        }
-
-        private class SimpleTaskCommand : TaskCommand<object>
-        {
-            internal SimpleTaskCommand(Task task, Command owner) : base(owner)
-            {
-                _task = task;
-            }
-
-            /// <inheritdoc />
-            protected override void Dispose(bool disposing)
-            {
-                if (!Disposed && disposing)
-                {
-                    _task.Dispose();
-                }
-
-                base.Dispose(disposing);
-            }
-
-            protected override Task CreateTaskNoResult(object runtimeArg, CancellationToken cancellationToken)
-            {
-                return _task;
-            }
-
-            private readonly Task _task;
         }
 
         private volatile Command _owner;

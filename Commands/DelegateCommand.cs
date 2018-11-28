@@ -10,11 +10,11 @@ namespace Sophos.Commands
     /// <typeparam name="TResult">The type returned by the delegate</typeparam>
 	public sealed class DelegateCommand<TResult> : SyncCommand
 	{
-		/// <summary>
-		/// Constructs a command that will run the provided function, with no owner
-		/// </summary>
-		/// <param name="function">The function to run when this command is executed</param>
-		public DelegateCommand(Func<TResult> function) : this(function, null) { }
+        /// <summary>
+        /// Constructs a command that will run the provided function, with no owner
+        /// </summary>
+        /// <param name="function">The function to run when this command is executed</param>
+        public DelegateCommand(Func<TResult> function) : this(function, null) { }
 
 		/// <summary>
 		/// Constructs a command that will run the provided function, with no owner
@@ -58,6 +58,7 @@ namespace Sophos.Commands
 
 		private readonly Func<object, TResult> _func;
 	}
+
     /// <summary>
     /// This class wraps a delegate as a Command. When the command is executed, the delegate is run.
     /// In order for this command to be responsive to abort requests, the delegate method must check
@@ -114,5 +115,4 @@ namespace Sophos.Commands
 
         private readonly Action<object> _action;
     }
-
 }

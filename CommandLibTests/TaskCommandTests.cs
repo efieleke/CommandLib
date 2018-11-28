@@ -14,14 +14,14 @@ namespace CommandLibTests
         {
             var cmd = new DoNothingCommand();
 
-            using (Task<int> task = cmd.AsTask<int>(7))
+            using (Task<int> task = cmd.RunAsTask<int>(7))
             {
                 Assert.AreEqual(7, task.Result);
             }
 
             cmd = new DoNothingCommand();
 
-            using (Task<int> task = cmd.AsTask<int>(5))
+            using (Task<int> task = cmd.RunAsTask<int>(5))
             {
                 Assert.AreEqual(5, task.Result);
             }
@@ -94,33 +94,15 @@ namespace CommandLibTests
         [TestMethod]
         public void FromTask_TestSuccess()
         {
-            HappyPathTest.Run(Command.FromTask(AddOneTask(1, null)), 0, 2);
-            HappyPathTest.Run(Command.FromTask(AddOneTask(1, null)), 0, 2);
-        }
-
-        [TestMethod]
-        public void FromTask_TestAbort()
-        {
-            var cancelTokenSource = new CancellationTokenSource();
-
-            using (var cmd = Command.FromTask(AddOneTask(1, cancelTokenSource)))
-            {
-                cmd.AsyncExecute(
-                    o => throw new Exception("Did not expect success"),
-                    () => { },
-                    e => throw e);
-
-                Thread.Sleep(1);
-                cancelTokenSource.Cancel();
-                cmd.Wait();
-            }
+            HappyPathTest.Run(TaskCommand<object, int>.Create(() => AddOneTask(1, null)), 0, 2);
+            HappyPathTest.Run(TaskCommand<object, int>.Create(() => AddOneTask(1, null)), 0, 2);
         }
 
         [TestMethod]
         public void FromTask_TestFail()
         {
-            FailTest.Run<InvalidOperationException>(Command.FromTask(FailTask(true)), null);
-            FailTest.Run<ArgumentException>(Command.FromTask(FailTask(false)), null);
+            FailTest.Run<InvalidOperationException>(TaskCommand<object, int>.Create(() => FailTask(true)), null);
+            FailTest.Run<ArgumentException>(TaskCommand<object, int>.Create(() => FailTask(false)), null);
         }
 
         private static Task<int> AddOneTask(int input, CancellationTokenSource cancellationTokenSource)

@@ -59,7 +59,7 @@ namespace CommandLibTests
                 Assert.IsTrue(failed);
                 Assert.IsTrue(failure is T);
 
-                using (Task<object> task = cmd.AsTask<object>(runtimeArg))
+                using (Task<object> task = cmd.RunAsTask<object>(runtimeArg))
 	            {
 		            try
 		            {
