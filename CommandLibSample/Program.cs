@@ -162,7 +162,7 @@ namespace CommandLibSample
                 // The first and last commands added accomplish the same thing, but in different ways.
 
                 // This command wraps an asynchronous Task
-			    Add(TaskCommand<string>.Create(() => Console.Out.WriteLineAsync($"Started {desc}")));
+			    Add(TaskCommand<string>.Create(c => Console.Out.WriteLineAsync($"Started {desc}")));
 
                 Add(new DelayCommand(duration));
 

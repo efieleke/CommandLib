@@ -94,20 +94,27 @@ namespace CommandLibTests
         [TestMethod]
         public void FromTask_TestSuccess()
         {
-            HappyPathTest.Run(TaskCommand<object, int>.Create(() => AddOneTask(1, null)), 0, 2);
-            HappyPathTest.Run(TaskCommand<object, int>.Create(() => AddOneTask(1, null)), 0, 2);
+            HappyPathTest.Run(TaskCommand<object, int>.Create(c => AddOneTask(1, null)), 0, 2);
+            HappyPathTest.Run(TaskCommand<object, int>.Create(c => AddOneTask(1, null)), 0, 2);
+        }
+
+        [TestMethod]
+        public void FromTask_TestAbort()
+        {
+            AbortTest.Run(TaskCommand<object, int>.Create(c => AddOneTask(1, c)), 0, 2);
+            AbortTest.Run(TaskCommand<object, int>.Create(c => AddOneTask(1, c)), 0, 2);
         }
 
         [TestMethod]
         public void FromTask_TestFail()
         {
-            FailTest.Run<InvalidOperationException>(TaskCommand<object, int>.Create(() => FailTask(true)), null);
-            FailTest.Run<ArgumentException>(TaskCommand<object, int>.Create(() => FailTask(false)), null);
+            FailTest.Run<InvalidOperationException>(TaskCommand<object, int>.Create(c => FailTask(true)), null);
+            FailTest.Run<ArgumentException>(TaskCommand<object, int>.Create(c => FailTask(false)), null);
         }
 
-        private static Task<int> AddOneTask(int input, CancellationTokenSource cancellationTokenSource)
+        private static Task<int> AddOneTask(int input, CancellationToken? cancellationToken)
         {
-            if (cancellationTokenSource == null)
+            if (cancellationToken == null)
             {
                 return new Task<int>(() =>
                 {
@@ -118,12 +125,12 @@ namespace CommandLibTests
 
             return new Task<int>(() =>
             {
-                cancellationTokenSource.Token.ThrowIfCancellationRequested();
+                cancellationToken.Value.ThrowIfCancellationRequested();
                 Thread.Sleep(5);
-                cancellationTokenSource.Token.ThrowIfCancellationRequested();
+                cancellationToken.Value.ThrowIfCancellationRequested();
                 return input + 1;
             },
-            cancellationTokenSource.Token);
+            cancellationToken.Value);
         }
 
         private static Task<int> FailTask(bool failImmediately)

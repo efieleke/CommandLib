@@ -27,32 +27,30 @@ namespace Sophos.Commands
     {
         /// <summary>
         /// This class wraps a delegate as a Command. When the command is executed, the delegate is run.
-        /// In order for this command to be responsive to abort requests, the delegate method must check the
-        /// <see cref="Command.AbortRequested"/> flag on the command that is the owner of this command (if owned).
-        /// If that is impractical, and the underlying task could take significant time, creating a concrete
-        /// TaskCommand-derived class is recommended.
         /// </summary>
-        /// <param name="func">The delegate that returns a Task. This will be run when the command is executed.</param>
+        /// <param name="func">
+        /// The delegate that returns a Task. This will be run when the command is executed. This function
+        /// is passed a cancellation token that can be passed to methods that return tasks.
+        /// </param>
         /// <returns>The created command. It ignores the runtimeArg passed to SyncExecute() or AsyncExecute()</returns>
-        public static TaskCommand<TArg, TResult> Create(Func<Task<TResult>> func)
+        public static TaskCommand<TArg, TResult> Create(Func<CancellationToken, Task<TResult>> func)
         {
             return Create(func, null);
         }
 
         /// <summary>
         /// This class wraps a delegate as a Command. When the command is executed, the delegate is run.
-        /// In order for this command to be responsive to abort requests, the delegate method must check the
-        /// <see cref="Command.AbortRequested"/> flag on the command that is the owner of this command (if owned).
-        /// If that is impractical, and the underlying task could take significant time, creating a concrete
-        /// TaskCommand-derived class is recommended.
         /// </summary>
-        /// <param name="func">The delegate that returns a Task. This will be run when the command is executed.</param>
+        /// <param name="func">
+        /// The delegate that returns a Task. This will be run when the command is executed. This function
+        /// is passed a cancellation token that can be passed to methods that return tasks.
+        /// </param>
         /// <param name="owner">
         /// Specify null to indicate a top-level command. Otherwise, this command will be owned by 'owner'.
         /// Owned commands are disposed of when the owner is disposed.
         /// </param>
         /// <returns>The created command. It ignores the runtimeArg passed to SyncExecute() or AsyncExecute()</returns>
-        public static TaskCommand<TArg, TResult> Create(Func<Task<TResult>> func, Command owner)
+        public static TaskCommand<TArg, TResult> Create(Func<CancellationToken, Task<TResult>> func, Command owner)
         {
             return new DelegatedTaskCommand(func, owner);
         }
@@ -263,17 +261,17 @@ namespace Sophos.Commands
 
         private class DelegatedTaskCommand : TaskCommand<TArg, TResult>
         {
-            internal DelegatedTaskCommand(Func<Task<TResult>> func, Command owner) : base(owner)
+            internal DelegatedTaskCommand(Func<CancellationToken, Task<TResult>> func, Command owner) : base(owner)
             {
                 _func = func;
             }
 
             protected sealed override Task<TResult> CreateTask(TArg _, CancellationToken cancellationToken)
             {
-                return _func();
+                return _func(cancellationToken);
             }
 
-            private readonly Func<Task<TResult>> _func;
+            private readonly Func<CancellationToken, Task<TResult>> _func;
         }
     }
 
@@ -298,32 +296,30 @@ namespace Sophos.Commands
     {
         /// <summary>
         /// This class wraps a delegate as a Command. When the command is executed, the delegate is run.
-        /// In order for this command to be responsive to abort requests, the delegate method must check the
-        /// <see cref="Command.AbortRequested"/> flag on the command that is the owner of this command (if owned).
-        /// If that is impractical, and the underlying task could take significant time, creating a concrete
-        /// TaskCommand-derived class is recommended.
         /// </summary>
-        /// <param name="func">The delegate that returns a Task. This will be run when the command is executed.</param>
+        /// <param name="func">
+        /// The delegate that returns a Task. This will be run when the command is executed. This function
+        /// is passed a cancellation token that can be passed to methods that return tasks.
+        /// </param>
         /// <returns>The created command. It ignores the runtimeArg passed to SyncExecute() or AsyncExecute()</returns>
-        public static TaskCommand<TArg> Create(Func<Task> func)
+        public static TaskCommand<TArg> Create(Func<CancellationToken, Task> func)
         {
             return Create(func, null);
         }
 
         /// <summary>
         /// This class wraps a delegate as a Command. When the command is executed, the delegate is run.
-        /// In order for this command to be responsive to abort requests, the delegate method must check the
-        /// <see cref="Command.AbortRequested"/> flag on the command that is the owner of this command (if owned).
-        /// If that is impractical, and the underlying task could take significant time, creating a concrete
-        /// TaskCommand-derived class is recommended.
         /// </summary>
-        /// <param name="func">The delegate that returns a Task. This will be run when the command is executed.</param>
+        /// <param name="func">
+        /// The delegate that returns a Task. This will be run when the command is executed. This function
+        /// is passed a cancellation token that can be passed to methods that return tasks.
+        /// </param>
         /// <param name="owner">
         /// Specify null to indicate a top-level command. Otherwise, this command will be owned by 'owner'.
         /// Owned commands are disposed of when the owner is disposed.
         /// </param>
         /// <returns>The created command. It ignores the runtimeArg passed to SyncExecute() or AsyncExecute()</returns>
-        public static TaskCommand<TArg> Create(Func<Task> func, Command owner)
+        public static TaskCommand<TArg> Create(Func<CancellationToken, Task> func, Command owner)
         {
             return new DelegatedTaskCommand(func, owner);
         }
@@ -370,17 +366,17 @@ namespace Sophos.Commands
 
         private class DelegatedTaskCommand : TaskCommand<TArg>
         {
-            internal DelegatedTaskCommand(Func<Task> func, Command owner) : base(owner)
+            internal DelegatedTaskCommand(Func<CancellationToken, Task> func, Command owner) : base(owner)
             {
                 _func = func;
             }
 
-            protected sealed override Task CreateTaskNoResult(TArg _, CancellationToken __)
+            protected sealed override Task CreateTaskNoResult(TArg _, CancellationToken cancelToken)
             {
-                return _func();
+                return _func(cancelToken);
             }
 
-            private readonly Func<Task> _func;
+            private readonly Func<CancellationToken, Task> _func;
         }
     }
 }
