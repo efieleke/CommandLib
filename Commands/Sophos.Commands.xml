@@ -95,19 +95,19 @@
         </member>
         <member name="T:Sophos.Commands.NamespaceDoc">
             <summary>
-            This library contains a set of classes that can be used to easily coordinate synchronous and asynchronous activities in
-            complex ways. Most classes in this library inherit from <see cref="T:Sophos.Commands.Command"/>, which represents an action. Any
+            This library contains a set of classes that can be used to coordinate synchronous and asynchronous activities.
+            Most classes in this library inherit from <see cref="T:Sophos.Commands.Command"/>, which represents an action. Any
             <see cref="T:Sophos.Commands.Command"/> can be run synchronously or asynchronously, and may be aborted.
             <para></para>
             <para>
             Using <see cref="T:Sophos.Commands.ParallelCommands"/>, you can run a collection of <see cref="T:Sophos.Commands.Command"/> objects concurrently, and using
-            <see crefAs="SequentialCommands"/>, you can run a collection of <see cref="T:Sophos.Commands.Command"/> objects in sequence. Any command
+            <see cref="T:Sophos.Commands.SequentialCommands"/>, you can run a collection of <see cref="T:Sophos.Commands.Command"/> objects in sequence. Any command
             can be added to these two types (including <see cref="T:Sophos.Commands.ParallelCommands"/> and <see cref="T:Sophos.Commands.SequentialCommands"/> themselves,
-            because they are <see cref="T:Sophos.Commands.Command"/> objects), so it's possible to create a deep nesting of coordinated activities.
+            (because they are <see cref="T:Sophos.Commands.Command"/> objects), so it's possible to create deep levels of coordinated activities.
             </para>
             <para>
-            Command extends the notion of a Task, in that it works both with tasks and with non-task-based asynchronous operations, and
-            offers features not readily available with tasks. <see cref="T:Sophos.Commands.TaskCommand`1"/>, <see cref="T:Sophos.Commands.DelegateCommand`1"/>,
+            Commands extends the notion of a Task, in that it works both with tasks and with non-task-based asynchronous operations.
+            <see cref="T:Sophos.Commands.TaskCommand`2"/>, <see cref="T:Sophos.Commands.DelegateCommand`1"/>,
             and <see cref="M:Sophos.Commands.Command.RunAsTask``1(System.Object,Sophos.Commands.Command)"/> offer easy integration with Tasks and delegates.
             </para>
             <para>
@@ -133,7 +133,7 @@
             - If the implementation of your command is naturally synchronous, inherit from <see cref="T:Sophos.Commands.SyncCommand"/>
             </para>
             <para>
-            - If the implementation of your command is naturally asynchronous and makes use of Tasks (i.e. the Task class), inherit from <see cref="T:Sophos.Commands.TaskCommand`1"/>
+            - If the implementation of your command is naturally asynchronous and makes use of Tasks (i.e. the Task class), inherit from <see cref="T:Sophos.Commands.TaskCommand`2"/>
             </para>
             <para>
             - If the implementation of your command is naturally asynchronous but does not make use of tasks, inherit from <see cref="T:Sophos.Commands.AsyncCommand"/>
@@ -142,7 +142,7 @@
             - Make your implementation responsive to abort requests if it could take more than a trivial amount of time. To do this, make occasional calls to Command.CheckAbortFlag() or Command.AbortRequested.
             </para>
             <para>
-            At a minimum, documentation for <see cref="T:Sophos.Commands.Command"/>, <see cref="T:Sophos.Commands.AsyncCommand"/> and <see cref="T:Sophos.Commands.SyncCommand"/> and <see cref="T:Sophos.Commands.TaskCommand`1"/> should be read
+            At a minimum, documentation for <see cref="T:Sophos.Commands.Command"/>, <see cref="T:Sophos.Commands.AsyncCommand"/> and <see cref="T:Sophos.Commands.SyncCommand"/> and <see cref="T:Sophos.Commands.TaskCommand`2"/> should be read
             before developing a <see cref="T:Sophos.Commands.Command"/>-derived class.
             </para>
             </summary>
@@ -594,14 +594,20 @@
         <member name="P:Sophos.Commands.Command.AbortEvent">
             <summary>
             Signaled when an abort request has been made. The state of this handle must not be altered
-            by anything but the framework.
+            by anything but the framework. This is the underlying wait handle owned by the <see cref="P:Sophos.Commands.Command.CancelToken"/>
+            </summary>
+        </member>
+        <member name="P:Sophos.Commands.Command.CancelToken">
+            <summary>
+            Signaled when an abort request has been made. 
             </summary>
         </member>
         <member name="P:Sophos.Commands.Command.CancellationToken">
             <summary>
-            Returns the CancellationToken for this command. The proper way to cancel a command
-            is to call <see cref="M:Sophos.Commands.Command.Abort"/>, and the preferred way to check to see whether
-            a command has an outstanding abort request is via <see cref="P:Sophos.Commands.Command.AbortRequested"/>.
+            Returns the CancellationToken for this command. The state of this token must not be altered
+            by anything but the framework. The proper way to cancel a command is to call <see cref="M:Sophos.Commands.Command.Abort"/>,
+            and the preferred way to check to see whether a command has an outstanding abort request is via
+            <see cref="P:Sophos.Commands.Command.AbortRequested"/>.
             </summary>
         </member>
         <member name="P:Sophos.Commands.Command.AbortRequested">

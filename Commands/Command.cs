@@ -6,19 +6,19 @@ using System.Threading.Tasks;
 namespace Sophos.Commands
 {
     /// <summary>
-    /// This library contains a set of classes that can be used to easily coordinate synchronous and asynchronous activities in
-    /// complex ways. Most classes in this library inherit from <see cref="Command"/>, which represents an action. Any
+    /// This library contains a set of classes that can be used to coordinate synchronous and asynchronous activities.
+    /// Most classes in this library inherit from <see cref="Command"/>, which represents an action. Any
     /// <see cref="Command"/> can be run synchronously or asynchronously, and may be aborted.
     /// <para></para>
     /// <para>
     /// Using <see cref="ParallelCommands"/>, you can run a collection of <see cref="Command"/> objects concurrently, and using
-    /// <see crefAs="SequentialCommands"/>, you can run a collection of <see cref="Command"/> objects in sequence. Any command
+    /// <see cref="SequentialCommands"/>, you can run a collection of <see cref="Command"/> objects in sequence. Any command
     /// can be added to these two types (including <see cref="ParallelCommands"/> and <see cref="SequentialCommands"/> themselves,
-    /// because they are <see cref="Command"/> objects), so it's possible to create a deep nesting of coordinated activities.
+    /// (because they are <see cref="Command"/> objects), so it's possible to create deep levels of coordinated activities.
     /// </para>
     /// <para>
-    /// Command extends the notion of a Task, in that it works both with tasks and with non-task-based asynchronous operations, and
-    /// offers features not readily available with tasks. <see cref="TaskCommand{TResult}"/>, <see cref="DelegateCommand{TResult}"/>,
+    /// Commands extends the notion of a Task, in that it works both with tasks and with non-task-based asynchronous operations.
+    /// <see cref="TaskCommand{TArg, TResult}"/>, <see cref="DelegateCommand{TResult}"/>,
     /// and <see cref="Command.RunAsTask{TResult}(object, Command)"/> offer easy integration with Tasks and delegates.
     /// </para>
     /// <para>
@@ -44,7 +44,7 @@ namespace Sophos.Commands
     /// - If the implementation of your command is naturally synchronous, inherit from <see cref="SyncCommand"/>
     /// </para>
     /// <para>
-    /// - If the implementation of your command is naturally asynchronous and makes use of Tasks (i.e. the Task class), inherit from <see cref="TaskCommand{TResult}"/>
+    /// - If the implementation of your command is naturally asynchronous and makes use of Tasks (i.e. the Task class), inherit from <see cref="TaskCommand{TArg, TResult}"/>
     /// </para>
     /// <para>
     /// - If the implementation of your command is naturally asynchronous but does not make use of tasks, inherit from <see cref="AsyncCommand"/>
@@ -53,7 +53,7 @@ namespace Sophos.Commands
     /// - Make your implementation responsive to abort requests if it could take more than a trivial amount of time. To do this, make occasional calls to Command.CheckAbortFlag() or Command.AbortRequested.
     /// </para>
     /// <para>
-    /// At a minimum, documentation for <see cref="Command"/>, <see cref="AsyncCommand"/> and <see cref="SyncCommand"/> and <see cref="TaskCommand{TResult}"/> should be read
+    /// At a minimum, documentation for <see cref="Command"/>, <see cref="AsyncCommand"/> and <see cref="SyncCommand"/> and <see cref="TaskCommand{TArg, TResult}"/> should be read
     /// before developing a <see cref="Command"/>-derived class.
     /// </para>
     /// </summary>
@@ -731,7 +731,7 @@ namespace Sophos.Commands
 
         /// <summary>
         /// Signaled when an abort request has been made. The state of this handle must not be altered
-        /// by anything but the framework.
+        /// by anything but the framework. This is the underlying wait handle owned by the <see cref="CancelToken"/>
         /// </summary>
         public WaitHandle AbortEvent
         {
@@ -743,11 +743,24 @@ namespace Sophos.Commands
         }
 
         /// <summary>
-        /// Returns the CancellationToken for this command. The proper way to cancel a command
-        /// is to call <see cref="Abort"/>, and the preferred way to check to see whether
-        /// a command has an outstanding abort request is via <see cref="AbortRequested"/>.
+        /// Signaled when an abort request has been made. 
         /// </summary>
-        protected internal CancellationToken CancellationToken => _cancellationTokenSource.Token;
+        public CancellationToken CancelToken
+        {
+            get
+            {
+                CheckDisposed();
+                return _cancellationTokenSource.Token;
+            }
+        }
+
+        /// <summary>
+        /// Returns the CancellationToken for this command. The state of this token must not be altered
+        /// by anything but the framework. The proper way to cancel a command is to call <see cref="Abort"/>,
+        /// and the preferred way to check to see whether a command has an outstanding abort request is via
+        /// <see cref="AbortRequested"/>.
+        /// </summary>
+        public CancellationToken CancellationToken => _cancellationTokenSource.Token;
 
         /// <summary>
         /// Returns whether an abort request has been made

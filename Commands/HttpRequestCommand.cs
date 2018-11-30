@@ -52,7 +52,7 @@ namespace Sophos.Commands
         /// <summary>
         /// This is used as the inner exception for the exception thrown by EnsureSuccessStatusCodeResponseChecker
         /// </summary>
-        [SerializableAttribute]
+        [Serializable]
         public class HttpStatusException : Exception
         {
             /// <summary>
@@ -87,7 +87,7 @@ namespace Sophos.Commands
             /// </summary>
             /// <param name="info">Serialization info</param>
             /// <param name="context">Streaming context</param>
-            [SecurityPermissionAttribute(SecurityAction.Demand, SerializationFormatter = true)]
+            [SecurityPermission(SecurityAction.Demand, SerializationFormatter = true)]
             public override void GetObjectData(System.Runtime.Serialization.SerializationInfo info, System.Runtime.Serialization.StreamingContext context)
             {
                 if (info == null)
