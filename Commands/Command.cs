@@ -731,7 +731,8 @@ namespace Sophos.Commands
 
         /// <summary>
         /// Signaled when an abort request has been made. The state of this handle must not be altered
-        /// by anything but the framework. This is the underlying wait handle owned by the <see cref="CancelToken"/>
+        /// by anything but the framework. This is the underlying wait handle owned by
+        /// <see cref="CancellationToken"/>
         /// </summary>
         public WaitHandle AbortEvent
         {
@@ -743,9 +744,12 @@ namespace Sophos.Commands
         }
 
         /// <summary>
-        /// Signaled when an abort request has been made. 
+        /// Returns the CancellationToken for this command. The state of this token must not be altered
+        /// by anything but the framework. The proper way to cancel a command is to call <see cref="Abort"/>,
+        /// and the preferred way to check to see whether a command has an outstanding abort request is via
+        /// <see cref="AbortRequested"/>.
         /// </summary>
-        public CancellationToken CancelToken
+        public CancellationToken CancellationToken
         {
             get
             {
@@ -753,14 +757,6 @@ namespace Sophos.Commands
                 return _cancellationTokenSource.Token;
             }
         }
-
-        /// <summary>
-        /// Returns the CancellationToken for this command. The state of this token must not be altered
-        /// by anything but the framework. The proper way to cancel a command is to call <see cref="Abort"/>,
-        /// and the preferred way to check to see whether a command has an outstanding abort request is via
-        /// <see cref="AbortRequested"/>.
-        /// </summary>
-        public CancellationToken CancellationToken => _cancellationTokenSource.Token;
 
         /// <summary>
         /// Returns whether an abort request has been made

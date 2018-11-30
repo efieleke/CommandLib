@@ -594,12 +594,8 @@
         <member name="P:Sophos.Commands.Command.AbortEvent">
             <summary>
             Signaled when an abort request has been made. The state of this handle must not be altered
-            by anything but the framework. This is the underlying wait handle owned by the <see cref="P:Sophos.Commands.Command.CancelToken"/>
-            </summary>
-        </member>
-        <member name="P:Sophos.Commands.Command.CancelToken">
-            <summary>
-            Signaled when an abort request has been made. 
+            by anything but the framework. This is the underlying wait handle owned by
+            <see cref="P:Sophos.Commands.Command.CancellationToken"/>
             </summary>
         </member>
         <member name="P:Sophos.Commands.Command.CancellationToken">
