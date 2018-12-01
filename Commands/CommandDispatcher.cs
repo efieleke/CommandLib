@@ -4,16 +4,17 @@ using System.Collections.Generic;
 namespace Sophos.Commands
 {
 	/// <summary>
-	/// Dispatches <see cref="Command"/> objects to a pool for asynchronous execution.
+	/// Dispatches <see cref="Command"/> objects for asynchronous execution. The dispatcher assumes
+	/// responsibility for disposing dispatched commands.
 	/// </summary>
 	/// <remarks>
 	/// <para>
-	/// This class can be useful when commands are dynamically generated at runtime, and must be dynamically executed upon generation.
+	/// This class can be useful when commands are dynamically generated at runtime, and must be dynamically executed upon generation
 	/// (for example, asynchronous handling of requests sent over a data stream).
 	/// </para>
 	/// <para>
 	/// Users of the class should remember to call Dispose() when they are done with this object. That will wait until all dispatched
-	/// commands finish execution, and also clean up the <see cref="Command"/> objects. For a faster shutdown, you may wish to call
+	/// commands finish execution, and also dispose the dispatched <see cref="Command"/> objects. For a faster shutdown, you may wish to call
 	/// <see cref="CommandDispatcher.Abort()"/> before disposing the dispatcher.
 	/// </para>
 	/// </remarks>
@@ -73,15 +74,19 @@ namespace Sophos.Commands
         /// <summary>
         /// Constructs a CommandDispatcher object
         /// </summary>
-        /// <param name="poolSize">The maximum number of commands that can be executed concurrently by this dispatcher.</param>
-        public CommandDispatcher(int poolSize)
+        /// <param name="maxConcurrent">
+        /// The maximum number of commands that can be executed concurrently by this dispatcher. If this
+        /// limit is reached, commands will be queued and only executed when enough prior dispatched commands
+        /// finish execution.
+        /// </param>
+        public CommandDispatcher(int maxConcurrent)
         {
-            if (poolSize <= 0)
+            if (maxConcurrent <= 0)
             {
-                throw new ArgumentException("poolSize must be greater than 0");
+                throw new ArgumentException($"{nameof(maxConcurrent)} must be greater than 0", nameof(maxConcurrent));
             }
 
-            _poolSize = poolSize;
+            _maxConcurrent = maxConcurrent;
         }
 
         /// <summary>
@@ -118,14 +123,29 @@ namespace Sophos.Commands
 
                 _finishedCommands.Clear();
 
-                if (_runningCommands.Count == _poolSize)
+                if (_runningCommands.Count == _maxConcurrent)
                 {
                     _commandBacklog.Enqueue(command);
                 }
                 else
                 {
                     _runningCommands.Add(command);
-                    command.AsyncExecute(new Listener(this, command));
+
+                    try
+                    {
+                        command.AsyncExecute(new Listener(this, command));
+                    }
+                    catch (Exception)
+                    {
+                        _runningCommands.RemoveAt(_runningCommands.Count - 1);
+
+                        if (_runningCommands.Count == 0)
+                        {
+                            _nothingToDoEvent.Set();
+                        }
+
+                        throw;
+                    }
                 }
             }
         }
@@ -212,9 +232,11 @@ namespace Sophos.Commands
         private void OnCommandFinished(Command command, object result, Exception exc)
         {
 	        CommandFinishedEvent?.Invoke(this, new CommandFinishedEventArgs(command, result, exc));
+            bool shouldReleaseLock = false;
 
-	        lock (_criticalSection)
+            try
             {
+                System.Threading.Monitor.Enter(_criticalSection, ref shouldReleaseLock);
                 _runningCommands.Remove(command);
 
                 // We cannot dispose of this command here, because it's not quite done executing yet.
@@ -224,6 +246,8 @@ namespace Sophos.Commands
                 {
                     if (_runningCommands.Count == 0)
                     {
+                        System.Threading.Monitor.Exit(_criticalSection);
+                        shouldReleaseLock = false;
                         _nothingToDoEvent.Set();
                     }
                 }
@@ -238,8 +262,17 @@ namespace Sophos.Commands
                     }
                     catch (Exception e)
                     {
+                        System.Threading.Monitor.Exit(_criticalSection);
+                        shouldReleaseLock = false;
                         OnCommandFinished(nextInLine, null, e);
                     }
+                }
+            }
+            finally
+            {
+                if (shouldReleaseLock)
+                {
+                    System.Threading.Monitor.Exit(_criticalSection);
                 }
             }
         }
@@ -271,7 +304,7 @@ namespace Sophos.Commands
             private readonly CommandDispatcher _dispatcher;
         }
 
-        private readonly int _poolSize;
+        private readonly int _maxConcurrent;
         private readonly List<Command> _runningCommands = new List<Command>();
         private readonly Queue<Command> _commandBacklog = new Queue<Command>();
         private readonly LinkedList<Command> _finishedCommands = new LinkedList<Command>();

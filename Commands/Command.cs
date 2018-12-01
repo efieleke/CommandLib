@@ -31,7 +31,7 @@ namespace Sophos.Commands
     /// execution.
     /// </para>
     /// <para>
-    /// <see cref="CommandDispatcher"/> provides the capability to set up a pool for command execution.
+    /// <see cref="CommandDispatcher"/> manages asynchronous execution of dynamically generated commands.
     /// </para>
     /// <para>
     /// All of the above <see cref="Command"/> classes are simply containers for <see cref="Command"/> objects that presumably do
@@ -63,34 +63,25 @@ namespace Sophos.Commands
     }
 
     /// <summary>
-    /// Informational data that is part of a <see cref="Command"/> instance
+    /// Informational data that is part of a <see cref="Command"/> instance.
     /// </summary>
     public interface ICommandInfo
     {
         /// <summary>
-        /// Returns the unique identifier for this command.
+        /// Returns the unique identifier for the command.
         /// </summary>
-        long Id
-        {
-            get;
-        }
+        long Id { get; }
 
         /// <summary>
         /// Returns the owner, or the command that an <see cref="AbortSignaledCommand"/> is linked to (if any).
         /// </summary>
-        ICommandInfo ParentInfo
-        {
-            get;
-        }
+        ICommandInfo ParentInfo { get; }
 
         /// <summary>
         /// Counts the number of parents until the top level command is reached
         /// </summary>
         /// <remarks>A parent is considered an owner, or the command that an <see cref="AbortSignaledCommand"/> is linked to (if any).</remarks>
-        int Depth
-        {
-            get;
-        }
+        int Depth { get; }
 
         /// <summary>A description of the Command</summary>
         /// <remarks>
@@ -101,10 +92,7 @@ namespace Sophos.Commands
         /// A parent is considered the owner, or the command that an <see cref="AbortSignaledCommand"/> is linked to (if any).
         /// </para>
         /// </remarks>
-        string Description
-        {
-            get;
-        }
+        string Description { get; }
 
         /// <summary>
         /// Information about the command (beyond its type and id), if available, for diagnostic purposes.

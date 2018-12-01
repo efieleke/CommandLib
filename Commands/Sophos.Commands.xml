@@ -120,7 +120,7 @@
             execution.
             </para>
             <para>
-            <see cref="T:Sophos.Commands.CommandDispatcher"/> provides the capability to set up a pool for command execution.
+            <see cref="T:Sophos.Commands.CommandDispatcher"/> manages asynchronous execution of dynamically generated commands.
             </para>
             <para>
             All of the above <see cref="T:Sophos.Commands.Command"/> classes are simply containers for <see cref="T:Sophos.Commands.Command"/> objects that presumably do
@@ -149,12 +149,12 @@
         </member>
         <member name="T:Sophos.Commands.ICommandInfo">
             <summary>
-            Informational data that is part of a <see cref="T:Sophos.Commands.Command"/> instance
+            Informational data that is part of a <see cref="T:Sophos.Commands.Command"/> instance.
             </summary>
         </member>
         <member name="P:Sophos.Commands.ICommandInfo.Id">
             <summary>
-            Returns the unique identifier for this command.
+            Returns the unique identifier for the command.
             </summary>
         </member>
         <member name="P:Sophos.Commands.ICommandInfo.ParentInfo">
@@ -738,16 +738,17 @@
         </member>
         <member name="T:Sophos.Commands.CommandDispatcher">
             <summary>
-            Dispatches <see cref="T:Sophos.Commands.Command"/> objects to a pool for asynchronous execution.
+            Dispatches <see cref="T:Sophos.Commands.Command"/> objects for asynchronous execution. The dispatcher assumes
+            responsibility for disposing dispatched commands.
             </summary>
             <remarks>
             <para>
-            This class can be useful when commands are dynamically generated at runtime, and must be dynamically executed upon generation.
+            This class can be useful when commands are dynamically generated at runtime, and must be dynamically executed upon generation
             (for example, asynchronous handling of requests sent over a data stream).
             </para>
             <para>
             Users of the class should remember to call Dispose() when they are done with this object. That will wait until all dispatched
-            commands finish execution, and also clean up the <see cref="T:Sophos.Commands.Command"/> objects. For a faster shutdown, you may wish to call
+            commands finish execution, and also dispose the dispatched <see cref="T:Sophos.Commands.Command"/> objects. For a faster shutdown, you may wish to call
             <see cref="M:Sophos.Commands.CommandDispatcher.Abort"/> before disposing the dispatcher.
             </para>
             </remarks>
@@ -801,7 +802,11 @@
             <summary>
             Constructs a CommandDispatcher object
             </summary>
-            <param name="poolSize">The maximum number of commands that can be executed concurrently by this dispatcher.</param>
+            <param name="maxConcurrent">
+            The maximum number of commands that can be executed concurrently by this dispatcher. If this
+            limit is reached, commands will be queued and only executed when enough prior dispatched commands
+            finish execution.
+            </param>
         </member>
         <member name="M:Sophos.Commands.CommandDispatcher.Dispatch(Sophos.Commands.Command)">
             <summary>
@@ -1359,7 +1364,10 @@
             Invoked by the framework whenever a <see cref="T:Sophos.Commands.Command"/> (including owned commands) starts execution
             </summary>
             <param name="commandInfo">
-            Information about the command that is starting execution.
+            Information about the command that is starting execution. This may be safely cast to a Command
+            object. The reason a Command object is not passed directly is to discourage invoking any method
+            or property that could change the state of the command (which would cause undefined behavior).
+            Implementations may safely call GetType() on this to determine the concrete command type.
             </param>
             <remarks>
             Implementations of this method must not throw.
@@ -1370,7 +1378,10 @@
             Invoked by the framework whenever a <see cref="T:Sophos.Commands.Command"/> (including owned commands) is finishing execution, for whatever reason (success, fail, or abort).
             </summary>
             <param name="commandInfo">
-            Information about the command that is finishing execution.
+            Information about the command that is finishing execution. This may be safely cast to a Command
+            object. The reason a Command object is not passed directly is to discourage invoking any method
+            or property that could change the state of the command (which would cause undefined behavior).
+            Implementations may safely call GetType() on this to determine the concrete command type.
             </param>
             <param name="exc">
             Will be null if the command succeeded. Otherwise will be a <see cref="T:Sophos.Commands.CommandAbortedException"/> if the command was aborted, or some other

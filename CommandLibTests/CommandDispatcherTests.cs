@@ -71,6 +71,46 @@ namespace CommandLibTests
         }
 
         [TestMethod]
+        public void CommandDispatcher_TestBumAsyncCommand()
+        {
+            using (CommandDispatcher dispatcher = new CommandDispatcher(1))
+            {
+                dispatcher.CommandFinishedEvent += dispatcher_CommandFinishedEvent;
+                _aborted = 0;
+                _completed = 0;
+                _failed = 0;
+                dispatcher.Dispatch(new PauseCommand(TimeSpan.FromMilliseconds(10)));
+                dispatcher.Dispatch(new BumAsyncCommand());
+                dispatcher.Dispatch(new BumAsyncCommand());
+            }
+
+            Assert.AreEqual(1, _completed);
+            Assert.AreEqual(2, _failed);
+            Assert.AreEqual(0, _aborted);
+
+            using (CommandDispatcher dispatcher = new CommandDispatcher(1))
+            {
+                dispatcher.CommandFinishedEvent += dispatcher_CommandFinishedEvent;
+                _aborted = 0;
+                _completed = 0;
+                _failed = 0;
+
+                try
+                {
+                    dispatcher.Dispatch(new BumAsyncCommand());
+                    Assert.Fail("Did not expect to get here");
+                }
+                catch (NotImplementedException)
+                {
+                }
+            }
+
+            Assert.AreEqual(0, _completed);
+            Assert.AreEqual(0, _failed);
+            Assert.AreEqual(0, _aborted);
+        }
+
+        [TestMethod]
         public void CommandDispatcher_TestBadArgs()
         {
             try
@@ -99,6 +139,16 @@ namespace CommandLibTests
                     {
                     }
                 }
+            }
+        }
+
+        private class BumAsyncCommand : AsyncCommand
+        {
+            public BumAsyncCommand() : base(null) {}
+
+            protected override void AsyncExecuteImpl(ICommandListener listener, object runtimeArg)
+            {
+                throw new NotImplementedException();
             }
         }
     }

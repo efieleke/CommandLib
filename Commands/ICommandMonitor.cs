@@ -17,7 +17,10 @@ namespace Sophos.Commands
         /// Invoked by the framework whenever a <see cref="Command"/> (including owned commands) starts execution
         /// </summary>
         /// <param name="commandInfo">
-        /// Information about the command that is starting execution.
+        /// Information about the command that is starting execution. This may be safely cast to a Command
+        /// object. The reason a Command object is not passed directly is to discourage invoking any method
+        /// or property that could change the state of the command (which would cause undefined behavior).
+        /// Implementations may safely call GetType() on this to determine the concrete command type.
         /// </param>
         /// <remarks>
         /// Implementations of this method must not throw.
@@ -28,7 +31,10 @@ namespace Sophos.Commands
         /// Invoked by the framework whenever a <see cref="Command"/> (including owned commands) is finishing execution, for whatever reason (success, fail, or abort).
         /// </summary>
         /// <param name="commandInfo">
-        /// Information about the command that is finishing execution.
+        /// Information about the command that is finishing execution. This may be safely cast to a Command
+        /// object. The reason a Command object is not passed directly is to discourage invoking any method
+        /// or property that could change the state of the command (which would cause undefined behavior).
+        /// Implementations may safely call GetType() on this to determine the concrete command type.
         /// </param>
         /// <param name="exc">
         /// Will be null if the command succeeded. Otherwise will be a <see cref="CommandAbortedException"/> if the command was aborted, or some other
