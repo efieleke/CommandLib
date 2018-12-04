@@ -43,9 +43,11 @@ namespace CommandLibTests
             dispatcher.Dispatch(new PauseCommand(TimeSpan.FromDays(1)));
             System.Threading.Thread.Sleep(100);
             dispatcher.AbortAndWait();
+            dispatcher.Dispatch(new PauseCommand(TimeSpan.FromDays(1)));
+            dispatcher.AbortAndWait();
             Assert.AreEqual(2, _completed);
             Assert.AreEqual(0, _failed);
-            Assert.AreEqual(2, _aborted);
+            Assert.AreEqual(3, _aborted);
         }
 
         [TestMethod]

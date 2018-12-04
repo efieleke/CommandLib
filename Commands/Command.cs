@@ -378,7 +378,7 @@ namespace Sophos.Commands
                  e => error = e,
                  runtimeArg)))
             {
-                await task;
+                await task.ConfigureAwait(continueOnCapturedContext:false);
                 cmd.DoneEvent.WaitOne();
                 cmd.Dispose();
 

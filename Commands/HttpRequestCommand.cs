@@ -124,7 +124,7 @@ namespace Sophos.Commands
                         {
 	                        using (Task<string> t = response.Content.ReadAsStringAsync())
 	                        {
-		                        reason.ResponseBody = await t;
+		                        reason.ResponseBody = await t.ConfigureAwait(continueOnCapturedContext:false);
 	                        }
                         }
                         catch(Exception)
@@ -244,7 +244,7 @@ namespace Sophos.Commands
 				{
 					try
 					{
-						HttpResponseMessage message = await task;
+						HttpResponseMessage message = await task.ConfigureAwait(continueOnCapturedContext:false);
 
 						if (_responseChecker != null)
 						{
@@ -252,7 +252,7 @@ namespace Sophos.Commands
 							{
 								using (Task t = _responseChecker.CheckResponse(message))
 								{
-									await t;
+									await t.ConfigureAwait(continueOnCapturedContext:false);
 								}
 							}
 							catch (Exception)

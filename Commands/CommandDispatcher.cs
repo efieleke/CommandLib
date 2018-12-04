@@ -90,11 +90,11 @@ namespace Sophos.Commands
         }
 
         /// <summary>
-        /// If there is room in the pool, asynchronously executes the command immediately. Otherwise, places the command in a
-        /// queue for processing when room in the pool becomes available.
+        /// If fewer commands than the maximum concurrent are currently executing, asynchronously executes the command immediately. Otherwise, places the command in a
+        /// queue for processing when room becomes available.
         /// </summary>
         /// <param name="command">
-        /// The command to execute as soon as there is room in the pool. This object will assume responsibility for disposing of
+        /// The command to execute as soon as there is room. This object will assume responsibility for disposing of
         /// this command. The command must be top-level (that is, it must have no parent).
         /// <para>
         /// Note that it will cause undefined behavior to dispatch a <see cref="Command"/> object that is currently executing,

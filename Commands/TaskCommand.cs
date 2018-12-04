@@ -203,22 +203,25 @@ namespace Sophos.Commands
                 // We failed synchronously. This is most likely due to an exception occuring before
                 // the first await. Let's be consistent about this and make the callback on the listener.
                 // That must be done on a different thread.
+                //
+                // Besides, throwing exceptions from async void methods (which this method is)
+                // does not behave as one would exception. The caller will not be able to catch it!!
                 task = new Task<TResult>(() => throw e);
             }
 
             using (task)
             {
-                if (task.Status == TaskStatus.Created)
-                {
-                    task.Start();
-                }
-
                 TResult result = default(TResult);
                 Exception error = null;
 
                 try
                 {
-                    result = await task;
+                    if (task.Status == TaskStatus.Created)
+                    {
+                        task.Start();
+                    }
+
+                    result = await task.ConfigureAwait(continueOnCapturedContext:false);
                 }
                 catch (Exception exc)
                 {
@@ -359,7 +362,7 @@ namespace Sophos.Commands
         {
             using (Task task = CreateTaskNoResult(runtimeArg, cancellationToken))
             {
-                await task;
+                await task.ConfigureAwait(continueOnCapturedContext:false);
                 return true;
             }
         }
