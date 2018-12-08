@@ -97,18 +97,11 @@ namespace CommandLibTests
                 _completed = 0;
                 _failed = 0;
 
-                try
-                {
-                    dispatcher.Dispatch(new BumAsyncCommand());
-                    Assert.Fail("Did not expect to get here");
-                }
-                catch (NotImplementedException)
-                {
-                }
+                dispatcher.Dispatch(new BumAsyncCommand());
             }
 
             Assert.AreEqual(0, _completed);
-            Assert.AreEqual(0, _failed);
+            Assert.AreEqual(1, _failed);
             Assert.AreEqual(0, _aborted);
         }
 

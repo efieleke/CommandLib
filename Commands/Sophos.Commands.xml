@@ -647,11 +647,12 @@
         <member name="M:Sophos.Commands.Command.AbortImpl">
             <summary>Implementations should override if there's something in particular they can do to more effectively respond to an abort request.</summary>
             <remarks>
-            Note that <see cref="T:Sophos.Commands.AsyncCommand"/>-derived classes are likely to need to override this method. <see cref="T:Sophos.Commands.SyncCommand"/>-derived classes will
+            Note that <see cref="T:Sophos.Commands.AsyncCommand"/>-derived classes are most-likely to need to override this method. <see cref="T:Sophos.Commands.SyncCommand"/>-derived classes will
             typically not need to override this method, instead calling <see cref="M:Sophos.Commands.Command.CheckAbortFlag"/> periodically, and/or passing work off to owned commands,
             which themselves will respond to abort requests.
             <para>
-            Implementations of this method must be asynchronous. Do not wait for the command to fully abort, or a deadlock possibility will arise.
+            Implementations of this method must be asynchronous, and must not throw. Do not wait for the command to fully abort,
+            or a deadlock possibility will arise.
             </para>
             </remarks>
         </member>
@@ -1263,6 +1264,7 @@
             <remarks>
             The <see cref="T:Sophos.Commands.Command"/> is in the last stage of execution when making this callback, so do not re-execute the command from within
             your handler. Also, do not call the executing command's <see cref="M:Sophos.Commands.Command.Wait"/> method from within your handler, as that will cause deadlock.
+            Implementations must not throw.
             </remarks>
         </member>
         <member name="M:Sophos.Commands.ICommandListener.CommandAborted">
@@ -1272,6 +1274,7 @@
             <remarks>
             The <see cref="T:Sophos.Commands.Command"/> is in the last stage of execution when making this callback, so do not re-execute the command from within
             your handler. Also, do not call the executing command's <see cref="M:Sophos.Commands.Command.Wait"/> method from within your handler, as that will cause deadlock.
+            Implementations must not throw.
             </remarks>
         </member>
         <member name="M:Sophos.Commands.ICommandListener.CommandFailed(System.Exception)">
@@ -1282,6 +1285,7 @@
             <remarks>
             The <see cref="T:Sophos.Commands.Command"/> is in the last stage of execution when making this callback, so do not re-execute the command from within
             your handler. Also, do not call the executing command's <see cref="M:Sophos.Commands.Command.Wait"/> method from within your handler, as that will cause deadlock.
+            Implementations must not throw.
             </remarks>
         </member>
         <member name="T:Sophos.Commands.ICommandListener`1">
@@ -1306,6 +1310,7 @@
             <remarks>
             The <see cref="T:Sophos.Commands.Command"/> is in the last stage of execution when making this callback, so do not re-execute the command from within
             your handler. Also, do not call the executing command's <see cref="M:Sophos.Commands.Command.Wait"/> method from within your handler, as that will cause deadlock.
+            Implementations must not throw.
             </remarks>
         </member>
         <member name="M:Sophos.Commands.ICommandListener`1.CommandAborted">
@@ -1315,6 +1320,7 @@
             <remarks>
             The <see cref="T:Sophos.Commands.Command"/> is in the last stage of execution when making this callback, so do not re-execute the command from within
             your handler. Also, do not call the executing command's <see cref="M:Sophos.Commands.Command.Wait"/> method from within your handler, as that will cause deadlock.
+            Implementations must not throw.
             </remarks>
         </member>
         <member name="M:Sophos.Commands.ICommandListener`1.CommandFailed(System.Exception)">
@@ -1325,6 +1331,7 @@
             <remarks>
             The <see cref="T:Sophos.Commands.Command"/> is in the last stage of execution when making this callback, so do not re-execute the command from within
             your handler. Also, do not call the executing command's <see cref="M:Sophos.Commands.Command.Wait"/> method from within your handler, as that will cause deadlock.
+            Implementations must not throw.
             </remarks>
         </member>
         <member name="T:Sophos.Commands.CovariantListener`1">

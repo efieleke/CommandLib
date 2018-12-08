@@ -608,7 +608,16 @@ namespace Sophos.Commands
                     }
                 }
 
-                AsyncExecuteImpl(new ListenerProxy(this, listener), runtimeArg);
+                var listenerProxy = new ListenerProxy(this, listener);
+
+                try
+                {
+                    AsyncExecuteImpl(listenerProxy, runtimeArg);
+                }
+                catch (Exception e)
+                {
+                    listenerProxy.CommandFailed(e);
+                }
             }
             catch (Exception exc)
             {
@@ -793,11 +802,12 @@ namespace Sophos.Commands
 
         /// <summary>Implementations should override if there's something in particular they can do to more effectively respond to an abort request.</summary>
         /// <remarks>
-        /// Note that <see cref="AsyncCommand"/>-derived classes are likely to need to override this method. <see cref="SyncCommand"/>-derived classes will
+        /// Note that <see cref="AsyncCommand"/>-derived classes are most-likely to need to override this method. <see cref="SyncCommand"/>-derived classes will
         /// typically not need to override this method, instead calling <see cref="CheckAbortFlag"/> periodically, and/or passing work off to owned commands,
         /// which themselves will respond to abort requests.
         /// <para>
-        /// Implementations of this method must be asynchronous. Do not wait for the command to fully abort, or a deadlock possibility will arise.
+        /// Implementations of this method must be asynchronous, and must not throw. Do not wait for the command to fully abort,
+        /// or a deadlock possibility will arise.
         /// </para>
         /// </remarks>
         protected virtual void AbortImpl()
@@ -1128,7 +1138,7 @@ namespace Sophos.Commands
             {
                 AttachErrorInfo(exc);
             }
-
+            
             if (Monitors != null)
             {
                 foreach (ICommandMonitor monitor in Monitors)

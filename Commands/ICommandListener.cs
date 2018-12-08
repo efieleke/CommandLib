@@ -26,6 +26,7 @@ namespace Sophos.Commands
         /// <remarks>
         /// The <see cref="Command"/> is in the last stage of execution when making this callback, so do not re-execute the command from within
         /// your handler. Also, do not call the executing command's <see cref="Command.Wait()"/> method from within your handler, as that will cause deadlock.
+        /// Implementations must not throw.
         /// </remarks>
         void CommandSucceeded(object result);
 
@@ -35,6 +36,7 @@ namespace Sophos.Commands
         /// <remarks>
         /// The <see cref="Command"/> is in the last stage of execution when making this callback, so do not re-execute the command from within
         /// your handler. Also, do not call the executing command's <see cref="Command.Wait()"/> method from within your handler, as that will cause deadlock.
+        /// Implementations must not throw.
         /// </remarks>
         void CommandAborted();
 
@@ -45,6 +47,7 @@ namespace Sophos.Commands
         /// <remarks>
         /// The <see cref="Command"/> is in the last stage of execution when making this callback, so do not re-execute the command from within
         /// your handler. Also, do not call the executing command's <see cref="Command.Wait()"/> method from within your handler, as that will cause deadlock.
+        /// Implementations must not throw.
         /// </remarks>
         void CommandFailed(Exception exc);
     }
@@ -70,6 +73,7 @@ namespace Sophos.Commands
         /// <remarks>
         /// The <see cref="Command"/> is in the last stage of execution when making this callback, so do not re-execute the command from within
         /// your handler. Also, do not call the executing command's <see cref="Command.Wait()"/> method from within your handler, as that will cause deadlock.
+        /// Implementations must not throw.
         /// </remarks>
         void CommandSucceeded(TResult result);
 
@@ -79,6 +83,7 @@ namespace Sophos.Commands
         /// <remarks>
         /// The <see cref="Command"/> is in the last stage of execution when making this callback, so do not re-execute the command from within
         /// your handler. Also, do not call the executing command's <see cref="Command.Wait()"/> method from within your handler, as that will cause deadlock.
+        /// Implementations must not throw.
         /// </remarks>
         void CommandAborted();
 
@@ -89,6 +94,7 @@ namespace Sophos.Commands
         /// <remarks>
         /// The <see cref="Command"/> is in the last stage of execution when making this callback, so do not re-execute the command from within
         /// your handler. Also, do not call the executing command's <see cref="Command.Wait()"/> method from within your handler, as that will cause deadlock.
+        /// Implementations must not throw.
         /// </remarks>
         void CommandFailed(Exception exc);
     }

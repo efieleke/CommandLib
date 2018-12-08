@@ -130,22 +130,7 @@ namespace Sophos.Commands
                 else
                 {
                     _runningCommands.Add(command);
-
-                    try
-                    {
-                        command.AsyncExecute(new Listener(this, command));
-                    }
-                    catch (Exception)
-                    {
-                        _runningCommands.RemoveAt(_runningCommands.Count - 1);
-
-                        if (_runningCommands.Count == 0)
-                        {
-                            _nothingToDoEvent.Set();
-                        }
-
-                        throw;
-                    }
+                    command.AsyncExecute(new Listener(this, command));
                 }
             }
         }
@@ -255,17 +240,7 @@ namespace Sophos.Commands
                 {
                     Command nextInLine = _commandBacklog.Dequeue();
                     _runningCommands.Add(nextInLine);
-
-                    try
-                    {
-                        nextInLine.AsyncExecute(new Listener(this, nextInLine));
-                    }
-                    catch (Exception e)
-                    {
-                        System.Threading.Monitor.Exit(_criticalSection);
-                        shouldReleaseLock = false;
-                        OnCommandFinished(nextInLine, null, e);
-                    }
+                    nextInLine.AsyncExecute(new Listener(this, nextInLine));
                 }
             }
             finally
