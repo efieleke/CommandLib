@@ -326,8 +326,7 @@ namespace Sophos.Commands
         /// </param>
         /// <param name="owner">
         /// If you want this Command to pay attention to abort requests of a different command while running the returned Task,
-        /// set this value to that command. Note that if this Command is already assigned an owner, passing a non-null value will
-        /// raise an exception. Also note that the owner assignment is only in effect during the scope of this call. Upon return,
+        /// set this value to that command. Note that the owner assignment is only in effect during the scope of this call. Upon return,
         /// this command will revert to having no owner.
         /// </param>
         /// <returns>
@@ -616,7 +615,7 @@ namespace Sophos.Commands
                 }
                 catch (Exception e)
                 {
-                    listenerProxy.CommandFailed(e);
+                    listenerProxy.CommandFailed(e); // deals properly with abort exceptions
                 }
             }
             catch (Exception exc)
@@ -1132,6 +1131,11 @@ namespace Sophos.Commands
 
         private void InformDone(ICommandListener listener, object result, Exception exc)
         {
+            if (exc is OperationCanceledException exception && exception.CancellationToken.Equals(CancellationToken))
+            {
+                exc = new CommandAbortedException();
+            }
+
             bool aborted = exc is CommandAbortedException;
 
             if (exc != null && !aborted)

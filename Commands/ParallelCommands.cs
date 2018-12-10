@@ -80,8 +80,7 @@ namespace Sophos.Commands
                 // Because we need to abort running commands in case one of them fails,
                 // and we don't want the topmost command to abort as well, we keep these commands 
                 // wrapped in topmost AbortSignaledCommand objects. These top level objects will
-                // still respond to abort requests to this ParallelCommands object via the
-                // 'this' pointer we pass as an argument.
+                // still respond to abort requests to this ParallelCommands object.
                 _commands.Add(CreateAbortSignaledCommand(command));
             }
             else

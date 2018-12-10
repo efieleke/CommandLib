@@ -202,10 +202,10 @@ namespace Sophos.Commands
             {
                 // We failed synchronously. This is most likely due to an exception occuring before
                 // the first await. Let's be consistent about this and make the callback on the listener.
-                // That must be done on a different thread.
+                // The framework guarantees that will be done on a separate thread.
                 //
                 // Besides, throwing exceptions from async void methods (which this method is)
-                // does not behave as one would exception. The caller will not be able to catch it!!
+                // does not behave as one would expect. The caller will not be able to catch it!!
                 task = new Task<TResult>(() => throw e);
             }
 
