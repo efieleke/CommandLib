@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Runtime.ExceptionServices;
 
 namespace Sophos.Commands
 {
@@ -42,7 +43,7 @@ namespace Sophos.Commands
         }
 
         /// <summary>
-        /// Do not call this method from a derived class. It is called by the framework.
+        /// Do not call this method from a derived class. It is called by the framework. 
         /// </summary>
         /// <param name="runtimeArg">Not applicable</param>
         /// <returns>Not applicable</returns>
@@ -54,7 +55,8 @@ namespace Sophos.Commands
 
             if (_lastException != null)
             {
-                throw _lastException;
+                // Maintain the stack trace information.
+                ExceptionDispatchInfo.Capture(_lastException).Throw();
             }
 
             return _result;

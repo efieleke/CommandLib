@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Runtime.ExceptionServices;
 using System.Threading;
 
 namespace Sophos.Commands
@@ -132,7 +133,7 @@ namespace Sophos.Commands
 
                 if (error != null)
                 {
-                    throw error;
+                    ExceptionDispatchInfo.Capture(error).Throw();
                 }
             }
 

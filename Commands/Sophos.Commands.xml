@@ -88,7 +88,7 @@
         </member>
         <member name="M:Sophos.Commands.AsyncCommand.SyncExecuteImpl(System.Object)">
             <summary>
-            Do not call this method from a derived class. It is called by the framework.
+            Do not call this method from a derived class. It is called by the framework. 
             </summary>
             <param name="runtimeArg">Not applicable</param>
             <returns>Not applicable</returns>
@@ -307,7 +307,9 @@
             <summary>
             Returns a task that executes this command. Note that this command must
             not be disposed, because it will be auto-disposed when the task completes. Also, this operation will fail if this
-            command is not a top-level command (in other words, it must not have parents).
+            command is not a top-level command (in other words, it must not have parents). If you wish to run the Task
+            as a child of another Command (and thus make it responsive to abort requests of that parent), pass a
+            non-null owner to <see cref="M:Sophos.Commands.Command.RunAsTask``1(System.Object,Sophos.Commands.Command)"/>
             Also, note that behavior is undefined if this command is executing at the time this method is called.
             </summary>
             <typeparam name="TResult">
@@ -322,7 +324,9 @@
             <summary>
             Returns a task that executes this command. Note that this command must
             not be disposed, because it will be auto-disposed when the task completes. Also, this operation will fail if this
-            command is not a top-level command (in other words, it must not have parents).
+            command is not a top-level command (in other words, it must not have parents). If you wish to run the Task
+            as a child of another Command (and thus make it responsive to abort requests of that parent), pass a
+            non-null owner to <see cref="M:Sophos.Commands.Command.RunAsTask``1(System.Object,Sophos.Commands.Command)"/>
             Also, note that behavior is undefined if this command is executing at the time this method is called.
             </summary>
             <typeparam name="TResult">
@@ -341,7 +345,9 @@
             <summary>
             Returns a task that executes this command. Note that this command must
             not be disposed, because it will be auto-disposed when the task completes. Also, this operation will fail if this
-            command is not a top-level command (in other words, it must not have parents).
+            command is not a top-level command (in other words, it must not have parents). If you wish to run the Task
+            as a child of another Command (and thus make it responsive to abort requests of that parent), pass a
+            non-null owner.
             Also, note that behavior is undefined if this command is executing at the time this method is called.
             </summary>
             <typeparam name="TResult">
@@ -1199,7 +1205,8 @@
             is provided as an implementation.
             </param>
             <param name="httpClient">
-            The HttpClient instance to use for the operation.
+            The HttpClient instance to use for the operation. This object does not assume ownership of the HttpClient.
+            However, if null is passed as an argument, this object will create its own (and dispose of it).
             </param>
         </member>
         <member name="M:Sophos.Commands.HttpRequestCommand.#ctor(Sophos.Commands.HttpRequestCommand.IRequestGenerator,Sophos.Commands.HttpRequestCommand.IResponseChecker,System.Net.Http.HttpClient,Sophos.Commands.Command)">
@@ -1212,7 +1219,8 @@
             is provided as an implementation.
             </param>
             <param name="httpClient">
-            The HttpClient instance to use for the operation.
+            The HttpClient instance to use for the operation. This object does not assume ownership of the HttpClient.
+            However, if null is passed as an argument, this object will create its own (and dispose of it).
             </param>
             <param name="owner">
             Specify null to indicate a top-level command. Otherwise, this command will be owned by 'owner'. Owned commands respond to

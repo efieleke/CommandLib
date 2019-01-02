@@ -164,9 +164,8 @@ namespace Sophos.Commands
         /// is provided as an implementation.
         /// </param>
         public HttpRequestCommand(IRequestGenerator requestGenerator, IResponseChecker responseChecker)
-            : this(requestGenerator, responseChecker, new HttpClient())
+            : this(requestGenerator, responseChecker, null)
         {
-            _disposeHttpClient = true;
         }
 
         /// <summary>
@@ -178,7 +177,8 @@ namespace Sophos.Commands
         /// is provided as an implementation.
         /// </param>
         /// <param name="httpClient">
-        /// The HttpClient instance to use for the operation.
+        /// The HttpClient instance to use for the operation. This object does not assume ownership of the HttpClient.
+        /// However, if null is passed as an argument, this object will create its own (and dispose of it).
         /// </param>
         public HttpRequestCommand(IRequestGenerator requestGenerator, IResponseChecker responseChecker, HttpClient httpClient)
             : this(requestGenerator, responseChecker, httpClient, null)
@@ -194,7 +194,8 @@ namespace Sophos.Commands
         /// is provided as an implementation.
         /// </param>
         /// <param name="httpClient">
-        /// The HttpClient instance to use for the operation.
+        /// The HttpClient instance to use for the operation. This object does not assume ownership of the HttpClient.
+        /// However, if null is passed as an argument, this object will create its own (and dispose of it).
         /// </param>
         /// <param name="owner">
         /// Specify null to indicate a top-level command. Otherwise, this command will be owned by 'owner'. Owned commands respond to
@@ -205,7 +206,9 @@ namespace Sophos.Commands
         {
             _requestGenerator = requestGenerator;
             _responseChecker = responseChecker;
-            Client = httpClient;
+            Client = httpClient?? new HttpClient();
+            _disposeHttpClient = httpClient == null;
+
         }
 
         /// <summary>

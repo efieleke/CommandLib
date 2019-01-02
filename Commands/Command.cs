@@ -273,7 +273,9 @@ namespace Sophos.Commands
         /// <summary>
         /// Returns a task that executes this command. Note that this command must
         /// not be disposed, because it will be auto-disposed when the task completes. Also, this operation will fail if this
-        /// command is not a top-level command (in other words, it must not have parents).
+        /// command is not a top-level command (in other words, it must not have parents). If you wish to run the Task
+        /// as a child of another Command (and thus make it responsive to abort requests of that parent), pass a
+        /// non-null owner to <see cref="Command.RunAsTask{TResult}(object, Command)"/>
         /// Also, note that behavior is undefined if this command is executing at the time this method is called.
         /// </summary>
         /// <typeparam name="TResult">
@@ -291,7 +293,9 @@ namespace Sophos.Commands
         /// <summary>
         /// Returns a task that executes this command. Note that this command must
         /// not be disposed, because it will be auto-disposed when the task completes. Also, this operation will fail if this
-        /// command is not a top-level command (in other words, it must not have parents).
+        /// command is not a top-level command (in other words, it must not have parents). If you wish to run the Task
+        /// as a child of another Command (and thus make it responsive to abort requests of that parent), pass a
+        /// non-null owner to <see cref="Command.RunAsTask{TResult}(object, Command)"/>
         /// Also, note that behavior is undefined if this command is executing at the time this method is called.
         /// </summary>
         /// <typeparam name="TResult">
@@ -313,7 +317,9 @@ namespace Sophos.Commands
         /// <summary>
         /// Returns a task that executes this command. Note that this command must
         /// not be disposed, because it will be auto-disposed when the task completes. Also, this operation will fail if this
-        /// command is not a top-level command (in other words, it must not have parents).
+        /// command is not a top-level command (in other words, it must not have parents). If you wish to run the Task
+        /// as a child of another Command (and thus make it responsive to abort requests of that parent), pass a
+        /// non-null owner.
         /// Also, note that behavior is undefined if this command is executing at the time this method is called.
         /// </summary>
         /// <typeparam name="TResult">
