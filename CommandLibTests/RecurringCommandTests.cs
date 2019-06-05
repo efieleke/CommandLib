@@ -16,13 +16,13 @@ namespace CommandLibTests
                 _repetitions = repetitions;
             }
 
-            public bool GetFirstExecutionTime(out DateTime time)
+            public bool GetFirstExecutionTime(RecurringCommand _, out DateTime time)
             {
                 time = DateTime.Now + _intervalBeforeFirst;
                 return --_repetitions >= 0;
             }
 
-            public bool GetNextExecutionTime(ref DateTime time)
+            public bool GetNextExecutionTime(RecurringCommand _, ref DateTime time)
             {
                 if (--_repetitions >= 0)
                 {
@@ -63,7 +63,7 @@ namespace CommandLibTests
 
             AbortTest.Run(new RecurringCommand(
                 new AddCommand(0),
-                (out DateTime d) => recurCallback.GetFirstExecutionTime(out d), (ref DateTime d) => recurCallback.GetNextExecutionTime(ref d)),
+                (RecurringCommand cmd, out DateTime d) => recurCallback.GetFirstExecutionTime(cmd, out d), (RecurringCommand cmd, ref DateTime d) => recurCallback.GetNextExecutionTime(cmd, ref d)),
                 2,
                 20);
         }
@@ -87,7 +87,7 @@ namespace CommandLibTests
 
             HappyPathTest.Run(new RecurringCommand(
                 new AddCommand(0),
-                (out DateTime d) => recurCallback.GetFirstExecutionTime(out d), (ref DateTime d) => recurCallback.GetNextExecutionTime(ref d)),
+                (RecurringCommand cmd, out DateTime d) => recurCallback.GetFirstExecutionTime(cmd, out d), (RecurringCommand cmd, ref DateTime d) => recurCallback.GetNextExecutionTime(cmd, ref d)),
                 2,
                 null);
         }
@@ -104,7 +104,7 @@ namespace CommandLibTests
 
             FailTest.Run<FailingCommand.FailException>(new RecurringCommand(
                 new FailingCommand(),
-                (out DateTime d) => recurCallback.GetFirstExecutionTime(out d), (ref DateTime d) => recurCallback.GetNextExecutionTime(ref d)),
+                (RecurringCommand cmd, out DateTime d) => recurCallback.GetFirstExecutionTime(cmd, out d), (RecurringCommand cmd, ref DateTime d) => recurCallback.GetNextExecutionTime(cmd, ref d)),
                 2);
         }
 

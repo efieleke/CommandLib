@@ -1733,10 +1733,11 @@
             Defines at what times the underlying command executes
             </summary>
         </member>
-        <member name="M:Sophos.Commands.RecurringCommand.IExecutionTimeCallback.GetFirstExecutionTime(System.DateTime@)">
+        <member name="M:Sophos.Commands.RecurringCommand.IExecutionTimeCallback.GetFirstExecutionTime(Sophos.Commands.RecurringCommand,System.DateTime@)">
             <summary>
             Called when a <see cref="T:Sophos.Commands.RecurringCommand"/> needs to know the first time to execute its underlying command to run.
             </summary>
+            <param name="command">The <see cref="T:Sophos.Commands.RecurringCommand"/> in question</param>
             <param name="time">
             Implementations should set this to the first time to execute. If a time in the past is specified, the command to run
             will execute immediately. However, if this method returns false, the value set here will be ignored.
@@ -1746,10 +1747,11 @@
             RecurringCommand to finish execution.
             </returns>
         </member>
-        <member name="M:Sophos.Commands.RecurringCommand.IExecutionTimeCallback.GetNextExecutionTime(System.DateTime@)">
+        <member name="M:Sophos.Commands.RecurringCommand.IExecutionTimeCallback.GetNextExecutionTime(Sophos.Commands.RecurringCommand,System.DateTime@)">
             <summary>
             Called when a <see cref="T:Sophos.Commands.RecurringCommand"/> needs to know the next time to execute its underlying command to run.
             </summary>
+            <param name="command">The <see cref="T:Sophos.Commands.RecurringCommand"/> in question</param>
             <param name="time">
             This will be initialized to the last time the command to run was set to begin execution. Implementations
             should set this to the next time to execute. If a time in the past is specified, the command to run will execute
@@ -1764,6 +1766,7 @@
             <summary>
             Called when a <see cref="T:Sophos.Commands.RecurringCommand"/> needs to know the first time to execute its underlying command to run.
             </summary>
+            <param name="command">The <see cref="T:Sophos.Commands.RecurringCommand"/> in question</param>
             <param name="time">
             Implementations should set this to the first time to execute. If a time in the past is specified, the command to run
             will execute immediately. However, if this method returns false, the value set here will be ignored.
@@ -1777,6 +1780,7 @@
             <summary>
             Called when a <see cref="T:Sophos.Commands.RecurringCommand"/> needs to know the next time to execute its underlying command to run.
             </summary>
+            <param name="command">The <see cref="T:Sophos.Commands.RecurringCommand"/> in question</param>
             <param name="time">
             This will be initialized to the last time the command to run was set to begin execution. Implementations
             should set this to the next time to execute. If a time in the past is specified, the command to run will execute
@@ -2141,7 +2145,9 @@
             This Command encapsulates a Task. The static Create() methods might suffice for simple Task wrappers.
             Concrete classes must implement the abstract method that creates the Task. If your implementation is
             naturally asynchronous but does not make use of Tasks (i.e. the Task class), inherit directly from
-            AsyncCommand instead.
+            AsyncCommand instead. If your command is actually synchronous in nature, in that its execution finishes
+            omn the same thread it started on, inherit directly from SyncCommand instead (otherwise asynchronous
+            execution will block, because it is expected that TaskCommand implementations are asynchronous).
             </summary>
             <remarks>
             <para>
@@ -2291,7 +2297,9 @@
             <summary>
             Concrete classes must implement this by returning a Task. If the delegate method takes significant
             time, it is advisable to have it be responsive to abort requests by checking
-            <see cref="P:Sophos.Commands.Command.AbortRequested"/> or calling <see cref="M:Sophos.Commands.Command.CheckAbortFlag"/>.
+            <see cref="P:Sophos.Commands.Command.AbortRequested"/> or calling <see cref="M:Sophos.Commands.Command.CheckAbortFlag"/>. If your
+            implementation does not finish on a thread that is different from the one it started on, you should
+            not be inheriting from TaskCommand. Rather, inherit from SyncCommand.
             </summary>
             <param name="runtimeArg">
             Concrete implementations decide what to do with this. This value is passed on from the runtimeArg
@@ -2362,7 +2370,9 @@
             <summary>
             Concrete classes must implement this by returning a Task. If the delegate method takes significant
             time, it is advisable to have it be responsive to abort requests by checking
-            <see cref="P:Sophos.Commands.Command.AbortRequested"/> or calling <see cref="M:Sophos.Commands.Command.CheckAbortFlag"/>.
+            <see cref="P:Sophos.Commands.Command.AbortRequested"/> or calling <see cref="M:Sophos.Commands.Command.CheckAbortFlag"/>. If your
+            implementation does not finish on a thread that is different from the one it started on, you should
+            not be inheriting from TaskCommand. Rather, inherit from SyncCommand.
             </summary>
             <param name="runtimeArg">
             Concrete implementations decide what to do with this. This value is passed on from the runtimeArg

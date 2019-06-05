@@ -25,6 +25,7 @@ namespace Sophos.Commands
             /// <summary>
             /// Called when a <see cref="RecurringCommand"/> needs to know the first time to execute its underlying command to run.
             /// </summary>
+            /// <param name="command">The <see cref="RecurringCommand"/> in question</param>
             /// <param name="time">
             /// Implementations should set this to the first time to execute. If a time in the past is specified, the command to run
             /// will execute immediately. However, if this method returns false, the value set here will be ignored.
@@ -33,11 +34,12 @@ namespace Sophos.Commands
             /// Implementations should return true to indicate that the command to run should be executed at the provided time. Returning false causes the
             /// RecurringCommand to finish execution.
             /// </returns>
-            bool GetFirstExecutionTime(out DateTime time);
+            bool GetFirstExecutionTime(RecurringCommand command, out DateTime time);
 
             /// <summary>
             /// Called when a <see cref="RecurringCommand"/> needs to know the next time to execute its underlying command to run.
             /// </summary>
+            /// <param name="command">The <see cref="RecurringCommand"/> in question</param>
             /// <param name="time">
             /// This will be initialized to the last time the command to run was set to begin execution. Implementations
             /// should set this to the next time to execute. If a time in the past is specified, the command to run will execute
@@ -47,12 +49,13 @@ namespace Sophos.Commands
             /// Implementations should return true to indicate that the command to run should be executed at the provided time.
             /// Returning false causes the RecurringCommand to finish execution.
             /// </returns>
-            bool GetNextExecutionTime(ref DateTime time);
+            bool GetNextExecutionTime(RecurringCommand command, ref DateTime time);
         }
 
         /// <summary>
         /// Called when a <see cref="RecurringCommand"/> needs to know the first time to execute its underlying command to run.
         /// </summary>
+        /// <param name="command">The <see cref="RecurringCommand"/> in question</param>
         /// <param name="time">
         /// Implementations should set this to the first time to execute. If a time in the past is specified, the command to run
         /// will execute immediately. However, if this method returns false, the value set here will be ignored.
@@ -61,11 +64,12 @@ namespace Sophos.Commands
         /// Implementations should return true to indicate that the command to run should be executed at the provided time. Returning false causes the
         /// RecurringCommand to finish execution.
         /// </returns>
-        public delegate bool GetFirstExecutionTime(out DateTime time);
+        public delegate bool GetFirstExecutionTime(RecurringCommand command, out DateTime time);
 
         /// <summary>
         /// Called when a <see cref="RecurringCommand"/> needs to know the next time to execute its underlying command to run.
         /// </summary>
+        /// <param name="command">The <see cref="RecurringCommand"/> in question</param>
         /// <param name="time">
         /// This will be initialized to the last time the command to run was set to begin execution. Implementations
         /// should set this to the next time to execute. If a time in the past is specified, the command to run will execute
@@ -75,7 +79,7 @@ namespace Sophos.Commands
         /// Implementations should return true to indicate that the command to run should be executed at the provided time.
         /// Returning false causes the RecurringCommand to finish execution.
         /// </returns>
-        public delegate bool GetNextExecutionTime(ref DateTime time);
+        public delegate bool GetNextExecutionTime(RecurringCommand command, ref DateTime time);
 
         /// <summary>
         /// Constructs a RecurringCommand object as a top-level <see cref="Command"/>
@@ -147,8 +151,10 @@ namespace Sophos.Commands
         /// abort requests made of their owner. Also, owned commands are disposed of when the owner is disposed.
         /// </param>
         public RecurringCommand(Command command, GetFirstExecutionTime getFirstExecutionTime, GetNextExecutionTime getNextExecutionTime, Command owner)
-            : this(command, new ExecutionTimeCallbackFromDelegates(getFirstExecutionTime, getNextExecutionTime), owner)
+            : base(owner)
         {
+            _callback = new ExecutionTimeCallbackFromDelegates(this, getFirstExecutionTime, getNextExecutionTime);
+            _scheduledCmd = new ScheduledCommand(command, DateTime.Now, true, this);
         }
 
         /// <summary>If currently waiting until the time to next execute the command to run, skip the wait and execute the command right away.</summary>
@@ -181,7 +187,7 @@ namespace Sophos.Commands
         /// <returns>Not applicable</returns>
         protected sealed override object SyncExecuteImpl(object runtimeArg)
         {
-	        bool keepGoing = _callback.GetFirstExecutionTime(out DateTime executionTime);
+	        bool keepGoing = _callback.GetFirstExecutionTime(this, out DateTime executionTime);
 
             while (keepGoing)
             {
@@ -189,7 +195,7 @@ namespace Sophos.Commands
                 CheckAbortFlag();
                 _scheduledCmd.SyncExecute(runtimeArg);
                 executionTime = _scheduledCmd.TimeOfExecution; // in case it was changed
-                keepGoing = _callback.GetNextExecutionTime(ref executionTime);
+                keepGoing = _callback.GetNextExecutionTime(this, ref executionTime);
             }
 
             return null;
@@ -201,22 +207,24 @@ namespace Sophos.Commands
         private class ExecutionTimeCallbackFromDelegates : IExecutionTimeCallback
         {
             internal ExecutionTimeCallbackFromDelegates(
-                GetFirstExecutionTime getFirstExecutionTime, GetNextExecutionTime getNextExecutionTime)
+                RecurringCommand command, GetFirstExecutionTime getFirstExecutionTime, GetNextExecutionTime getNextExecutionTime)
             {
+                _command = command;
                 _getFirstExecutionTime = getFirstExecutionTime ?? throw new ArgumentNullException(nameof(getFirstExecutionTime));
                 _getNextExecutionTime = getNextExecutionTime ?? throw new ArgumentNullException(nameof(getNextExecutionTime));
             }
 
-            public bool GetFirstExecutionTime(out DateTime time)
+            public bool GetFirstExecutionTime(RecurringCommand command, out DateTime time)
             {
-                return _getFirstExecutionTime(out time);
+                return _getFirstExecutionTime(_command, out time);
             }
 
-            public bool GetNextExecutionTime(ref DateTime time)
+            public bool GetNextExecutionTime(RecurringCommand command, ref DateTime time)
             {
-                return _getNextExecutionTime(ref time);
+                return _getNextExecutionTime(_command, ref time);
             }
 
+            private readonly RecurringCommand _command;
             private readonly GetFirstExecutionTime _getFirstExecutionTime;
             private readonly GetNextExecutionTime _getNextExecutionTime;
         }

@@ -54,7 +54,7 @@ namespace CommandLibTests
             HappyPathTest.Run(
                 new HttpRequestCommand(null,new HttpRequestCommand.EnsureSuccessStatusCodeResponseChecker()),
                 new TestRequestGenerator(System.Net.Http.HttpMethod.Get, TestServer + "/get"),
-                "http://httpbin.org/get",
+                "://httpbin.org/get",
                 CompareResults);
 
             HappyPathTest.Run(
@@ -62,7 +62,7 @@ namespace CommandLibTests
                     new TestRequestGenerator(System.Net.Http.HttpMethod.Get, TestServer + "/get"),
                     new HttpRequestCommand.EnsureSuccessStatusCodeResponseChecker()),
                 null,
-                "http://httpbin.org/get",
+                "://httpbin.org/get",
                 CompareResults);
         }
 

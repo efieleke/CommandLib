@@ -8,7 +8,9 @@ namespace Sophos.Commands
     /// This Command encapsulates a Task. The static Create() methods might suffice for simple Task wrappers.
     /// Concrete classes must implement the abstract method that creates the Task. If your implementation is
     /// naturally asynchronous but does not make use of Tasks (i.e. the Task class), inherit directly from
-    /// AsyncCommand instead.
+    /// AsyncCommand instead. If your command is actually synchronous in nature, in that its execution finishes
+    /// omn the same thread it started on, inherit directly from SyncCommand instead (otherwise asynchronous
+    /// execution will block, because it is expected that TaskCommand implementations are asynchronous).
     /// </summary>
     /// <remarks>
     /// <para>
@@ -246,7 +248,9 @@ namespace Sophos.Commands
         /// <summary>
         /// Concrete classes must implement this by returning a Task. If the delegate method takes significant
         /// time, it is advisable to have it be responsive to abort requests by checking
-        /// <see cref="Command.AbortRequested"/> or calling <see cref="Command.CheckAbortFlag"/>.
+        /// <see cref="Command.AbortRequested"/> or calling <see cref="Command.CheckAbortFlag"/>. If your
+        /// implementation does not finish on a thread that is different from the one it started on, you should
+        /// not be inheriting from TaskCommand. Rather, inherit from SyncCommand.
         /// </summary>
         /// <param name="runtimeArg">
         /// Concrete implementations decide what to do with this. This value is passed on from the runtimeArg
@@ -341,7 +345,9 @@ namespace Sophos.Commands
         /// <summary>
         /// Concrete classes must implement this by returning a Task. If the delegate method takes significant
         /// time, it is advisable to have it be responsive to abort requests by checking
-        /// <see cref="Command.AbortRequested"/> or calling <see cref="Command.CheckAbortFlag"/>.
+        /// <see cref="Command.AbortRequested"/> or calling <see cref="Command.CheckAbortFlag"/>. If your
+        /// implementation does not finish on a thread that is different from the one it started on, you should
+        /// not be inheriting from TaskCommand. Rather, inherit from SyncCommand.
         /// </summary>
         /// <param name="runtimeArg">
         /// Concrete implementations decide what to do with this. This value is passed on from the runtimeArg

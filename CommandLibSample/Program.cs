@@ -10,11 +10,17 @@ namespace CommandLibSample
 	{
 		private static readonly PrepareDinnerCmd MakeDinnerCmd = new PrepareDinnerCmd();
 
-		private static void Main()
+	    private static void Dispatcher_CommandFinishedEvent(object sender, CommandDispatcher.CommandFinishedEventArgs e)
+	    {
+	        DelayCommand delayCmd = (DelayCommand) e.Cmd;
+            Console.Out.WriteLine($"Finished command {delayCmd.Id}, duration {delayCmd.Duration}");
+	    }
+
+        private static void Main()
 		{
-			// Trap Ctrl-C in to provide an example of aborting a command (see implementation
-			// of ConsoleCtrlCheck below)
-			SetConsoleCtrlHandler(ConsoleCtrlCheck, true);
+		    // Trap Ctrl-C in to provide an example of aborting a command (see implementation
+            // of ConsoleCtrlCheck below)
+            SetConsoleCtrlHandler(ConsoleCtrlCheck, true);
 
 			// Output all the command activity to a file in the temp directory. This is a simple text file,
 			// and it can be viewed using CommandLogViewer.
