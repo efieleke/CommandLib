@@ -599,16 +599,7 @@
         <member name="P:Sophos.Commands.Command.AbortEvent">
             <summary>
             Signaled when an abort request has been made. The state of this handle must not be altered
-            by anything but the framework. This is the underlying wait handle owned by
-            <see cref="P:Sophos.Commands.Command.CancellationToken"/>
-            </summary>
-        </member>
-        <member name="P:Sophos.Commands.Command.CancellationToken">
-            <summary>
-            Returns the CancellationToken for this command. The state of this token must not be altered
-            by anything but the framework. The proper way to cancel a command is to call <see cref="M:Sophos.Commands.Command.Abort"/>,
-            and the preferred way to check to see whether a command has an outstanding abort request is via
-            <see cref="P:Sophos.Commands.Command.AbortRequested"/>.
+            by anything but the framework.
             </summary>
         </member>
         <member name="P:Sophos.Commands.Command.AbortRequested">
@@ -2292,6 +2283,11 @@
             </summary>
             <param name="listener">Not applicable</param>
             <param name="runtimeArg">This is passed on to the underlying Task creation method.</param>
+        </member>
+        <member name="M:Sophos.Commands.TaskCommand`2.AbortImpl">
+            <summary>
+            
+            </summary>
         </member>
         <member name="M:Sophos.Commands.TaskCommand`2.CreateTask(`0,System.Threading.CancellationToken)">
             <summary>

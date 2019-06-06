@@ -194,55 +194,73 @@ namespace Sophos.Commands
         /// <param name="runtimeArg">This is passed on to the underlying Task creation method.</param>
         protected sealed override async void AsyncExecuteImpl(ICommandListener listener, object runtimeArg)
         {
-            Task<TResult> task;
+            _cancellationTokenSource = new CancellationTokenSource();
 
             try
             {
-                task = CreateTask(runtimeArg == null ? default(TArg) : (TArg)runtimeArg, CancellationToken);
-            }
-            catch (Exception e)
-            {
-                // We failed synchronously. This is most likely due to an exception occuring before
-                // the first await. Let's be consistent about this and make the callback on the listener.
-                // The framework guarantees that will be done on a separate thread.
-                //
-                // Besides, throwing exceptions from async void methods (which this method is)
-                // does not behave as one would expect. The caller will not be able to catch it!!
-                task = new Task<TResult>(() => throw e);
-            }
-
-            using (task)
-            {
-                TResult result = default(TResult);
-                Exception error = null;
+                Task<TResult> task;
 
                 try
                 {
-                    if (task.Status == TaskStatus.Created)
+                    task = CreateTask(runtimeArg == null ? default(TArg) : (TArg)runtimeArg, _cancellationTokenSource.Token);
+                }
+                catch (Exception e)
+                {
+                    // We failed synchronously. This is most likely due to an exception occuring before
+                    // the first await. Let's be consistent about this and make the callback on the listener.
+                    // The framework guarantees that will be done on a separate thread.
+                    //
+                    // Besides, throwing exceptions from async void methods (which this method is)
+                    // does not behave as one would expect. The caller will not be able to catch it!!
+                    task = new Task<TResult>(() => throw e);
+                }
+
+                using (task)
+                {
+                    TResult result = default(TResult);
+                    Exception error = null;
+
+                    try
                     {
-                        task.Start();
+                        if (task.Status == TaskStatus.Created)
+                        {
+                            task.Start();
+                        }
+
+                        result = await task.ConfigureAwait(continueOnCapturedContext: false);
+                    }
+                    catch (Exception exc)
+                    {
+                        error = exc is OperationCanceledException ? new CommandAbortedException() : exc;
                     }
 
-                    result = await task.ConfigureAwait(continueOnCapturedContext:false);
-                }
-                catch (Exception exc)
-                {
-                    error = exc is OperationCanceledException ? new CommandAbortedException() : exc;
-                }
-
-                switch (error)
-                {
-                    case null:
-                        listener.CommandSucceeded(result);
-                        break;
-                    case CommandAbortedException _:
-                        listener.CommandAborted();
-                        break;
-                    default:
-                        listener.CommandFailed(error);
-                        break;
+                    switch (error)
+                    {
+                        case null:
+                            listener.CommandSucceeded(result);
+                            break;
+                        case CommandAbortedException _:
+                            listener.CommandAborted();
+                            break;
+                        default:
+                            listener.CommandFailed(error);
+                            break;
+                    }
                 }
             }
+            finally
+            {
+                _cancellationTokenSource.Dispose();
+                _cancellationTokenSource = null;
+            }
+        }
+
+        /// <summary>
+        /// 
+        /// </summary>
+        protected override void AbortImpl()
+        {
+            _cancellationTokenSource?.Cancel();
         }
 
         /// <summary>
@@ -280,6 +298,8 @@ namespace Sophos.Commands
 
             private readonly Func<CancellationToken, Task<TResult>> _func;
         }
+
+        private volatile CancellationTokenSource _cancellationTokenSource;
     }
 
     /// <summary>

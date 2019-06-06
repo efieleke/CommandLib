@@ -653,7 +653,7 @@ namespace Sophos.Commands
                     throw new InvalidOperationException("Abort can only be called on top-level commands");
                 }
 
-                _cancellationTokenSource.Cancel();
+                _cancelEvent.Set();
                 AbortImplAllDescendents(this);
                 AbortImpl();
             }
@@ -733,30 +733,14 @@ namespace Sophos.Commands
 
         /// <summary>
         /// Signaled when an abort request has been made. The state of this handle must not be altered
-        /// by anything but the framework. This is the underlying wait handle owned by
-        /// <see cref="CancellationToken"/>
+        /// by anything but the framework.
         /// </summary>
         public WaitHandle AbortEvent
         {
             get
             {
                 CheckDisposed();
-                return _cancellationTokenSource.Token.WaitHandle;
-            }
-        }
-
-        /// <summary>
-        /// Returns the CancellationToken for this command. The state of this token must not be altered
-        /// by anything but the framework. The proper way to cancel a command is to call <see cref="Abort"/>,
-        /// and the preferred way to check to see whether a command has an outstanding abort request is via
-        /// <see cref="AbortRequested"/>.
-        /// </summary>
-        public CancellationToken CancellationToken
-        {
-            get
-            {
-                CheckDisposed();
-                return _cancellationTokenSource.Token;
+                return _cancelEvent;
             }
         }
 
@@ -827,15 +811,7 @@ namespace Sophos.Commands
         /// </param>
         protected Command(Command owner)
         {
-            if (owner == null)
-            {
-                _cancellationTokenSource = new CancellationTokenSource();
-            }
-            else
-            {
-                owner.TakeOwnership(this);
-            }
-
+            owner?.TakeOwnership(this);
             Id = Interlocked.Increment(ref _nextId);
         }
 
@@ -864,7 +840,7 @@ namespace Sophos.Commands
                 // synchronization easier around aborts.
 
                 // Get rid of the extraneous abort event if one has been created.
-                orphan._cancellationTokenSource?.Dispose();
+                orphan._cancelEvent?.Dispose();
 
                 // Make the orphan and its children share this same abort event.
                 SetAbortEvent(orphan);
@@ -893,7 +869,7 @@ namespace Sophos.Commands
                 }
 
                 command._owner = null;
-                command._cancellationTokenSource = new CancellationTokenSource();
+                command._cancelEvent = new ManualResetEvent(false);
 
                 foreach (Command child in command._children)
                 {
@@ -908,7 +884,7 @@ namespace Sophos.Commands
         /// </summary>
         protected void CheckAbortFlag()
         {
-            if (_cancellationTokenSource.IsCancellationRequested)
+            if (_cancelEvent.WaitOne(0))
             {
                 throw new CommandAbortedException();
             }
@@ -941,11 +917,11 @@ namespace Sophos.Commands
                     {
                         // Avoid the above exception, and avoid doubly disposing abortEvent (because only the parent has the "real" copy)
                         child._owner = null;
-                        child._cancellationTokenSource = null;
+                        child._cancelEvent = null;
                         child.Dispose();
                     }
 
-                    _cancellationTokenSource?.Dispose();
+                    _cancelEvent?.Dispose();
                     _doneEvent.Dispose();
                 }
 
@@ -1000,7 +976,7 @@ namespace Sophos.Commands
 
         private void SetAbortEvent(Command target)
         {
-            target._cancellationTokenSource = _cancellationTokenSource;
+            target._cancelEvent = _cancelEvent;
 
             foreach (Command child in target._children)
             {
@@ -1076,15 +1052,7 @@ namespace Sophos.Commands
             // Reset the abort event if this is a top-level command.
             if (_owner == null)
             {
-                lock (_childLock)
-                {
-                    _cancellationTokenSource = new CancellationTokenSource();
-
-                    foreach (Command child in _children)
-                    {
-                        SetAbortEvent(child);
-                    }
-                }
+                _cancelEvent.Reset();
             }
 
             Interlocked.Increment(ref _executing);
@@ -1137,7 +1105,7 @@ namespace Sophos.Commands
 
         private void InformDone(ICommandListener listener, object result, Exception exc)
         {
-            if (exc is OperationCanceledException exception && exception.CancellationToken.Equals(CancellationToken))
+            if (exc is OperationCanceledException)
             {
                 exc = new CommandAbortedException();
             }
@@ -1212,7 +1180,7 @@ namespace Sophos.Commands
         private readonly HashSet<Command> _children = new HashSet<Command>();
         private volatile int _executing;
         private readonly ManualResetEvent _doneEvent = new ManualResetEvent(true);
-        private volatile CancellationTokenSource _cancellationTokenSource;
+        private volatile ManualResetEvent _cancelEvent = new ManualResetEvent(false);
         private readonly object _childLock = new object();
 
         private static volatile int _nextId;
