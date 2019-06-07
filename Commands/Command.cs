@@ -26,9 +26,8 @@ namespace Sophos.Commands
     /// time, and <see cref="RecurringCommand"/> runs at times that are provided via a callback.
     /// </para>
     /// <para>
-    /// <see cref="RetryableCommand"/> provides the option to keep retrying a failed command until the caller decides enough is enough,
-    /// and <see cref="TimeLimitedCommand"/> fails with a timeout exception if a given duration elapses before the command finishes
-    /// execution.
+    /// <see cref="RetryableCommand"/> provides the option to conditionally keep retrying a failed command, and <see cref="TimeLimitedCommand"/>
+    /// fails with a timeout exception if a given duration elapses before the command finishes execution.
     /// </para>
     /// <para>
     /// <see cref="CommandDispatcher"/> manages asynchronous execution of dynamically generated commands.
@@ -51,10 +50,6 @@ namespace Sophos.Commands
     /// </para>
     /// <para>
     /// - Make your implementation responsive to abort requests if it could take more than a trivial amount of time. To do this, make occasional calls to Command.CheckAbortFlag() or Command.AbortRequested.
-    /// </para>
-    /// <para>
-    /// At a minimum, documentation for <see cref="Command"/>, <see cref="AsyncCommand"/> and <see cref="SyncCommand"/> and <see cref="TaskCommand{TArg, TResult}"/> should be read
-    /// before developing a <see cref="Command"/>-derived class.
     /// </para>
     /// </summary>
     [System.Runtime.CompilerServices.CompilerGeneratedAttribute]
@@ -151,7 +146,7 @@ namespace Sophos.Commands
     /// <para>
     /// Generally speaking, when authoring Commands, it's best to make them as granular as possible. That makes it much easier
     /// to reuse them while composing command structures. Also, ensure that your commands are responsive to abort requests if
-    /// they take a noticeable amount of time to complete.
+    /// they take a noticeable amount of time to complete (whether or not they are synchronous in nature).
     /// </para>
     /// </remarks>
     public abstract class Command : IDisposable, ICommandInfo
@@ -1105,11 +1100,6 @@ namespace Sophos.Commands
 
         private void InformDone(ICommandListener listener, object result, Exception exc)
         {
-            if (exc is OperationCanceledException)
-            {
-                exc = new CommandAbortedException();
-            }
-
             bool aborted = exc is CommandAbortedException;
 
             if (exc != null && !aborted)

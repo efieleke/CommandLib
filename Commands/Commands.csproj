@@ -6,7 +6,7 @@
     <OutputType>Library</OutputType>
     <StartupObject />
     <PackageId>Sophos.Commands</PackageId>
-    <Version>2.0.0</Version>
+    <Version>2.1.0</Version>
     <Authors>Eric Fieleke</Authors>
     <Title>Commands Library, for coordination of synchronous and asynchronous actions</Title>
     <AssemblyName>Sophos.Commands</AssemblyName>
@@ -17,7 +17,7 @@ ParallelCommands, itself a Command, executes a collection of commands concurrent
 
 PeriodicCommand repeats its action at a given interval, ScheduledCommand runs once at a specific time, and RecurringCommand runs at times that are provided via a callback.
 
-RetryableCommand offers the option to keep retrying a failed command until the caller has had enough, and TimeLimitedCommand fails with a timeout exception if a given duration elapses before the command finishes execution.
+RetryableCommand offers the option to conditionally keep retrying a failed command, and TimeLimitedCommand fails with a timeout exception if a given duration elapses before the command finishes execution.
 
 All of the above Command classes are simply containers for other Command objects that presumably do something of interest. They can be combined in ways that offer a lot of customization. For example, to make an HttpRequest at a given time, with a timeout and a configurable number of retries, you could create a ScheduledCommand containing a RetryableCommand containing a TimeLimitedCommand containing an HttpRequestCommand.
 
@@ -26,6 +26,10 @@ TaskCommand, DelegateCommand and Command.AsTask() offer easy integration with ta
 CommandDispatcher manages asynchronous execution of dynamically generated commands.
 
 The Command class allows registration of ICommandMonitor objects. CommandTracer will write diagnostic output to the debug stream, and CommandLogger will write diagnostic output to file. Using the provided CommandLogViewer app (source available in GitHub), it is possible to see the status of all command executions, including their parent/child relationships.
+
+Example usage can be found here: https://github.com/efieleke/CommandLib/blob/master/CommandLibSample/Program.cs
+
+The entire source lives here: https://github.com/efieleke/CommandLib.git
 
 Guidelines for developing your own Command-derived class:
 

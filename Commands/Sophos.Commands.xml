@@ -115,9 +115,8 @@
             time, and <see cref="T:Sophos.Commands.RecurringCommand"/> runs at times that are provided via a callback.
             </para>
             <para>
-            <see cref="T:Sophos.Commands.RetryableCommand"/> provides the option to keep retrying a failed command until the caller decides enough is enough,
-            and <see cref="T:Sophos.Commands.TimeLimitedCommand"/> fails with a timeout exception if a given duration elapses before the command finishes
-            execution.
+            <see cref="T:Sophos.Commands.RetryableCommand"/> provides the option to conditionally keep retrying a failed command, and <see cref="T:Sophos.Commands.TimeLimitedCommand"/>
+            fails with a timeout exception if a given duration elapses before the command finishes execution.
             </para>
             <para>
             <see cref="T:Sophos.Commands.CommandDispatcher"/> manages asynchronous execution of dynamically generated commands.
@@ -140,10 +139,6 @@
             </para>
             <para>
             - Make your implementation responsive to abort requests if it could take more than a trivial amount of time. To do this, make occasional calls to Command.CheckAbortFlag() or Command.AbortRequested.
-            </para>
-            <para>
-            At a minimum, documentation for <see cref="T:Sophos.Commands.Command"/>, <see cref="T:Sophos.Commands.AsyncCommand"/> and <see cref="T:Sophos.Commands.SyncCommand"/> and <see cref="T:Sophos.Commands.TaskCommand`2"/> should be read
-            before developing a <see cref="T:Sophos.Commands.Command"/>-derived class.
             </para>
             </summary>
         </member>
@@ -236,7 +231,7 @@
             <para>
             Generally speaking, when authoring Commands, it's best to make them as granular as possible. That makes it much easier
             to reuse them while composing command structures. Also, ensure that your commands are responsive to abort requests if
-            they take a noticeable amount of time to complete.
+            they take a noticeable amount of time to complete (whether or not they are synchronous in nature).
             </para>
             </remarks>
         </member>

@@ -231,7 +231,7 @@ namespace Sophos.Commands
                     }
                     catch (Exception exc)
                     {
-                        error = exc is OperationCanceledException ? new CommandAbortedException() : exc;
+                        error = exc is OperationCanceledException && AbortRequested ? new CommandAbortedException() : exc;
                     }
 
                     switch (error)
