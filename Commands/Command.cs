@@ -27,7 +27,7 @@ namespace Sophos.Commands
     /// </para>
     /// <para>
     /// <see cref="RetryableCommand"/> provides the option to conditionally keep retrying a failed command, <see cref="FinallyCommand"/>
-    /// executes an operation after a command completes (regardless of whether it succeeded or failed), and <see cref="TimeLimitedCommand"/>
+    /// ensures a cleanup routine is run regardless of whether a command succeeds or fails, and <see cref="TimeLimitedCommand"/>
     /// fails with a timeout exception if a given duration elapses before the command finishes execution.
     /// </para>
     /// <para>

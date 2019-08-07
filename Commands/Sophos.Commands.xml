@@ -116,7 +116,7 @@
             </para>
             <para>
             <see cref="T:Sophos.Commands.RetryableCommand"/> provides the option to conditionally keep retrying a failed command, <see cref="T:Sophos.Commands.FinallyCommand"/>
-            executes an operation after a command completes (regardless of whether it succeeded or failed), and <see cref="T:Sophos.Commands.TimeLimitedCommand"/>
+            ensures a cleanup routine is run regardless of whether a command succeeds or fails, and <see cref="T:Sophos.Commands.TimeLimitedCommand"/>
             fails with a timeout exception if a given duration elapses before the command finishes execution.
             </para>
             <para>
@@ -1978,7 +1978,7 @@
         </member>
         <member name="M:Sophos.Commands.RetryableCommand.#ctor(Sophos.Commands.Command,Sophos.Commands.RetryableCommand.IRetryCallback,Sophos.Commands.Command)">
             <summary>
-            Constructs a RetryableCommand object
+            Constructs a RetryableCommands object
             </summary>
             <param name="command">
             The command to run. This object takes ownership of the command, so the passed command must not already have
@@ -2004,18 +2004,12 @@
             abort requests made of their owner. Also, owned commands are disposed of when the owner is disposed.
             </param>
         </member>
-        <member name="M:Sophos.Commands.RetryableCommand.IsNaturallySynchronous">
-            <inheritdoc />
-        </member>
         <member name="M:Sophos.Commands.RetryableCommand.SyncExecuteImpl(System.Object)">
             <summary>
             Do not call this method from a derived class. It is called by the framework.
             </summary>
             <param name="runtimeArg">Not applicable</param>
             <returns>Not applicable</returns>
-        </member>
-        <member name="M:Sophos.Commands.RetryableCommand.AsyncExecuteImpl(Sophos.Commands.ICommandListener,System.Object)">
-            <inheritdoc />
         </member>
         <member name="T:Sophos.Commands.ScheduledCommand">
             <summary>
