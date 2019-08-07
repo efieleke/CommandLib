@@ -26,7 +26,8 @@ namespace Sophos.Commands
     /// time, and <see cref="RecurringCommand"/> runs at times that are provided via a callback.
     /// </para>
     /// <para>
-    /// <see cref="RetryableCommand"/> provides the option to conditionally keep retrying a failed command, and <see cref="TimeLimitedCommand"/>
+    /// <see cref="RetryableCommand"/> provides the option to conditionally keep retrying a failed command, <see cref="FinallyCommand"/>
+    /// executes an operation after a command completes (regardless of whether it succeeded or failed), and <see cref="TimeLimitedCommand"/>
     /// fails with a timeout exception if a given duration elapses before the command finishes execution.
     /// </para>
     /// <para>

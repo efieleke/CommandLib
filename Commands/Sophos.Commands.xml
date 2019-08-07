@@ -115,7 +115,8 @@
             time, and <see cref="T:Sophos.Commands.RecurringCommand"/> runs at times that are provided via a callback.
             </para>
             <para>
-            <see cref="T:Sophos.Commands.RetryableCommand"/> provides the option to conditionally keep retrying a failed command, and <see cref="T:Sophos.Commands.TimeLimitedCommand"/>
+            <see cref="T:Sophos.Commands.RetryableCommand"/> provides the option to conditionally keep retrying a failed command, <see cref="T:Sophos.Commands.FinallyCommand"/>
+            executes an operation after a command completes (regardless of whether it succeeded or failed), and <see cref="T:Sophos.Commands.TimeLimitedCommand"/>
             fails with a timeout exception if a given duration elapses before the command finishes execution.
             </para>
             <para>
@@ -1072,6 +1073,60 @@
         <member name="M:Sophos.Commands.DelegateCommandListener`1.CommandFailed(System.Exception)">
             <inheritdoc />
         </member>
+        <member name="T:Sophos.Commands.FinallyCommand">
+            <summary>
+            This <see cref="T:Sophos.Commands.Command"/> wraps another command, and runs a client-specified operation upon completion.
+            This operation is run if the command completes successfully or if it fails, but it is not run the if the
+            if the command is aborted.
+            </summary>
+            <remarks>
+            <para>
+            The 'runtimeArg' value to pass to <see cref="M:Sophos.Commands.Command.SyncExecute(System.Object)"/> and <see cref="M:Sophos.Commands.Command.AsyncExecute(Sophos.Commands.ICommandListener,System.Object)"/>
+            should be of the same type required as the underlying command to run.
+            </para>
+            <para>
+            This command returns from synchronous execution the same value that the underlying command to run returns,
+            and the 'result' parameter of <see cref="M:Sophos.Commands.ICommandListener.CommandSucceeded(System.Object)"/> will be set in similar fashion.
+            </para>
+            </remarks>
+        </member>
+        <member name="M:Sophos.Commands.FinallyCommand.#ctor(Sophos.Commands.Command)">
+            <summary>
+            Constructs a FinallyCommand object as a top-level <see cref="T:Sophos.Commands.Command"/>
+            </summary>
+            <param name="command">
+            The command to run. This object takes ownership of the command, so the passed command must not already have
+            an owner. The passed command will be disposed when this FinallyCommand object is disposed.
+            </param>
+        </member>
+        <member name="M:Sophos.Commands.FinallyCommand.#ctor(Sophos.Commands.Command,Sophos.Commands.Command)">
+            <summary>
+            Constructs a FinallyCommand object
+            </summary>
+            <param name="command">
+            The command to run. This object takes ownership of the command, so the passed command must not already have
+            an owner. The passed command will be disposed when this FinallyCommand object is disposed.
+            </param>
+            <param name="owner">
+            Specify null to indicate a top-level command. Otherwise, this command will be owned by 'owner'. Owned commands respond to
+            abort requests made of their owner. Also, owned commands are disposed of when the owner is disposed.
+            </param>
+        </member>
+        <member name="M:Sophos.Commands.FinallyCommand.IsNaturallySynchronous">
+            <inheritdoc />
+        </member>
+        <member name="M:Sophos.Commands.FinallyCommand.Finally">
+            <summary>
+            This method is called after command success or failure, but before any of the ICommandListener callbacks are invoked
+            (in the case of asynchronous execution). Note that this is not called if this command is aborted.
+            </summary>
+        </member>
+        <member name="M:Sophos.Commands.FinallyCommand.SyncExecuteImpl(System.Object)">
+            <inheritdoc />
+        </member>
+        <member name="M:Sophos.Commands.FinallyCommand.AsyncExecuteImpl(Sophos.Commands.ICommandListener,System.Object)">
+            <inheritdoc />
+        </member>
         <member name="T:Sophos.Commands.HttpRequestCommand">
             <summary>
             A <see cref="T:Sophos.Commands.Command"/> wrapper for <see cref="M:System.Net.Http.HttpClient.SendAsync(System.Net.Http.HttpRequestMessage)"/>
@@ -1923,7 +1978,7 @@
         </member>
         <member name="M:Sophos.Commands.RetryableCommand.#ctor(Sophos.Commands.Command,Sophos.Commands.RetryableCommand.IRetryCallback,Sophos.Commands.Command)">
             <summary>
-            Constructs a RetryableCommands object
+            Constructs a RetryableCommand object
             </summary>
             <param name="command">
             The command to run. This object takes ownership of the command, so the passed command must not already have
@@ -1949,12 +2004,18 @@
             abort requests made of their owner. Also, owned commands are disposed of when the owner is disposed.
             </param>
         </member>
+        <member name="M:Sophos.Commands.RetryableCommand.IsNaturallySynchronous">
+            <inheritdoc />
+        </member>
         <member name="M:Sophos.Commands.RetryableCommand.SyncExecuteImpl(System.Object)">
             <summary>
             Do not call this method from a derived class. It is called by the framework.
             </summary>
             <param name="runtimeArg">Not applicable</param>
             <returns>Not applicable</returns>
+        </member>
+        <member name="M:Sophos.Commands.RetryableCommand.AsyncExecuteImpl(Sophos.Commands.ICommandListener,System.Object)">
+            <inheritdoc />
         </member>
         <member name="T:Sophos.Commands.ScheduledCommand">
             <summary>

@@ -66,6 +66,7 @@
     <Compile Include="DelegateCommandTests.cs" />
     <Compile Include="FailingCommand.cs" />
     <Compile Include="FailTest.cs" />
+    <Compile Include="FinallyCommandTests.cs" />
     <Compile Include="HappyPathTest.cs" />
     <Compile Include="HttpRequestCommandTests.cs" />
     <Compile Include="NeverEndingAsyncCommand.cs" />
