@@ -255,9 +255,7 @@ namespace Sophos.Commands
             }
         }
 
-        /// <summary>
-        /// 
-        /// </summary>
+        /// <inheritdoc />
         protected override void AbortImpl()
         {
             _cancellationTokenSource?.Cancel();

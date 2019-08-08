@@ -1075,9 +1075,8 @@
         </member>
         <member name="T:Sophos.Commands.FinallyCommand">
             <summary>
-            This <see cref="T:Sophos.Commands.Command"/> wraps another command, and runs a client-specified operation upon completion.
-            This operation is run if the command completes successfully or if it fails, but it is not run the if the
-            if the command is aborted.
+            This <see cref="T:Sophos.Commands.Command"/> wraps another command, and runs a client-specified command upon either success
+            of failure, and optionally upon abortion.
             </summary>
             <remarks>
             <para>
@@ -1090,36 +1089,49 @@
             </para>
             </remarks>
         </member>
-        <member name="M:Sophos.Commands.FinallyCommand.#ctor(Sophos.Commands.Command)">
+        <member name="M:Sophos.Commands.FinallyCommand.#ctor(Sophos.Commands.Command,Sophos.Commands.Command,System.Boolean)">
             <summary>
-            Constructs a FinallyCommand object as a top-level <see cref="T:Sophos.Commands.Command"/>
+            Constructs a FinallyCommand object as a top level <see cref="T:Sophos.Commands.Command"/>
             </summary>
-            <param name="command">
+            <param name="commandToRun">
             The command to run. This object takes ownership of the command, so the passed command must not already have
             an owner. The passed command will be disposed when this FinallyCommand object is disposed.
             </param>
+            <param name="uponCompletionCommand">
+            The command to run upon success or failure (and optionally upon abortion). This command must not have an owner. It will
+            be disposed when this FinallyCommand is disposed.
+            </param>
+            <param name="evenUponAbort">
+            If this value is true, uponCompletionCommand will be run even upon abortion, and uponCompletionCommand will not be responsive to abort requests of this object.
+            If false, uponCompletionCommand will not be run upon abortion, and if it is running while an abort request is made of this object, it will be aborted.
+            </param>
         </member>
-        <member name="M:Sophos.Commands.FinallyCommand.#ctor(Sophos.Commands.Command,Sophos.Commands.Command)">
+        <member name="M:Sophos.Commands.FinallyCommand.#ctor(Sophos.Commands.Command,Sophos.Commands.Command,System.Boolean,Sophos.Commands.Command)">
             <summary>
             Constructs a FinallyCommand object
             </summary>
-            <param name="command">
+            <param name="commandToRun">
             The command to run. This object takes ownership of the command, so the passed command must not already have
             an owner. The passed command will be disposed when this FinallyCommand object is disposed.
+            </param>
+            <param name="uponCompletionCommand">
+            The command to run upon success or failure (and optionally upon abortion). This command must not have an owner. It will
+            be disposed when this FinallyCommand is disposed.
+            </param>
+            <param name="evenUponAbort">
+            If this value is true, uponCompletionCommand will be run even upon abortion, and uponCompletionCommand will not be responsive to abort requests of this object.
+            If false, uponCompletionCommand will not be run upon abortion, and if it is running while an abort request is made of this object, it will be aborted.
             </param>
             <param name="owner">
             Specify null to indicate a top-level command. Otherwise, this command will be owned by 'owner'. Owned commands respond to
             abort requests made of their owner. Also, owned commands are disposed of when the owner is disposed.
             </param>
         </member>
-        <member name="M:Sophos.Commands.FinallyCommand.IsNaturallySynchronous">
+        <member name="M:Sophos.Commands.FinallyCommand.Dispose(System.Boolean)">
             <inheritdoc />
         </member>
-        <member name="M:Sophos.Commands.FinallyCommand.Finally">
-            <summary>
-            This method is called after command success or failure, but before any of the ICommandListener callbacks are invoked
-            (in the case of asynchronous execution). Note that this is not called if this command is aborted.
-            </summary>
+        <member name="M:Sophos.Commands.FinallyCommand.IsNaturallySynchronous">
+            <inheritdoc />
         </member>
         <member name="M:Sophos.Commands.FinallyCommand.SyncExecuteImpl(System.Object)">
             <inheritdoc />
@@ -2335,9 +2347,7 @@
             <param name="runtimeArg">This is passed on to the underlying Task creation method.</param>
         </member>
         <member name="M:Sophos.Commands.TaskCommand`2.AbortImpl">
-            <summary>
-            
-            </summary>
+            <inheritdoc />
         </member>
         <member name="M:Sophos.Commands.TaskCommand`2.CreateTask(`0,System.Threading.CancellationToken)">
             <summary>
