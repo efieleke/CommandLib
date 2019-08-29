@@ -74,6 +74,11 @@ namespace Sophos.Commands
         ICommandInfo ParentInfo { get; }
 
         /// <summary>
+        /// Returns the list of commands that are owned by this command. Will return an empty list if there are none.
+        /// </summary>
+        IList<ICommandInfo> ChildInfo { get; }
+
+        /// <summary>
         /// Counts the number of parents until the top level command is reached
         /// </summary>
         /// <remarks>A parent is considered an owner, or the command that an <see cref="AbortSignaledCommand"/> is linked to (if any).</remarks>
@@ -187,15 +192,22 @@ namespace Sophos.Commands
         /// <inheritdoc />
         public long Id { get; }
 
-        /// <summary>
-        /// Returns the owner, or the command that an <see cref="AbortSignaledCommand"/> is linked to (if any).
-        /// </summary>
+        /// <inheritdoc />
         public ICommandInfo ParentInfo => Parent;
 
-        /// <summary>
-        /// Counts the number of parents until the top level command is reached
-        /// </summary>
-        /// <remarks>A parent is considered an owner, or the command that an <see cref="AbortSignaledCommand"/> is linked to (if any).</remarks>
+        /// <inheritdoc />
+        public IList<ICommandInfo> ChildInfo
+        {
+            get
+            {
+                lock (_childLock)
+                {
+                    return new List<ICommandInfo>(_children);
+                }
+            }
+        }
+
+        /// <inheritdoc />
         public int Depth
         {
             get
@@ -212,15 +224,7 @@ namespace Sophos.Commands
             }
         }
 
-        /// <summary>A description of the Command</summary>
-        /// <remarks>
-        /// This is the name of the concrete class of this command, preceded by the names of the classes of each parent,
-        /// up to the top-level parent. This is followed with this command's unique id (for example, 'SequentialCommands=>PauseCommand(23)').
-        /// The description ends with details of about the current state of the command, if available.
-        /// <para>
-        /// A parent is considered the owner, or the command that an <see cref="AbortSignaledCommand"/> is linked to (if any).
-        /// </para>
-        /// </remarks>
+        /// <inheritdoc />
         public string Description
         {
             get
@@ -245,19 +249,7 @@ namespace Sophos.Commands
             }
         }
 
-        /// <summary>
-        /// Information about the command (beyond its type and id), if available, for diagnostic purposes.
-        /// </summary>
-        /// <returns>
-        /// Implementations should return information about the current state of the Command, if available. Return an empty string
-        /// or null if there is no useful state information to report.
-        /// </returns>
-        /// <remarks>
-        /// This information is included as part of the <see cref="Description"/> property. It is meant for diagnostic purposes.
-        /// <para>
-        /// Implementations must be thread safe, and they must not not throw.
-        /// </para>
-        /// </remarks>
+        /// <inheritdoc />
         public virtual string ExtendedDescription()
         {
             return "";
