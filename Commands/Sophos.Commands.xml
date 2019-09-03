@@ -4,63 +4,6 @@
         <name>Sophos.Commands</name>
     </assembly>
     <members>
-        <member name="T:Sophos.Commands.AbortSignaledCommand">
-            <summary>
-            A <see cref="T:Sophos.Commands.Command"/> wrapper that, in addition to responding to normal <see cref="M:Sophos.Commands.Command.Abort"/> requests, also aborts in response to either
-            1) a request to abort a different, specified <see cref="T:Sophos.Commands.Command"/> instance, or 2) the signaling  of a specified wait handle
-            (typically an event). 
-            </summary>
-            <remarks>
-            <para>
-            AbortSignaledCommand objects must be top level. Any attempt by another <see cref="T:Sophos.Commands.Command"/> to take ownership of an AbortSignaledCommand
-            will raise an exception. For example, adding this type to a <see cref="T:Sophos.Commands.SequentialCommands"/> will raise an exception because
-            <see cref="T:Sophos.Commands.SequentialCommands"/> would attempt to assume ownership.
-            </para>
-            <para>
-            The 'runtimeArg' value to pass to <see cref="M:Sophos.Commands.Command.SyncExecute(System.Object)"/> and <see cref="M:Sophos.Commands.Command.AsyncExecute(Sophos.Commands.ICommandListener,System.Object)"/>
-            should be of the same type required as the underlying command to run.
-            </para>
-            <para>
-            This command returns from synchronous execution the same value that the underlying command to run returns, and the
-            'result' parameter of <see cref="M:Sophos.Commands.ICommandListener.CommandSucceeded(System.Object)"/> will be set in similar fashion.
-            </para>
-            </remarks>
-        </member>
-        <member name="M:Sophos.Commands.AbortSignaledCommand.#ctor(Sophos.Commands.Command,System.Threading.WaitHandle)">
-            <summary>
-            Constructs an AbortSignaledCommand object as a top-level <see cref="T:Sophos.Commands.Command"/>
-            </summary>
-            <param name="commandToRun">
-            The command to run. This object takes ownership of the command, so the passed command must not already have an owner.
-            The passed command will be disposed when this AbortSignaledCommand object is disposed.
-            </param>
-            <param name="abortEvent">
-            When signaled, the command to run will be aborted. This object does not take ownership of this parameter.
-            </param>
-        </member>
-        <member name="M:Sophos.Commands.AbortSignaledCommand.#ctor(Sophos.Commands.Command,Sophos.Commands.Command)">
-            <summary>
-            Constructs an AbortSignaledCommand object as a top-level <see cref="T:Sophos.Commands.Command"/>
-            </summary>
-            <param name="commandToRun">
-            The command to run. This object takes ownership of the command, so the passed command must not already have an owner.
-            The passed command will be disposed when this AbortSignaledCommand object is disposed.
-            </param>
-            <param name="commandToWatch">
-            When this 'commandToWatch' is aborted, the command to run will also be aborted.
-            </param>
-        </member>
-        <member name="P:Sophos.Commands.AbortSignaledCommand.CommandToWatch">
-            <summary>
-            This is for diagnostic purposes. Will be null if this command is not linked to another command.
-            </summary>
-        </member>
-        <member name="M:Sophos.Commands.AbortSignaledCommand.SyncExecuteImpl(System.Object)">
-            <inheritdoc />
-        </member>
-        <member name="M:Sophos.Commands.AbortSignaledCommand.MustBeTopLevel">
-            <inheritdoc />
-        </member>
         <member name="T:Sophos.Commands.AsyncCommand">
             <summary>
             Represents a <see cref="T:Sophos.Commands.Command"/> which is most naturally asynchronous in its implementation. If you inherit from this class, you
@@ -106,9 +49,9 @@
             (because they are <see cref="T:Sophos.Commands.Command"/> objects), so it's possible to create deep levels of coordinated activities.
             </para>
             <para>
-            Commands extends the notion of a Task, in that it works both with tasks and with non-task-based asynchronous operations.
-            <see cref="T:Sophos.Commands.TaskCommand`2"/>, <see cref="T:Sophos.Commands.DelegateCommand`1"/>,
-            and <see cref="M:Sophos.Commands.Command.RunAsTask``1(System.Object,Sophos.Commands.Command)"/> offer easy integration with Tasks and delegates.
+            Commands works both with tasks and with non-task-based asynchronous operations. <see cref="T:Sophos.Commands.TaskCommand`2"/>,
+            <see cref="T:Sophos.Commands.DelegateCommand`1"/>,  and <see cref="M:Sophos.Commands.Command.RunAsTask``1(System.Object,Sophos.Commands.Command)"/> offer easy
+            integration with Tasks and delegates.
             </para>
             <para>
             <see cref="T:Sophos.Commands.PeriodicCommand"/> repeats its action at a given interval, <see cref="T:Sophos.Commands.ScheduledCommand"/> runs once at a specific
@@ -155,7 +98,7 @@
         </member>
         <member name="P:Sophos.Commands.ICommandInfo.ParentInfo">
             <summary>
-            Returns the owner, or the command that an <see cref="T:Sophos.Commands.AbortSignaledCommand"/> is linked to (if any).
+            Returns the owner, or null if this <see cref="T:Sophos.Commands.Command"/> is top level.
             </summary>
         </member>
         <member name="P:Sophos.Commands.ICommandInfo.ChildInfo">
@@ -167,7 +110,7 @@
             <summary>
             Counts the number of parents until the top level command is reached
             </summary>
-            <remarks>A parent is considered an owner, or the command that an <see cref="T:Sophos.Commands.AbortSignaledCommand"/> is linked to (if any).</remarks>
+            <remarks>A parent is considered an owner.</remarks>
         </member>
         <member name="P:Sophos.Commands.ICommandInfo.Description">
             <summary>A description of the Command</summary>
@@ -176,7 +119,7 @@
             up to the top-level parent. This is followed with this command's unique id (for example, 'SequentialCommands=>PauseCommand(23)').
             The description ends with details of about the current state of the command, if available.
             <para>
-            A parent is considered the owner, or the command that an <see cref="T:Sophos.Commands.AbortSignaledCommand"/> is linked to (if any).
+            A parent is considered the owner.
             </para>
             </remarks>
         </member>
@@ -207,11 +150,11 @@
             of Command objects passed as arguments to certain methods. Such behavior is documented.
             </para>
             <para>
-            When developing a Command subclass, be sure to inherit from either <see cref="T:Sophos.Commands.SyncCommand"/> (if your command is naturally
-            synchronous in its implementation), <see cref="T:Sophos.Commands.TaskCommand`1"/> (if your asynchronous command uses Tasks in its
-            implementation), or <see cref="T:Sophos.Commands.AsyncCommand"/> if your implementation is otherwise asynchronous (that is, it
+            When developing a Command subclass, inherit from <see cref="T:Sophos.Commands.SyncCommand" /> (if your command is naturally
+            synchronous in its implementation), <see cref="T:Sophos.Commands.TaskCommand`1" /> (if your asynchronous command uses Tasks in its
+            implementation), or <see cref="T:Sophos.Commands.AsyncCommand" /> if your implementation is otherwise asynchronous (that is, it
             naturally completes on a thread that is different from the one it started on, but is not in the form of a Task).
-            <see cref="M:Sophos.Commands.Command.SyncExecuteImpl(System.Object)"/>).
+            <see cref="M:Sophos.Commands.Command.SyncExecuteImpl(System.Object)" />).
             </para>
             <para>
             Also, when developing a Command subclass, make sure that any member variables that are Commands are properly
@@ -221,18 +164,16 @@
             </para>
             <para>
             If you write a method that accepts a Command as an argument, you may wish to assume ownership of that Command.
-            <see cref="M:Sophos.Commands.Command.TakeOwnership(Sophos.Commands.Command)"/> allows you to do this. The <see cref="M:Sophos.Commands.SequentialCommands.Add(Sophos.Commands.Command)"/> member of
-            <see cref="T:Sophos.Commands.SequentialCommands"/> is an example of this behavior.
+            <see cref="M:Sophos.Commands.Command.TakeOwnership(Sophos.Commands.Command)" /> allows you to do this. The <see cref="M:Sophos.Commands.SequentialCommands.Add(Sophos.Commands.Command)" /> member of
+            <see cref="T:Sophos.Commands.SequentialCommands" /> is an example of this behavior.
             </para>
             <para>
             If you find that you need to create a Command object within the execution method of its owning command
             (perhaps because the way to create the Command depends upon runtime conditions), there are some things to
-            consider. Owned commands are not destroyed until the owner is destroyed. If the owner is executed many times
+            consider. Owned commands are not disposed until the owner is disposed. If the owner is executed many times
             before it is disposed, and you create a new child command with the same owner upon every execution, resource usage
             will grow unbounded. The better approach is to not assign an owner to the locally created command, but instead
-            have it run within the context of the launching command using <see cref="M:Sophos.Commands.Command.SyncExecute(System.Object,Sophos.Commands.Command)"/>.
-            If you instead require asynchronous execution, you can make use of <see cref="M:Sophos.Commands.Command.CreateAbortSignaledCommand(Sophos.Commands.Command)"/>. This will
-            return a top-level command that responds to abort requests to the command that created it.
+            have it run within the context of the launching command using <see cref="M:Sophos.Commands.Command.SyncExecute(System.Object,Sophos.Commands.Command)" />.
             </para>
             <para>
             Generally speaking, when authoring Commands, it's best to make them as granular as possible. That makes it much easier
@@ -529,7 +470,8 @@
             <see cref="M:Sophos.Commands.ICommandListener.CommandAborted"/> on the listener if aborted. Note that if a command is near completion, it may finish
             successfully (or fail) before an abort request is processed.
             <para>
-            It is an error to call Abort() on anything other than a top level command.
+            It is an error to call Abort() on anything other than a top level command. If implementing a Command-derived class and
+            you need to explicitly abort an owned command (this is unusual), your implementation may call AbortChildCommand().
             </para>
             </remarks>
         </member>
@@ -557,41 +499,39 @@
             <param name="duration">The maximum amount of time to wait</param>
             <returns>true if the the command completed within 'duration', false otherwise</returns>
         </member>
-        <member name="M:Sophos.Commands.Command.CreateAbortSignaledCommand(Sophos.Commands.Command)">
-            <summary>Creates a top-level command that nevertheless responds to abort requests made of this command.</summary>
-            <param name="commandToLink">
-            The command to link with regard to abort requests. The returned <see cref="T:Sophos.Commands.AbortSignaledCommand"/> object takes ownership
-            of this argument, so the passed command must not already have an owner. The passed command will be disposed when the
-            <see cref="T:Sophos.Commands.AbortSignaledCommand"/> is disposed.
-            </param>
-            <returns>An AbortSignaledCommand.</returns>
-            <remarks>
-            Note that the linked command is only linked with regards to abort requests (not execution requests, or anything else),
-            and that the link is one-way. If <see cref="M:Sophos.Commands.Command.Abort"/> is called on the linked command, this Command object will not respond to that.
-            </remarks>
-        </member>
-        <member name="P:Sophos.Commands.Command.Parent">
-            <summary>
-            Returns the owner, or the command that an <see cref="T:Sophos.Commands.AbortSignaledCommand"/> is linked to (if any).
-            </summary>
-        </member>
         <member name="P:Sophos.Commands.Command.AbortEvent">
             <summary>
             Signaled when an abort request has been made. The state of this handle must not be altered
             by anything but the framework.
             </summary>
         </member>
-        <member name="P:Sophos.Commands.Command.AbortRequested">
-            <summary>
-            Returns whether an abort request has been made
-            </summary>
-            <returns>true, if an abort request has been made.</returns>
-        </member>
         <member name="P:Sophos.Commands.Command.DoneEvent">
             <summary>
             Signaled when this command has finished execution, regardless of whether it succeeded, failed or was aborted.
             The state of this handle must not be altered by anything but the framework.
             </summary>
+        </member>
+        <member name="M:Sophos.Commands.Command.ResetChildAbortEvent(Sophos.Commands.Command)">
+            <summary>
+            Resets the abort event of a command that is owned by this command. Derived implementations may need to call this
+            execute a child command regardless of whether its owner was aborted. This method only exists for special cases.
+            </summary>
+            <param name="childCommand">The owned command. This must be an immediate child (not a grandchild, for example).</param>
+        </member>
+        <member name="M:Sophos.Commands.Command.AbortChildCommand(Sophos.Commands.Command)">
+            <summary>
+            Aborts a command that is owned by this command. Derived implementations may need to call this to halt an owned
+            command's execution without effecting the execution state of the owning command. Note that when a command is
+            aborted via normal means (via <see cref="M:Sophos.Commands.Command.Abort"/>), all of its owned commands are also aborted. This
+            method only exists for special cases.
+            </summary>
+            <param name="childCommand">The owned command. This must be an immediate child (not a grandchild, for example).</param>
+        </member>
+        <member name="P:Sophos.Commands.Command.AbortRequested">
+            <summary>
+            Returns whether an abort request has been made
+            </summary>
+            <returns>true, if an abort request has been made.</returns>
         </member>
         <member name="M:Sophos.Commands.Command.SyncExecuteImpl(System.Object)">
             <summary>Executes the command and does not return until it finishes.</summary>
@@ -636,11 +576,14 @@
             <param name="owner">
             Specify null to indicate a top-level command. Otherwise, this command will be owned by 'owner'. Owned commands respond to
             abort requests made of their owner. Also, owned commands are disposed of when the owner is disposed.
-            <para>Note that it is also possible to set the owner at a later time via <see cref="M:Sophos.Commands.Command.TakeOwnership(Sophos.Commands.Command)"/></para>
+            <para>Note that it is also possible to set the owner at a later time via <see cref="!:Command.TakeOwnership(Command, bool)"/></para>
             </param>
         </member>
         <member name="M:Sophos.Commands.Command.TakeOwnership(Sophos.Commands.Command)">
-            <summary>Make this command the owner of the command passed as an argument.</summary>
+            <summary>
+            Make this command the owner of the command passed as an argument. An owner is responsible
+            for disposing its owned commands. An owned command honors abort requests made of its parent.
+            </summary>
             <param name="orphan">
             The command to be owned. Only un-owned commands can take a new owner. Allowing
             other types of owner transfer would invite misuse and the bad behavior that results
@@ -674,13 +617,6 @@
             <summary>
             Finalizer.
             </summary>
-        </member>
-        <member name="M:Sophos.Commands.Command.MustBeTopLevel">
-            <summary>
-            Implementations should override to return false if their Command class must never be owned by another Command.
-            This is expected to be a rare restriction. Within CommandLib, only <see cref="T:Sophos.Commands.AbortSignaledCommand"/> has this restriction.
-            </summary>
-            <returns>true if the Command subclass must be top level. Default is false.</returns>
         </member>
         <member name="T:Sophos.Commands.CommandAbortedException">
             <summary>
@@ -1064,11 +1000,11 @@
             <remarks>
             <para>
             The 'runtimeArg' value to pass to <see cref="M:Sophos.Commands.Command.SyncExecute(System.Object)"/> and <see cref="M:Sophos.Commands.Command.AsyncExecute(Sophos.Commands.ICommandListener,System.Object)"/>
-            should be of the same type required as the underlying command to run.
+            is ignored.
             </para>
             <para>
-            This command returns from synchronous execution the same value that the underlying command to run returns,
-            and the 'result' parameter of <see cref="M:Sophos.Commands.ICommandListener.CommandSucceeded(System.Object)"/> will be set in similar fashion.
+            This command returns null from synchronous execution, and the 'result' parameter of <see cref="M:Sophos.Commands.ICommandListener.CommandSucceeded(System.Object)"/>
+            will be set to null.
             </para>
             </remarks>
         </member>
@@ -1110,16 +1046,7 @@
             abort requests made of their owner. Also, owned commands are disposed of when the owner is disposed.
             </param>
         </member>
-        <member name="M:Sophos.Commands.FinallyCommand.Dispose(System.Boolean)">
-            <inheritdoc />
-        </member>
-        <member name="M:Sophos.Commands.FinallyCommand.IsNaturallySynchronous">
-            <inheritdoc />
-        </member>
         <member name="M:Sophos.Commands.FinallyCommand.SyncExecuteImpl(System.Object)">
-            <inheritdoc />
-        </member>
-        <member name="M:Sophos.Commands.FinallyCommand.AsyncExecuteImpl(Sophos.Commands.ICommandListener,System.Object)">
             <inheritdoc />
         </member>
         <member name="T:Sophos.Commands.HttpRequestCommand">
@@ -1512,12 +1439,6 @@
             <returns>
             The returned text includes the number of commands in the collection, as well as whether abort upon failure is set or not
             </returns>
-        </member>
-        <member name="M:Sophos.Commands.ParallelCommands.Dispose(System.Boolean)">
-            <summary>
-            Implementations should override only if they contain members that must be disposed. Remember to invoke the base class implementation from within any override.
-            </summary>
-            <param name="disposing">Will be true if this was called as a direct result of the object being explicitly disposed.</param>
         </member>
         <member name="M:Sophos.Commands.ParallelCommands.AsyncExecuteImpl(Sophos.Commands.ICommandListener,System.Object)">
             <summary>
@@ -2374,7 +2295,7 @@
         </member>
         <member name="M:Sophos.Commands.TaskCommand`1.Create(System.Func{System.Threading.CancellationToken,System.Threading.Tasks.Task})">
             <summary>
-            This class wraps a delegate as a Command. When the command is executed, the delegate is run.
+            This method wraps a delegate as a Command. When the command is executed, the delegate is run.
             </summary>
             <param name="func">
             The delegate that returns a Task. This will be run when the command is executed. This function
@@ -2384,7 +2305,7 @@
         </member>
         <member name="M:Sophos.Commands.TaskCommand`1.Create(System.Func{System.Threading.CancellationToken,System.Threading.Tasks.Task},Sophos.Commands.Command)">
             <summary>
-            This class wraps a delegate as a Command. When the command is executed, the delegate is run.
+            This method wraps a delegate as a Command. When the command is executed, the delegate is run.
             </summary>
             <param name="func">
             The delegate that returns a Task. This will be run when the command is executed. This function
@@ -2483,12 +2404,6 @@
             <returns>
             The returned text includes the timeout duration.
             </returns>
-        </member>
-        <member name="M:Sophos.Commands.TimeLimitedCommand.Dispose(System.Boolean)">
-            <summary>
-            Implementations should override only if they contain members that must be disposed. Remember to invoke the base class implementation from within any override.
-            </summary>
-            <param name="disposing">Will be true if this was called as a direct result of the object being explicitly disposed.</param>
         </member>
         <member name="M:Sophos.Commands.TimeLimitedCommand.SyncExecuteImpl(System.Object)">
             <summary>

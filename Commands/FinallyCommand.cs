@@ -9,14 +9,14 @@ namespace Sophos.Commands
     /// <remarks>
     /// <para>
     /// The 'runtimeArg' value to pass to <see cref="Command.SyncExecute(object)"/> and <see cref="Command.AsyncExecute(ICommandListener, object)"/>
-    /// should be of the same type required as the underlying command to run.
+    /// is ignored.
     /// </para>
     /// <para>
-    /// This command returns from synchronous execution the same value that the underlying command to run returns,
-    /// and the 'result' parameter of <see cref="ICommandListener.CommandSucceeded"/> will be set in similar fashion.
+    /// This command returns null from synchronous execution, and the 'result' parameter of <see cref="ICommandListener.CommandSucceeded"/>
+    /// will be set to null.
     /// </para>
     /// </remarks>
-    public class FinallyCommand : Command
+    public class FinallyCommand : SyncCommand
     {
         /// <summary>
         /// Constructs a FinallyCommand object as a top level <see cref="Command"/>
@@ -58,175 +58,83 @@ namespace Sophos.Commands
         /// </param>
         public FinallyCommand(Command commandToRun, Command uponCompletionCommand, bool evenUponAbort, Command owner) : base(owner)
         {
-            _commandToRun = commandToRun;
+            _errorTrappingCommand = new ErrorTrappingCommand(commandToRun, evenUponAbort, this);
             _uponCompletionCommand = uponCompletionCommand;
-            _evenUponAbort = evenUponAbort;
-            TakeOwnership(_commandToRun);
-
-            if (uponCompletionCommand.Parent != null)
-            {
-                throw new ArgumentException(nameof(uponCompletionCommand), $"{nameof(uponCompletionCommand)} must not have an owner");
-            }
-
-            if (!evenUponAbort)
-            {
-                TakeOwnership(_uponCompletionCommand);
-            }
-        }
-
-        /// <inheritdoc />
-        protected override void Dispose(bool disposing)
-        {
-            if (_evenUponAbort)
-            {
-                _uponCompletionCommand.Dispose();
-            }
-
-            base.Dispose(disposing);
-        }
-
-        /// <inheritdoc />
-        public override bool IsNaturallySynchronous()
-        {
-            return _commandToRun.IsNaturallySynchronous();
+            TakeOwnership(_uponCompletionCommand);
         }
 
         /// <inheritdoc />
         protected override object SyncExecuteImpl(object runtimeArg)
         {
-            object result;
+            object result = _errorTrappingCommand.SyncExecute(runtimeArg);
+
+            if (_errorTrappingCommand.Exception is CommandAbortedException)
+            {
+                ResetChildAbortEvent(_uponCompletionCommand);
+            }
 
             try
             {
-                result = _commandToRun.SyncExecute(runtimeArg);
-            }
-            catch (CommandAbortedException)
-            {
-                if (_evenUponAbort)
-                {
-                    _uponCompletionCommand.SyncExecute();
-                }
-
-                throw;
+                _uponCompletionCommand.SyncExecute(null);
             }
             catch (Exception e)
             {
-                try
+                if (_errorTrappingCommand.Exception != null)
                 {
-                    _uponCompletionCommand.SyncExecute();
-                }
-                catch (Exception exception)
-                {
-                    throw new AggregateException(e, exception);
+                    throw new AggregateException(_errorTrappingCommand.Exception, e);
                 }
 
                 throw;
             }
 
-            _uponCompletionCommand.SyncExecute();
+            if (_errorTrappingCommand.Exception != null)
+            {
+                throw _errorTrappingCommand.Exception;
+            }
+
             return result;
         }
 
-        /// <inheritdoc />
-        protected override void AsyncExecuteImpl(ICommandListener listener, object runtimeArg)
+        private class ErrorTrappingCommand : SyncCommand
         {
-            _commandToRun.AsyncExecute(new Listener(listener, this), runtimeArg);
-        }
-
-        private class Listener : ICommandListener
-        {
-            internal Listener(ICommandListener listener, FinallyCommand finallyCommand)
+            public ErrorTrappingCommand(Command commandToRun, bool trapAbort, Command owner) : base(owner)
             {
-                _listener = listener;
-                _finallyCommand = finallyCommand;
+                _commandToRun = commandToRun;
+                TakeOwnership(_commandToRun);
+                _trapAbort = trapAbort;
             }
 
-            public void CommandSucceeded(object result)
+            protected override object SyncExecuteImpl(object runtimeArg)
             {
-                if (_finallyCommand._uponCompletionCommand.IsNaturallySynchronous())
+                try
                 {
-                    try
-                    {
-                        _finallyCommand._uponCompletionCommand.SyncExecute();
-                        _listener.CommandSucceeded(result);
-                    }
-                    catch (CommandAbortedException)
-                    {
-                        _listener.CommandAborted();
-                    }
-                    catch (Exception e)
-                    {
-                        _listener.CommandFailed(e);
-                    }
+                    return _commandToRun.SyncExecute(runtimeArg);
                 }
-                else
+                catch (CommandAbortedException e)
                 {
-                    _finallyCommand._uponCompletionCommand.AsyncExecute(
-                        o => _listener.CommandSucceeded(result),
-                        () => _listener.CommandAborted(),
-                        e => _listener.CommandFailed(e));
-                }
-            }
-
-            public void CommandAborted()
-            {
-                if (_finallyCommand._evenUponAbort)
-                {
-                    if (_finallyCommand._uponCompletionCommand.IsNaturallySynchronous())
+                    if (_trapAbort)
                     {
-                        try
-                        {
-                            _finallyCommand._uponCompletionCommand.SyncExecute();
-                            _listener.CommandAborted();
-                        }
-                        catch (Exception e)
-                        {
-                            _listener.CommandFailed(e);
-                        }
+                        Exception = e;
                     }
                     else
                     {
-                        _finallyCommand._uponCompletionCommand.AsyncExecute(
-                            o => _listener.CommandAborted(),
-                            () => _listener.CommandFailed(new CommandAbortedException()), // this would be strange
-                            e => _listener.CommandFailed(e));
+                        throw;
                     }
                 }
-                else
+                catch (Exception e)
                 {
-                    _listener.CommandAborted();
+                    Exception = e;
                 }
+
+                return null;
             }
 
-            public void CommandFailed(Exception exc)
-            {
-                if (_finallyCommand._uponCompletionCommand.IsNaturallySynchronous())
-                {
-                    try
-                    {
-                        _finallyCommand._uponCompletionCommand.SyncExecute();
-                        _listener.CommandFailed(exc);
-                    }
-                    catch (Exception e)
-                    {
-                        _listener.CommandFailed(new AggregateException(exc, e));
-                    }
-                }
-                else
-                {
-                    _finallyCommand._uponCompletionCommand.AsyncExecute(
-                        o => _listener.CommandFailed(exc),
-                        () => _listener.CommandFailed(new AggregateException(exc, new CommandAbortedException())),
-                        e => _listener.CommandFailed(new AggregateException(exc, e)));
-                }
-            }
-
-            private readonly ICommandListener _listener;
-            private readonly FinallyCommand _finallyCommand;
+            internal Exception Exception { get; private set; }
+            private readonly Command _commandToRun;
+            private readonly bool _trapAbort;
         }
 
-        private readonly Command _commandToRun;
+        private readonly ErrorTrappingCommand _errorTrappingCommand;
         private readonly Command _uponCompletionCommand;
-        private readonly bool _evenUponAbort;
     }
 }

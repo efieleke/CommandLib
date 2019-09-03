@@ -202,6 +202,7 @@ namespace Sophos.Commands
 
                 try
                 {
+                    CheckAbortFlag(); // in case someone snuck in and called Abort after execution but before we got going.
                     task = CreateTask(runtimeArg == null ? default(TArg) : (TArg)runtimeArg, _cancellationTokenSource.Token);
                 }
                 catch (Exception e)
@@ -234,6 +235,9 @@ namespace Sophos.Commands
                         error = exc is OperationCanceledException && AbortRequested ? new CommandAbortedException() : exc;
                     }
 
+                    _cancellationTokenSource.Dispose();
+                    _cancellationTokenSource = null;
+
                     switch (error)
                     {
                         case null:
@@ -250,7 +254,7 @@ namespace Sophos.Commands
             }
             finally
             {
-                _cancellationTokenSource.Dispose();
+                _cancellationTokenSource?.Dispose();
                 _cancellationTokenSource = null;
             }
         }
@@ -320,7 +324,7 @@ namespace Sophos.Commands
     public abstract class TaskCommand<TArg> : TaskCommand<TArg, bool>
     {
         /// <summary>
-        /// This class wraps a delegate as a Command. When the command is executed, the delegate is run.
+        /// This method wraps a delegate as a Command. When the command is executed, the delegate is run.
         /// </summary>
         /// <param name="func">
         /// The delegate that returns a Task. This will be run when the command is executed. This function
@@ -333,7 +337,7 @@ namespace Sophos.Commands
         }
 
         /// <summary>
-        /// This class wraps a delegate as a Command. When the command is executed, the delegate is run.
+        /// This method wraps a delegate as a Command. When the command is executed, the delegate is run.
         /// </summary>
         /// <param name="func">
         /// The delegate that returns a Task. This will be run when the command is executed. This function
@@ -386,7 +390,12 @@ namespace Sophos.Commands
         {
             using (Task task = CreateTaskNoResult(runtimeArg, cancellationToken))
             {
-                await task.ConfigureAwait(continueOnCapturedContext:false);
+                if (task.Status == TaskStatus.Created)
+                {
+                    task.Start();
+                }
+
+                await task.ConfigureAwait(continueOnCapturedContext: false);
                 return true;
             }
         }

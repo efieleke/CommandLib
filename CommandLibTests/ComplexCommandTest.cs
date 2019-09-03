@@ -10,19 +10,13 @@ namespace CommandLibTests
         [TestMethod]
         public void ComplexCommand_TestHappyPath()
         {
-            using (System.Threading.ManualResetEvent abortEvent = new System.Threading.ManualResetEvent(false))
-            {
-                HappyPathTest.Run(GenerateComplexCommand(abortEvent, 1, false), null, null);
-            }
+            HappyPathTest.Run(GenerateComplexCommand(1, false), null, null);
         }
 
         [TestMethod]
         public void ComplexCommand_TestFail()
         {
-            using (System.Threading.ManualResetEvent abortEvent = new System.Threading.ManualResetEvent(false))
-            {
-                FailTest.Run<FailingCommand.FailException>(GenerateComplexCommand(abortEvent, 1, true), null);
-            }
+            FailTest.Run<FailingCommand.FailException>(GenerateComplexCommand(1, true), null);
         }
 
         [TestMethod]
@@ -40,30 +34,25 @@ namespace CommandLibTests
         [TestMethod]
         public void ComplexCommand_TestAbort()
         {
-            using (System.Threading.ManualResetEvent abortEvent = new System.Threading.ManualResetEvent(false))
-            {
-                Command test = GenerateComplexCommand(abortEvent, 1, false);
-                CmdListener listener = new CmdListener(CmdListener.CallbackType.Aborted, null);
-                test.AsyncExecute(listener, null);
-                abortEvent.Set();
-                test.Wait();
-                abortEvent.Reset();
-                listener.Check();
+            Command test = GenerateComplexCommand(1000000, false);
+            CmdListener listener = new CmdListener(CmdListener.CallbackType.Aborted, null);
+            test.AsyncExecute(listener, null);
+            test.Abort();
+            test.Wait();
+            listener.Check();
 
-                listener.Reset(CmdListener.CallbackType.Aborted, null);
-                test.AsyncExecute(listener, null);
-                System.Threading.Thread.Sleep(10);
-                abortEvent.Set();
-                test.Wait();
-                listener.Check();
+            listener.Reset(CmdListener.CallbackType.Aborted, null);
+            test.AsyncExecute(listener, null);
+            System.Threading.Thread.Sleep(10);
+            test.AbortAndWait();
+            listener.Check();
 
-                AbortTest.Run(test, null, 10);
-            }
+            AbortTest.Run(test, null, 10);
         }
 
-        private Command GenerateComplexCommand(System.Threading.ManualResetEvent abortEvent, int maxPauseMS, bool insertFailure)
+        private Command GenerateComplexCommand(int maxPauseMS, bool insertFailure)
         {
-            return new AbortSignaledCommand(new ComplexCommand(maxPauseMS, insertFailure), abortEvent);
+            return new ComplexCommand(maxPauseMS, insertFailure);
         }
 
         private class ComplexCommand : SyncCommand

@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Sophos.Commands;
 
@@ -113,6 +114,50 @@ namespace CommandLibTests
             {
                 // Called back on same thread, but should work anyway
                 test.AsyncExecute(new CmdListener(CmdListener.CallbackType.Aborted, null));
+            }
+        }
+
+        [TestMethod]
+        public void JunkyMonitorTest()
+        {
+            Command.Monitors = new LinkedList<ICommandMonitor>();
+            Command.Monitors.AddFirst(new BadMonitor());
+
+            using (var cmd = new PauseCommand(TimeSpan.Zero))
+            {
+                try
+                {
+                    cmd.AsyncExecute(o => { Assert.Fail("Shouldn't be here"); }, () => { Assert.Fail("Shouldn't be here"); }, e => throw e);
+                    Assert.Fail("Shouldn't be here");
+                }
+                catch (NotImplementedException)
+                {
+                    // expected
+                    foreach (ICommandMonitor monitor in Command.Monitors)
+                    {
+                        monitor.Dispose();
+                    }
+
+                    Command.Monitors = null;
+                    cmd.AsyncExecute(o => {}, () => { Assert.Fail("Shouldn't be here"); }, e => throw e);
+                    cmd.Wait();
+                }
+            }
+        }
+
+        private class BadMonitor : ICommandMonitor
+        {
+            public void Dispose()
+            {
+            }
+
+            public void CommandStarting(ICommandInfo commandInfo)
+            {
+                throw new NotImplementedException();
+            }
+
+            public void CommandFinished(ICommandInfo commandInfo, Exception exc)
+            {
             }
         }
     }

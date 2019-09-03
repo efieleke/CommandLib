@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Threading;
 
 namespace Sophos.Commands
 {
@@ -75,19 +76,10 @@ namespace Sophos.Commands
         {
             CheckDisposed();
 
-            if (_behavior.HasFlag(Behavior.AbortUponFailure))
-            {
-                // Because we need to abort running commands in case one of them fails,
-                // and we don't want the topmost command to abort as well, we keep these commands 
-                // wrapped in topmost AbortSignaledCommand objects. These top level objects will
-                // still respond to abort requests to this ParallelCommands object.
-                _commands.Add(CreateAbortSignaledCommand(command));
-            }
-            else
-            {
-                TakeOwnership(command);
-                _commands.Add(command);
-            }
+            // If AbortUponFailure is set, we need to abort running commands in case one of them fails.
+            // In this case we don't want the topmost command to abort as well.
+            TakeOwnership(command);
+            _commands.Add(command);
         }
 
         /// <summary>Empties all commands from the collection.</summary>
@@ -98,11 +90,7 @@ namespace Sophos.Commands
 
             foreach (Command cmd in _commands)
             {
-                if (!_behavior.HasFlag(Behavior.AbortUponFailure))
-                {
-                    RelinquishOwnership(cmd);
-                }
-
+                RelinquishOwnership(cmd);
                 cmd.Dispose();
             }
 
@@ -121,30 +109,6 @@ namespace Sophos.Commands
         }
 
         /// <summary>
-        /// Implementations should override only if they contain members that must be disposed. Remember to invoke the base class implementation from within any override.
-        /// </summary>
-        /// <param name="disposing">Will be true if this was called as a direct result of the object being explicitly disposed.</param>
-        protected override void Dispose(bool disposing)
-        {
-            if (!Disposed)
-            {
-                if (disposing)
-                {
-                    if (_behavior.HasFlag(Behavior.AbortUponFailure))
-                    {
-                        foreach (Command cmd in _commands)
-                        {
-                            cmd.Wait(); // because these were top level, we must make sure they're really done
-                            cmd.Dispose();
-                        }
-                    }
-                }
-            }
-
-            base.Dispose(disposing);
-        }
-
-        /// <summary>
         /// Do not call this method from a derived class. It is called by the framework.
         /// </summary>
         /// <param name="listener">Not applicable</param>
@@ -153,8 +117,8 @@ namespace Sophos.Commands
         {
             if (_commands.Count == 0)
             {
-                var dummyCmd = new AbortSignaledCommand(new DelegateCommand<object>(o => null), this);
-                dummyCmd.AsyncExecute(listener);
+                // We must finish asynchronously. That's the contract.
+                ThreadPool.QueueUserWorkItem(o => listener.CommandSucceeded(null), null);
             }
             else
             {
@@ -184,20 +148,20 @@ namespace Sophos.Commands
 
             public void CommandAborted()
             {
-                System.Threading.Interlocked.Increment(ref _abortCount);
+                Interlocked.Increment(ref _abortCount);
                 OnCommandFinished();
             }
 
             public void CommandFailed(Exception exc)
             {
-                int priorCount = System.Threading.Interlocked.Increment(ref _failCount) - 1;
+                int priorCount = Interlocked.Increment(ref _failCount) - 1;
                 _errors[priorCount] = exc;
 
                 if (priorCount == 0 && _command._behavior.HasFlag(Behavior.AbortUponFailure))
                 {
                     foreach (Command cmd in _command._commands)
                     {
-                        cmd.Abort();
+                        _command.AbortChildCommand(cmd);
                     }
                 }
 
@@ -206,7 +170,7 @@ namespace Sophos.Commands
 
             private void OnCommandFinished()
             {
-                if (System.Threading.Interlocked.Decrement(ref _remaining) == 0)
+                if (Interlocked.Decrement(ref _remaining) == 0)
                 {
                     if (_failCount > 0)
                     {

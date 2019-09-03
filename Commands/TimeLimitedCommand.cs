@@ -54,7 +54,8 @@ namespace Sophos.Commands
             : base(owner)
         {
             _timeoutMS = timeoutMS;
-            _commandToRun = CreateAbortSignaledCommand(commandToRun);
+            _commandToRun = commandToRun;
+            TakeOwnership(_commandToRun);
         }
 
         /// <summary>
@@ -69,23 +70,6 @@ namespace Sophos.Commands
         }
 
         /// <summary>
-        /// Implementations should override only if they contain members that must be disposed. Remember to invoke the base class implementation from within any override.
-        /// </summary>
-        /// <param name="disposing">Will be true if this was called as a direct result of the object being explicitly disposed.</param>
-        protected override void Dispose(bool disposing)
-        {
-            if (!Disposed)
-            {
-                if (disposing)
-                {
-                    _commandToRun.Dispose();
-                }
-            }
-
-            base.Dispose(disposing);
-        }
-
-        /// <summary>
         /// Do not call this method from a derived class. It is called by the framework.
         /// </summary>
         /// <param name="runtimeArg">Not applicable</param>
@@ -97,7 +81,8 @@ namespace Sophos.Commands
 
             if (!finished)
             {
-                _commandToRun.AbortAndWait();
+                AbortChildCommand(_commandToRun);
+                _commandToRun.Wait();
                 throw new TimeoutException($"Timed out after waiting {_timeoutMS}ms for command '{_commandToRun.Description}' to finish");
             }
 

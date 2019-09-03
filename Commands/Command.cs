@@ -17,9 +17,9 @@ namespace Sophos.Commands
     /// (because they are <see cref="Command"/> objects), so it's possible to create deep levels of coordinated activities.
     /// </para>
     /// <para>
-    /// Commands extends the notion of a Task, in that it works both with tasks and with non-task-based asynchronous operations.
-    /// <see cref="TaskCommand{TArg, TResult}"/>, <see cref="DelegateCommand{TResult}"/>,
-    /// and <see cref="Command.RunAsTask{TResult}(object, Command)"/> offer easy integration with Tasks and delegates.
+    /// Commands works both with tasks and with non-task-based asynchronous operations. <see cref="TaskCommand{TArg, TResult}"/>,
+    /// <see cref="DelegateCommand{TResult}"/>,  and <see cref="Command.RunAsTask{TResult}(object, Command)"/> offer easy
+    /// integration with Tasks and delegates.
     /// </para>
     /// <para>
     /// <see cref="PeriodicCommand"/> repeats its action at a given interval, <see cref="ScheduledCommand"/> runs once at a specific
@@ -69,7 +69,7 @@ namespace Sophos.Commands
         long Id { get; }
 
         /// <summary>
-        /// Returns the owner, or the command that an <see cref="AbortSignaledCommand"/> is linked to (if any).
+        /// Returns the owner, or null if this <see cref="Command"/> is top level.
         /// </summary>
         ICommandInfo ParentInfo { get; }
 
@@ -81,7 +81,7 @@ namespace Sophos.Commands
         /// <summary>
         /// Counts the number of parents until the top level command is reached
         /// </summary>
-        /// <remarks>A parent is considered an owner, or the command that an <see cref="AbortSignaledCommand"/> is linked to (if any).</remarks>
+        /// <remarks>A parent is considered an owner.</remarks>
         int Depth { get; }
 
         /// <summary>A description of the Command</summary>
@@ -90,7 +90,7 @@ namespace Sophos.Commands
         /// up to the top-level parent. This is followed with this command's unique id (for example, 'SequentialCommands=>PauseCommand(23)').
         /// The description ends with details of about the current state of the command, if available.
         /// <para>
-        /// A parent is considered the owner, or the command that an <see cref="AbortSignaledCommand"/> is linked to (if any).
+        /// A parent is considered the owner.
         /// </para>
         /// </remarks>
         string Description { get; }
@@ -122,11 +122,11 @@ namespace Sophos.Commands
     /// of Command objects passed as arguments to certain methods. Such behavior is documented.
     /// </para>
     /// <para>
-    /// When developing a Command subclass, be sure to inherit from either <see cref="SyncCommand"/> (if your command is naturally
-    /// synchronous in its implementation), <see cref="TaskCommand{TResult}"/> (if your asynchronous command uses Tasks in its
-    /// implementation), or <see cref="AsyncCommand"/> if your implementation is otherwise asynchronous (that is, it
+    /// When developing a Command subclass, inherit from <see cref="T:Sophos.Commands.SyncCommand" /> (if your command is naturally
+    /// synchronous in its implementation), <see cref="T:Sophos.Commands.TaskCommand`1" /> (if your asynchronous command uses Tasks in its
+    /// implementation), or <see cref="T:Sophos.Commands.AsyncCommand" /> if your implementation is otherwise asynchronous (that is, it
     /// naturally completes on a thread that is different from the one it started on, but is not in the form of a Task).
-    /// <see cref="SyncExecuteImpl"/>).
+    /// <see cref="M:Sophos.Commands.Command.SyncExecuteImpl(System.Object)" />).
     /// </para>
     /// <para>
     /// Also, when developing a Command subclass, make sure that any member variables that are Commands are properly
@@ -136,18 +136,16 @@ namespace Sophos.Commands
     /// </para>
     /// <para>
     /// If you write a method that accepts a Command as an argument, you may wish to assume ownership of that Command.
-    /// <see cref="TakeOwnership"/> allows you to do this. The <see cref="SequentialCommands.Add"/> member of
-    /// <see cref="SequentialCommands"/> is an example of this behavior.
+    /// <see cref="M:Sophos.Commands.Command.TakeOwnership(Sophos.Commands.Command)" /> allows you to do this. The <see cref="M:Sophos.Commands.SequentialCommands.Add(Sophos.Commands.Command)" /> member of
+    /// <see cref="T:Sophos.Commands.SequentialCommands" /> is an example of this behavior.
     /// </para>
     /// <para>
     /// If you find that you need to create a Command object within the execution method of its owning command
     /// (perhaps because the way to create the Command depends upon runtime conditions), there are some things to
-    /// consider. Owned commands are not destroyed until the owner is destroyed. If the owner is executed many times
+    /// consider. Owned commands are not disposed until the owner is disposed. If the owner is executed many times
     /// before it is disposed, and you create a new child command with the same owner upon every execution, resource usage
     /// will grow unbounded. The better approach is to not assign an owner to the locally created command, but instead
-    /// have it run within the context of the launching command using <see cref="SyncExecute(object,Command)"/>.
-    /// If you instead require asynchronous execution, you can make use of <see cref="CreateAbortSignaledCommand"/>. This will
-    /// return a top-level command that responds to abort requests to the command that created it.
+    /// have it run within the context of the launching command using <see cref="M:Sophos.Commands.Command.SyncExecute(System.Object,Sophos.Commands.Command)" />.
     /// </para>
     /// <para>
     /// Generally speaking, when authoring Commands, it's best to make them as granular as possible. That makes it much easier
@@ -193,7 +191,7 @@ namespace Sophos.Commands
         public long Id { get; }
 
         /// <inheritdoc />
-        public ICommandInfo ParentInfo => Parent;
+        public ICommandInfo ParentInfo => GetParent(this);
 
         /// <inheritdoc />
         public IList<ICommandInfo> ChildInfo
@@ -213,14 +211,8 @@ namespace Sophos.Commands
             get
             {
                 CheckDisposed();
-                int result = 0;
-
-                for (Command parent = GetParent(this); parent != null; parent = GetParent(parent))
-                {
-                    ++result;
-                }
-
-                return result;
+                Command parent = GetParent(this);
+                return parent?.Depth + 1 ?? 0;
             }
         }
 
@@ -329,7 +321,7 @@ namespace Sophos.Commands
         public Task<TResult> RunAsTask<TResult>(object runtimeArg, Command owner)
         {
             CheckDisposed();
-            if (Parent != null) { throw new InvalidOperationException("Only top level commands can be run as a Task"); }
+            if (ParentInfo != null) { throw new InvalidOperationException("Only top level commands can be run as a Task"); }
             return IsNaturallySynchronous() ? RunAsSyncTask<TResult>(runtimeArg, owner) : RunAsAsyncTask<TResult>(runtimeArg, owner);
         }
 
@@ -340,6 +332,7 @@ namespace Sophos.Commands
             {
                 try
                 {
+                    CheckAbortFlag();
                     TResult result = (TResult)SyncExecute(runtimeArg, owner);
                     Dispose();
                     return result;
@@ -359,24 +352,36 @@ namespace Sophos.Commands
 
         private async Task<TResult> RunAsAsyncTask<TResult>(object runtimeArg, Command owner)
         {
-            Command cmd = owner == null ? this : new AbortSignaledCommand(this, owner);
-            TResult result = default(TResult);
-            Exception error = null;
+            owner?.TakeOwnership(this);
 
-            // ReSharper disable once AccessToDisposedClosure
-            // ReSharper disable once MethodSupportsCancellation
-            using (Task task = Task.Factory.StartNew(() => cmd.AsyncExecute(
-                 o => result = (TResult)o,
-                 () => error = new TaskCanceledException(),
-                 e => error = e,
-                 runtimeArg)))
+            try
             {
-                await task.ConfigureAwait(continueOnCapturedContext:false);
-                cmd.DoneEvent.WaitOne();
-                cmd.Dispose();
+                TResult result = default(TResult);
+                Exception error = null;
 
-                if (error != null) { throw error; }
-                return result;
+                // ReSharper disable once AccessToDisposedClosure
+                // ReSharper disable once MethodSupportsCancellation
+                using (Task task = Task.Factory.StartNew(() => AsyncExecute(
+                    o => result = (TResult) o,
+                    () => error = new TaskCanceledException(),
+                    e => error = e,
+                    runtimeArg)))
+                {
+                    await task.ConfigureAwait(continueOnCapturedContext: false);
+                    DoneEvent.WaitOne();
+                    Dispose();
+
+                    if (error != null)
+                    {
+                        throw error;
+                    }
+
+                    return result;
+                }
+            }
+            finally
+            {
+                owner?.RelinquishOwnership(this);
             }
         }
         #endregion
@@ -447,7 +452,6 @@ namespace Sophos.Commands
         {
             return BaseSyncExecute(runtimeArg, null);
         }
-
 
         /// <summary>Executes the command and does not return until it finishes.</summary>
         /// <param name="runtimeArg">
@@ -626,31 +630,11 @@ namespace Sophos.Commands
         /// <see cref="ICommandListener.CommandAborted"/> on the listener if aborted. Note that if a command is near completion, it may finish
         /// successfully (or fail) before an abort request is processed.
         /// <para>
-        /// It is an error to call Abort() on anything other than a top level command.
+        /// It is an error to call Abort() on anything other than a top level command. If implementing a Command-derived class and
+        /// you need to explicitly abort an owned command (this is unusual), your implementation may call AbortChildCommand().
         /// </para>
         /// </remarks>
-        public void Abort()
-        {
-            CheckDisposed();
-
-            try
-            {
-                // Calling Abort on a child command makes no sense, because children follow the parent in this regard.
-                if (_owner != null)
-                {
-                    throw new InvalidOperationException("Abort can only be called on top-level commands");
-                }
-
-                _cancelEvent.Set();
-                AbortImplAllDescendents(this);
-                AbortImpl();
-            }
-            catch (Exception exc)
-            {
-                AttachErrorInfo(exc);
-                throw;
-            }
-        }
+        public void Abort() => Abort(mustBeTopLevel:true);
 
         /// <summary>
         /// Waits for a running command to complete. Will return immediately if the command is not currently executing.
@@ -690,35 +674,6 @@ namespace Sophos.Commands
             return Wait(duration);
         }
 
-        /// <summary>Creates a top-level command that nevertheless responds to abort requests made of this command.</summary>
-        /// <param name="commandToLink">
-        /// The command to link with regard to abort requests. The returned <see cref="AbortSignaledCommand"/> object takes ownership
-        /// of this argument, so the passed command must not already have an owner. The passed command will be disposed when the
-        /// <see cref="AbortSignaledCommand"/> is disposed.
-        /// </param>
-        /// <returns>An AbortSignaledCommand.</returns>
-        /// <remarks>
-        /// Note that the linked command is only linked with regards to abort requests (not execution requests, or anything else),
-        /// and that the link is one-way. If <see cref="Abort"/> is called on the linked command, this Command object will not respond to that.
-        /// </remarks>
-        public AbortSignaledCommand CreateAbortSignaledCommand(Command commandToLink)
-        {
-            CheckDisposed();
-            return new AbortSignaledCommand(commandToLink, this);
-        }
-
-        /// <summary>
-        /// Returns the owner, or the command that an <see cref="AbortSignaledCommand"/> is linked to (if any).
-        /// </summary>
-        public Command Parent
-        {
-            get
-            {
-                CheckDisposed();
-                return GetParent(this);
-            }
-        }
-
         /// <summary>
         /// Signaled when an abort request has been made. The state of this handle must not be altered
         /// by anything but the framework.
@@ -733,12 +688,6 @@ namespace Sophos.Commands
         }
 
         /// <summary>
-        /// Returns whether an abort request has been made
-        /// </summary>
-        /// <returns>true, if an abort request has been made.</returns>
-        protected bool AbortRequested => AbortEvent.WaitOne(0);
-
-        /// <summary>
         /// Signaled when this command has finished execution, regardless of whether it succeeded, failed or was aborted.
         /// The state of this handle must not be altered by anything but the framework.
         /// </summary>
@@ -750,6 +699,52 @@ namespace Sophos.Commands
                 return _doneEvent;
             }
         }
+
+        /// <summary>
+        /// Resets the abort event of a command that is owned by this command. Derived implementations may need to call this
+        /// execute a child command regardless of whether its owner was aborted. This method only exists for special cases.
+        /// </summary>
+        /// <param name="childCommand">The owned command. This must be an immediate child (not a grandchild, for example).</param>
+        protected void ResetChildAbortEvent(Command childCommand)
+        {
+            if (!ReferenceEquals(childCommand.ParentInfo, this))
+            {
+                throw new ArgumentException("Only immediate children may be passed as an argument to ResetChildAbortEvent", nameof(childCommand));
+            }
+
+            childCommand._cancelEvent.Reset();
+
+            lock (childCommand._childLock)
+            {
+                foreach (Command cmd in childCommand._children)
+                {
+                    childCommand.ResetChildAbortEvent(cmd);
+                }
+            }
+        }
+
+        /// <summary>
+        /// Aborts a command that is owned by this command. Derived implementations may need to call this to halt an owned
+        /// command's execution without effecting the execution state of the owning command. Note that when a command is
+        /// aborted via normal means (via <see cref="Command.Abort()"/>), all of its owned commands are also aborted. This
+        /// method only exists for special cases.
+        /// </summary>
+        /// <param name="childCommand">The owned command. This must be an immediate child (not a grandchild, for example).</param>
+        protected void AbortChildCommand(Command childCommand)
+        {
+            if (!ReferenceEquals(childCommand.ParentInfo, this))
+            {
+                throw new ArgumentException("Only immediate children may be passed as an argument to AbortChildCommand", nameof(childCommand));
+            }
+
+            childCommand.Abort(false);
+        }
+
+        /// <summary>
+        /// Returns whether an abort request has been made
+        /// </summary>
+        /// <returns>true, if an abort request has been made.</returns>
+        protected bool AbortRequested => AbortEvent.WaitOne(0);
 
         /// <summary>Executes the command and does not return until it finishes.</summary>
         /// <param name="runtimeArg">The implementation of the command defines what this value should be (if it's interested).</param>
@@ -795,7 +790,7 @@ namespace Sophos.Commands
         /// <param name="owner">
         /// Specify null to indicate a top-level command. Otherwise, this command will be owned by 'owner'. Owned commands respond to
         /// abort requests made of their owner. Also, owned commands are disposed of when the owner is disposed.
-        /// <para>Note that it is also possible to set the owner at a later time via <see cref="Command.TakeOwnership"/></para>
+        /// <para>Note that it is also possible to set the owner at a later time via <see cref="Command.TakeOwnership(Command, bool)"/></para>
         /// </param>
         protected Command(Command owner)
         {
@@ -803,7 +798,10 @@ namespace Sophos.Commands
             Id = Interlocked.Increment(ref _nextId);
         }
 
-        /// <summary>Make this command the owner of the command passed as an argument.</summary>
+        /// <summary>
+        /// Make this command the owner of the command passed as an argument. An owner is responsible
+        /// for disposing its owned commands. An owned command honors abort requests made of its parent.
+        /// </summary>
         /// <param name="orphan">
         /// The command to be owned. Only un-owned commands can take a new owner. Allowing
         /// other types of owner transfer would invite misuse and the bad behavior that results
@@ -811,27 +809,12 @@ namespace Sophos.Commands
         /// </param>
         protected void TakeOwnership(Command orphan)
         {
-            if (orphan.MustBeTopLevel())
-            {
-                throw new InvalidOperationException($"{orphan.GetType().FullName} objects may only be top level");
-            }
-
             lock (_childLock)
             {
                 if (orphan._owner != null)
                 {
                     throw new InvalidOperationException("Attempt to assume ownership of a command that already has an owner.");
                 }
-
-                // Only top level owners have the abort event. All of its children share the
-                // same single event. Besides saving a bit on resources, it really helps make
-                // synchronization easier around aborts.
-
-                // Get rid of the extraneous abort event if one has been created.
-                orphan._cancelEvent?.Dispose();
-
-                // Make the orphan and its children share this same abort event.
-                SetAbortEvent(orphan);
 
                 // This creates a circular reference, which would be a problem in a language
                 // like C++, but garbage collection does not use reference counting, so we
@@ -857,12 +840,6 @@ namespace Sophos.Commands
                 }
 
                 command._owner = null;
-                command._cancelEvent = new ManualResetEvent(false);
-
-                foreach (Command child in command._children)
-                {
-                    command.SetAbortEvent(child);
-                }
             }
         }
 
@@ -890,9 +867,7 @@ namespace Sophos.Commands
                 {
                     if (_owner != null)
                     {
-                        System.Diagnostics.Debug.Print("Dispose() called for an owned Command. Dispose() should only be called for top-level commands. " +
-                            "If you need a temporary Command that responds to abort requests of a different Command, consider using an AbortSignaledCommand.");
-
+                        System.Diagnostics.Debug.Print("Dispose() called for an owned Command. Dispose() should only be called for top-level commands.");
                         return;
                     }
 
@@ -903,13 +878,13 @@ namespace Sophos.Commands
                     // ReSharper disable once InconsistentlySynchronizedField
                     foreach (Command child in _children)
                     {
-                        // Avoid the above exception, and avoid doubly disposing abortEvent (because only the parent has the "real" copy)
+                        // Avoid the above exception
                         child._owner = null;
-                        child._cancelEvent = null;
+                        child._cancelEvent.Dispose();
                         child.Dispose();
                     }
 
-                    _cancelEvent?.Dispose();
+                    _cancelEvent.Dispose();
                     _doneEvent.Dispose();
                 }
 
@@ -937,39 +912,9 @@ namespace Sophos.Commands
             Dispose(false);
         }
 
-        /// <summary>
-        /// Implementations should override to return false if their Command class must never be owned by another Command.
-        /// This is expected to be a rare restriction. Within CommandLib, only <see cref="AbortSignaledCommand"/> has this restriction.
-        /// </summary>
-        /// <returns>true if the Command subclass must be top level. Default is false.</returns>
-        protected virtual bool MustBeTopLevel()
-        {
-            return false;
-        }
-
         private static Command GetParent(Command command)
         {
-            if (command._owner != null)
-            {
-                return command._owner;
-            }
-
-            if (command is AbortSignaledCommand abortSignaledCommand)
-            {
-                return abortSignaledCommand.CommandToWatch;
-            }
-
-            return null;
-        }
-
-        private void SetAbortEvent(Command target)
-        {
-            target._cancelEvent = _cancelEvent;
-
-            foreach (Command child in target._children)
-            {
-                target.SetAbortEvent(child);
-            }
+            return command._owner;
         }
 
         private static void AbortImplAllDescendents(Command command)
@@ -978,40 +923,72 @@ namespace Sophos.Commands
             {
                 foreach (Command child in command._children)
                 {
+                    child._cancelEvent.Set();
                     AbortImplAllDescendents(child);
                     child.AbortImpl();
                 }
             }
         }
 
+        private static void ResetCancelEvents(Command command)
+        {
+            command._cancelEvent.Reset();
+
+            lock (command._childLock)
+            {
+                foreach (Command child in command._children)
+                {
+                    ResetCancelEvents(child);
+                }
+            }
+        }
+
+        private void Abort(bool mustBeTopLevel)
+        {
+            CheckDisposed();
+
+            try
+            {
+                if (mustBeTopLevel && _owner != null)
+                {
+                    throw new InvalidOperationException("Abort may only be called on a top level command.");
+                }
+
+                _cancelEvent.Set();
+                AbortImplAllDescendents(this);
+                AbortImpl();
+            }
+            catch (Exception exc)
+            {
+                AttachErrorInfo(exc);
+                throw;
+            }
+        }
+
         private object BaseSyncExecute(object runtimeArg, Command owner)
         {
+            CheckDisposed();
+            PreExecute();
             owner?.TakeOwnership(this);
 
             try
             {
-                CheckDisposed();
-                PreExecute();
-
-                try
+                if (Monitors != null)
                 {
-                    if (Monitors != null)
+                    foreach (ICommandMonitor monitor in Monitors)
                     {
-                        foreach (ICommandMonitor monitor in Monitors)
-                        {
-                            monitor.CommandStarting(this);
-                        }
+                        monitor.CommandStarting(this);
                     }
+                }
 
-                    object result = SyncExecuteImpl(runtimeArg);
-                    DecrementExecuting(null, null, null, null);
-                    return result;
-                }
-                catch (Exception exc)
-                {
-                    DecrementExecuting(null, null, exc, null);
-                    throw;
-                }
+                object result = SyncExecuteImpl(runtimeArg);
+                DecrementExecuting(null, null, null, null);
+                return result;
+            }
+            catch (Exception exc)
+            {
+                DecrementExecuting(null, null, exc, null);
+                throw;
             }
             finally
             {
@@ -1037,10 +1014,11 @@ namespace Sophos.Commands
             _doneEvent.WaitOne();
             _doneEvent.Reset();
 
-            // Reset the abort event if this is a top-level command.
+            // Only reset the cancel events when the top level command is executed. Otherwise, child commands that are eventually
+            // run as part of the top level command could have their cancel events reset after the top level operation was aborted.
             if (_owner == null)
             {
-                _cancelEvent.Reset();
+                ResetCancelEvents(this);
             }
 
             Interlocked.Increment(ref _executing);

@@ -22,6 +22,9 @@ namespace CommandLibTests
             using (var cmd = new FinallyCommand(new PauseCommand(TimeSpan.FromDays(1)), cleanupCmd, false))
             {
                 cmd.AsyncExecute(o => { }, () => { }, e => { });
+
+                // If we abort super quick, the framework will raise the abort exception before the FinallyCommand even startsSystem.Threading.Thread.Sleep(100);
+                System.Threading.Thread.Sleep(100);
                 cmd.AbortAndWait();
                 Assert.IsFalse(cleanupCmd.Executed);
             }
@@ -31,6 +34,9 @@ namespace CommandLibTests
             using (var cmd = new FinallyCommand(new DelayCommand(TimeSpan.FromDays(1)), cleanupCmd, false))
             {
                 cmd.AsyncExecute(o => { }, () => { }, e => { });
+
+                // If we abort super quick, the framework will raise the abort exception before the FinallyCommand even startsSystem.Threading.Thread.Sleep(100);
+                System.Threading.Thread.Sleep(100);
                 cmd.AbortAndWait();
                 Assert.IsFalse(cleanupCmd.Executed);
             }
@@ -40,15 +46,21 @@ namespace CommandLibTests
             using (var cmd = new FinallyCommand(new PauseCommand(TimeSpan.FromDays(1)), cleanupCmd, true))
             {
                 cmd.AsyncExecute(o => { }, () => { }, e => { });
+
+                // If we abort super quick, the framework will raise the abort exception before the FinallyCommand even startsSystem.Threading.Thread.Sleep(100);
+                System.Threading.Thread.Sleep(100);
                 cmd.AbortAndWait();
                 Assert.IsTrue(cleanupCmd.Executed);
             }
 
             cleanupCmd = new CleanupCommand(CleanupCommand.Behavior.Succeed);
 
-            using (var cmd = new FinallyCommand(new PauseCommand(TimeSpan.FromDays(1)), cleanupCmd, true))
+            using (var cmd = new FinallyCommand(new DelayCommand(TimeSpan.FromDays(1)), cleanupCmd, true))
             {
                 cmd.AsyncExecute(o => { }, () => { }, e => { });
+
+                // If we abort super quick, the framework will raise the abort exception before the FinallyCommand even startsSystem.Threading.Thread.Sleep(100);
+                System.Threading.Thread.Sleep(100);
                 cmd.AbortAndWait();
                 Assert.IsTrue(cleanupCmd.Executed);
             }
@@ -81,9 +93,11 @@ namespace CommandLibTests
             public CleanupCommand(Behavior behavior) : base(null)
             {
                 _behavior = behavior;
+                _nestedCommands = new SequentialCommands(this);
+                _nestedCommands.Add(new PauseCommand(TimeSpan.Zero));
             }
 
-            internal bool Executed { get; set; }
+            internal bool Executed { get; private set; }
 
             protected override object SyncExecuteImpl(object runtimeArg)
             {
@@ -93,6 +107,7 @@ namespace CommandLibTests
                 switch (_behavior)
                 {
                     case Behavior.Succeed:
+                        _nestedCommands.SyncExecute();
                         return true;
                     case Behavior.Abort:
                         throw new CommandAbortedException();
@@ -105,6 +120,7 @@ namespace CommandLibTests
             }
 
             private readonly Behavior _behavior;
+            private readonly SequentialCommands _nestedCommands;
         }
     }
 }

@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Net.Http;
+using System.Runtime.Serialization;
 using System.Security.Permissions;
 using System.Threading;
 using System.Threading.Tasks;
@@ -70,6 +71,8 @@ namespace Sophos.Commands
             protected HttpStatusException(System.Runtime.Serialization.SerializationInfo info, System.Runtime.Serialization.StreamingContext context)
                 : base(info, context)
             {
+                StatusCode = (System.Net.HttpStatusCode)info.GetValue("StatusCode", typeof(System.Net.HttpStatusCode));
+                ResponseBody = info.GetString("ResponseBody");
             }
 
             /// <summary>

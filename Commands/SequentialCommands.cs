@@ -148,13 +148,13 @@ namespace Sophos.Commands
             if (node == null)
             {
                 // No commands in the collection. We must still notify the caller on a separate thread.
-                _asyncWrapperCmd = new DelegateCommand<object>(o => o, this);
-                _asyncWrapperCmd.AsyncExecute(listener);
-                return;
+                ThreadPool.QueueUserWorkItem(o => listener.CommandSucceeded(null), null);
             }
-
-            // We execute the first command asynchronously regardless of whether it is naturally asynchronous, because this call must not block.
-            DoAsyncExecute(listener, node);
+            else
+            {
+                // We execute the first command asynchronously regardless of whether it is naturally asynchronous, because this call must not block.
+                DoAsyncExecute(listener, node);
+            }
         }
 
         private void DoAsyncExecute(ICommandListener listener, LinkedListNode<Command> node)
@@ -222,6 +222,5 @@ namespace Sophos.Commands
 
         private readonly LinkedList<Command> _commands = new LinkedList<Command>();
         private readonly Listener _listener = new Listener();
-        private volatile DelegateCommand<object> _asyncWrapperCmd;
     }
 }

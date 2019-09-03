@@ -84,17 +84,17 @@ namespace CommandLibTests
                 : ParallelCommands.Behavior.AggregateErrors;
 
             var parallelCmds = new ParallelCommands(behavior);
-            parallelCmds.Add(new PauseCommand(TimeSpan.FromMilliseconds(0)));
+            parallelCmds.Add(new PauseCommand(TimeSpan.FromMilliseconds(10)));
             parallelCmds.Add(new FailingCommand());
             FailTest.Run<AggregateException>(parallelCmds, null);
 
             parallelCmds = new ParallelCommands(behavior);
             parallelCmds.Add(new FailingCommand());
-            parallelCmds.Add(new PauseCommand(TimeSpan.FromMilliseconds(0)));
+            parallelCmds.Add(new PauseCommand(TimeSpan.FromMilliseconds(10)));
             FailTest.Run<AggregateException>(parallelCmds, null);
 
             parallelCmds = new ParallelCommands(behavior);
-            parallelCmds.Add(new PauseCommand(TimeSpan.FromMilliseconds(0)));
+            parallelCmds.Add(new PauseCommand(TimeSpan.FromMilliseconds(10)));
             parallelCmds.Add(new FailingCommand());
             FailTest.Run<AggregateException>(parallelCmds, null);
         }

@@ -55,6 +55,8 @@ namespace Sophos.Commands
 
             try
             {
+                // Between when the command was launched and when we get here, Abort() may have been called.
+                threadArg.Command.CheckAbortFlag();
                 object result = threadArg.Command.SyncExecuteImpl(threadArg.RuntimeArg);
                 threadArg.Listener.CommandSucceeded(result);
             }

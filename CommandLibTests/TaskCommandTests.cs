@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
@@ -24,6 +25,26 @@ namespace CommandLibTests
             using (Task<int> task = cmd.RunAsTask<int>(5))
             {
                 Assert.AreEqual(5, task.Result);
+            }
+
+            using (Task<object> task = new PauseCommand(TimeSpan.Zero).RunAsTask<object>())
+            {
+                Assert.IsNull(task.Result);
+            }
+
+            using (var cmdSequence = new SequentialCommands())
+            {
+                cmdSequence.Add(new PauseCommand(TimeSpan.Zero));
+
+                try
+                {
+                    cmdSequence.Commands.First().RunAsTask<object>();
+                    Assert.Fail("Did not expect to get here");
+                }
+                catch (InvalidOperationException)
+                {
+                    // expected
+                }
             }
         }
 
@@ -96,6 +117,7 @@ namespace CommandLibTests
         {
             HappyPathTest.Run(TaskCommand<object, int>.Create(c => AddOneTask(1, null)), 0, 2);
             HappyPathTest.Run(TaskCommand<object, int>.Create(c => AddOneTask(1, null)), 0, 2);
+            HappyPathTest.Run(TaskCommand<object>.Create(c => AddOneTask(1, null)), 0, true);
         }
 
         [TestMethod]
@@ -124,13 +146,13 @@ namespace CommandLibTests
             }
 
             return new Task<int>(() =>
-            {
-                cancellationToken.Value.ThrowIfCancellationRequested();
-                Thread.Sleep(5);
-                cancellationToken.Value.ThrowIfCancellationRequested();
-                return input + 1;
-            },
-            cancellationToken.Value);
+                {
+                    cancellationToken.Value.ThrowIfCancellationRequested();
+                    Thread.Sleep(5);
+                    cancellationToken.Value.ThrowIfCancellationRequested();
+                    return input + 1;
+                },
+                cancellationToken.Value);
         }
 
         private static Task<int> FailTask(bool failImmediately)
