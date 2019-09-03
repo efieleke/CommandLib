@@ -59,6 +59,7 @@
     <Compile Include="..\SharedAssemblyInfo.cs">
       <Link>Properties\SharedAssemblyInfo.cs</Link>
     </Compile>
+    <Compile Include="AbortSignaledCommandTests.cs" />
     <Compile Include="AddCommand.cs" />
     <Compile Include="BadAsyncCommandTests.cs" />
     <Compile Include="BadlyBehavingCommandTests.cs" />

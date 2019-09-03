@@ -6,7 +6,7 @@
     <OutputType>Library</OutputType>
     <StartupObject />
     <PackageId>Sophos.Commands</PackageId>
-    <Version>3.0.0</Version>
+    <Version>3.0.1</Version>
     <Authors>Eric Fieleke</Authors>
     <Title>Commands Library, for coordination of synchronous and asynchronous actions</Title>
     <AssemblyName>Sophos.Commands</AssemblyName>

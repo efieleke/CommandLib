@@ -4,6 +4,55 @@
         <name>Sophos.Commands</name>
     </assembly>
     <members>
+        <member name="T:Sophos.Commands.AbortSignaledCommand">
+            <summary>
+            A <see cref="T:Sophos.Commands.Command"/> wrapper that, in addition to responding to normal <see cref="M:Sophos.Commands.Command.Abort"/> requests, also aborts in response to either
+            1) a request to abort a different, specified <see cref="T:Sophos.Commands.Command"/> instance, or 2) the signaling of a specified wait handle
+            (typically an event). 
+            </summary>
+            <remarks>
+            <para>
+            The 'runtimeArg' value to pass to <see cref="M:Sophos.Commands.Command.SyncExecute(System.Object)"/> and <see cref="M:Sophos.Commands.Command.AsyncExecute(Sophos.Commands.ICommandListener,System.Object)"/>
+            should be of the same type required as the underlying command to run.
+            </para>
+            <para>
+            This command returns from synchronous execution the same value that the underlying command to run returns, and the
+            'result' parameter of <see cref="M:Sophos.Commands.ICommandListener.CommandSucceeded(System.Object)"/> will be set in similar fashion.
+            </para>
+            </remarks>
+        </member>
+        <member name="M:Sophos.Commands.AbortSignaledCommand.#ctor(Sophos.Commands.Command,System.Threading.WaitHandle)">
+            <summary>
+            Constructs an AbortSignaledCommand object as a top-level <see cref="T:Sophos.Commands.Command"/>
+            </summary>
+            <param name="commandToRun">
+            The command to run. This object takes ownership of the command, so the passed command must not already have an owner.
+            The passed command will be disposed when this AbortSignaledCommand object is disposed.
+            </param>
+            <param name="abortEvent">
+            When signaled, the command to run will be aborted. This object does not take ownership of this parameter.
+            </param>
+        </member>
+        <member name="M:Sophos.Commands.AbortSignaledCommand.#ctor(Sophos.Commands.Command,Sophos.Commands.Command)">
+            <summary>
+            Constructs an AbortSignaledCommand object as a top-level <see cref="T:Sophos.Commands.Command"/>
+            </summary>
+            <param name="commandToRun">
+            The command to run. This object takes ownership of the command, so the passed command must not already have an owner.
+            The passed command will be disposed when this AbortSignaledCommand object is disposed.
+            </param>
+            <param name="commandToWatch">
+            When this 'commandToWatch' is aborted, the command to run will also be aborted.
+            </param>
+        </member>
+        <member name="P:Sophos.Commands.AbortSignaledCommand.CommandToWatch">
+            <summary>
+            This is for diagnostic purposes. Will be null if this command is not linked to another command.
+            </summary>
+        </member>
+        <member name="M:Sophos.Commands.AbortSignaledCommand.SyncExecuteImpl(System.Object)">
+            <inheritdoc />
+        </member>
         <member name="T:Sophos.Commands.AsyncCommand">
             <summary>
             Represents a <see cref="T:Sophos.Commands.Command"/> which is most naturally asynchronous in its implementation. If you inherit from this class, you
