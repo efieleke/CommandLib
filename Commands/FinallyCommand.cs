@@ -108,6 +108,7 @@ namespace Sophos.Commands
             {
                 try
                 {
+                    Exception = null;
                     return _commandToRun.SyncExecute(runtimeArg);
                 }
                 catch (CommandAbortedException e)
