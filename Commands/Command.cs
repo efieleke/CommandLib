@@ -790,7 +790,7 @@ namespace Sophos.Commands
         /// <param name="owner">
         /// Specify null to indicate a top-level command. Otherwise, this command will be owned by 'owner'. Owned commands respond to
         /// abort requests made of their owner. Also, owned commands are disposed of when the owner is disposed.
-        /// <para>Note that it is also possible to set the owner at a later time via <see cref="Command.TakeOwnership(Command, bool)"/></para>
+        /// <para>Note that it is also possible to set the owner at a later time via <see cref="Command.TakeOwnership"/></para>
         /// </param>
         protected Command(Command owner)
         {

@@ -72,5 +72,72 @@ namespace CommandLibTests
                 }
             }
         }
+
+        [TestMethod]
+        public void TimeLimitedCommand_TestAbortReset()
+        {
+            var timeLimitedCmd = new TimeLimitedCommand(new PauseCommand(TimeSpan.FromDays(1)), 10);
+            int count = 0;
+
+            using (var recurringCmd = new RecurringCommand(
+                new TimeoutEatingCmd(timeLimitedCmd),
+                (RecurringCommand cmd, out DateTime t) =>
+                {
+                    t = DateTime.MinValue;
+                    return true;
+                },
+                (RecurringCommand cmd, ref DateTime t) =>
+                {
+                    t = DateTime.MinValue;
+                    return ++count < 3;
+                }))
+            {
+                recurringCmd.SyncExecute();
+            }
+        }
+
+        private class TimeoutEatingCmd : Command
+        {
+            public TimeoutEatingCmd(Command commandToRun) : base(null)
+            {
+                _commandToRun = commandToRun;
+                TakeOwnership(_commandToRun);
+            }
+
+            public override bool IsNaturallySynchronous() => _commandToRun.IsNaturallySynchronous();
+
+            protected override object SyncExecuteImpl(object runtimeArg)
+            {
+                try
+                {
+                    _commandToRun.SyncExecute(runtimeArg);
+                }
+                catch (TimeoutException)
+                {
+                }
+
+                return null;
+            }
+
+            protected override void AsyncExecuteImpl(ICommandListener listener, object runtimeArg)
+            {
+                _commandToRun.AsyncExecute(
+                    listener.CommandSucceeded,
+                    listener.CommandAborted,
+                    e =>
+                    {
+                        if (e is TimeoutException)
+                        {
+                            listener.CommandSucceeded(null);
+                        }
+                        else
+                        {
+                            listener.CommandFailed(e);
+                        }
+                    });
+            }
+
+            private readonly Command _commandToRun;
+        }
     }
 }

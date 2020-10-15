@@ -83,6 +83,7 @@ namespace Sophos.Commands
             {
                 AbortChildCommand(_commandToRun);
                 _commandToRun.Wait();
+                ResetChildAbortEvent(_commandToRun);
                 throw new TimeoutException($"Timed out after waiting {_timeoutMS}ms for command '{_commandToRun.Description}' to finish");
             }
 

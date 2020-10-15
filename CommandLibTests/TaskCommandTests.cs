@@ -140,7 +140,7 @@ namespace CommandLibTests
             {
                 return new Task<int>(() =>
                 {
-                    Thread.Sleep(5);
+                    Thread.Sleep(100);
                     return input + 1;
                 });
             }
@@ -148,7 +148,7 @@ namespace CommandLibTests
             return new Task<int>(() =>
                 {
                     cancellationToken.Value.ThrowIfCancellationRequested();
-                    Thread.Sleep(5);
+                    Thread.Sleep(100);
                     cancellationToken.Value.ThrowIfCancellationRequested();
                     return input + 1;
                 },
