@@ -883,6 +883,7 @@ namespace Sophos.Commands
 
                     _cancelEvent.Dispose();
                     _doneEvent.Dispose();
+                    _abortThreadId.Dispose();
                 }
 
                 Disposed = true;
@@ -953,14 +954,14 @@ namespace Sophos.Commands
 
                 try
                 {
-                    _abortThreadId = Thread.CurrentThread.ManagedThreadId;
+                    _abortThreadId.Value = Thread.CurrentThread.ManagedThreadId;
                     _cancelEvent.Set();
                     AbortImplAllDescendents(this);
                     AbortImpl();
                 }
                 finally
                 {
-                    _abortThreadId = null;
+                    _abortThreadId.Value = null;
                 }
             }
             catch (Exception exc)
@@ -1034,7 +1035,7 @@ namespace Sophos.Commands
             object result,
             Exception exc,
             int? asyncExeThreadId,
-            int? abortThreadId)
+            ThreadLocal<int?> abortThreadId)
         {
             int refCount = Interlocked.Decrement(ref _executing);
 
@@ -1047,7 +1048,7 @@ namespace Sophos.Commands
             if (refCount == 0)
             {
                 if ((asyncExeThreadId.HasValue && Thread.CurrentThread.ManagedThreadId == asyncExeThreadId.Value) ||
-                    (abortThreadId.HasValue && Thread.CurrentThread.ManagedThreadId == abortThreadId.Value))
+                    (abortThreadId != null && abortThreadId.IsValueCreated && abortThreadId.Value != null && Thread.CurrentThread.ManagedThreadId == abortThreadId.Value.Value))
                 {
                     // Not ideal usage, but permitted.
                     // We must call the listener back asynchronously. That's the contract.
@@ -1151,7 +1152,7 @@ namespace Sophos.Commands
         private volatile Command _owner;
         private readonly HashSet<Command> _children = new HashSet<Command>();
         private volatile int _executing;
-        private int? _abortThreadId;
+        private readonly ThreadLocal<int?> _abortThreadId = new ThreadLocal<int?>();
         private readonly ManualResetEvent _doneEvent = new ManualResetEvent(true);
         private volatile ManualResetEvent _cancelEvent = new ManualResetEvent(false);
         private readonly object _childLock = new object();
