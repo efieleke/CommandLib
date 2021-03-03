@@ -9,7 +9,7 @@ namespace Sophos.Commands
     /// Concrete classes must implement the abstract method that creates the Task. If your implementation is
     /// naturally asynchronous but does not make use of Tasks (i.e. the Task class), inherit directly from
     /// AsyncCommand instead. If your command is actually synchronous in nature, in that its execution finishes
-    /// omn the same thread it started on, inherit directly from SyncCommand instead (otherwise asynchronous
+    /// on the same thread it started on, inherit directly from SyncCommand instead (otherwise asynchronous
     /// execution will block, because it is expected that TaskCommand implementations are asynchronous).
     /// </summary>
     /// <remarks>

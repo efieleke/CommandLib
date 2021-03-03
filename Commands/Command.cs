@@ -328,7 +328,7 @@ namespace Sophos.Commands
         private Task<TResult> RunAsSyncTask<TResult>(object runtimeArg, Command owner)
         {
             // ReSharper disable once MethodSupportsCancellation
-            return Task.Factory.StartNew(() =>
+            return Task.Run(() =>
             {
                 try
                 {
@@ -359,13 +359,10 @@ namespace Sophos.Commands
                 TResult result = default(TResult);
                 Exception error = null;
 
-                // ReSharper disable once AccessToDisposedClosure
-                // ReSharper disable once MethodSupportsCancellation
-                using (Task task = Task.Factory.StartNew(() => AsyncExecute(
-                    o => result = (TResult) o,
-                    () => error = new TaskCanceledException(),
-                    e => error = e,
-                    runtimeArg)))
+                using (Task task = Task.Run(() =>
+                {
+                    AsyncExecute(o => result = (TResult) o, () => error = new TaskCanceledException(), e => error = e, runtimeArg);
+                }))
                 {
                     await task.ConfigureAwait(continueOnCapturedContext: false);
                     DoneEvent.WaitOne();
@@ -618,7 +615,7 @@ namespace Sophos.Commands
             }
             catch (Exception exc)
             {
-                DecrementExecuting(null, null, exc, null);
+                DecrementExecuting(null, null, exc, null, null);
                 throw;
             }
         }
@@ -954,9 +951,17 @@ namespace Sophos.Commands
                     throw new InvalidOperationException("Abort may only be called on a top level command.");
                 }
 
-                _cancelEvent.Set();
-                AbortImplAllDescendents(this);
-                AbortImpl();
+                try
+                {
+                    _abortThreadId = Thread.CurrentThread.ManagedThreadId;
+                    _cancelEvent.Set();
+                    AbortImplAllDescendents(this);
+                    AbortImpl();
+                }
+                finally
+                {
+                    _abortThreadId = null;
+                }
             }
             catch (Exception exc)
             {
@@ -982,12 +987,12 @@ namespace Sophos.Commands
                 }
 
                 object result = SyncExecuteImpl(runtimeArg);
-                DecrementExecuting(null, null, null, null);
+                DecrementExecuting(null, null, null, null, null);
                 return result;
             }
             catch (Exception exc)
             {
-                DecrementExecuting(null, null, exc, null);
+                DecrementExecuting(null, null, exc, null, null);
                 throw;
             }
             finally
@@ -1024,7 +1029,12 @@ namespace Sophos.Commands
             Interlocked.Increment(ref _executing);
         }
 
-        private void DecrementExecuting(ICommandListener listener, object result, Exception exc, int? asyncExeThreadId)
+        private void DecrementExecuting(
+            ICommandListener listener,
+            object result,
+            Exception exc,
+            int? asyncExeThreadId,
+            int? abortThreadId)
         {
             int refCount = Interlocked.Decrement(ref _executing);
 
@@ -1036,7 +1046,8 @@ namespace Sophos.Commands
 
             if (refCount == 0)
             {
-                if (asyncExeThreadId.HasValue && Thread.CurrentThread.ManagedThreadId == asyncExeThreadId.Value)
+                if ((asyncExeThreadId.HasValue && Thread.CurrentThread.ManagedThreadId == asyncExeThreadId.Value) ||
+                    (abortThreadId.HasValue && Thread.CurrentThread.ManagedThreadId == abortThreadId.Value))
                 {
                     // Not ideal usage, but permitted.
                     // We must call the listener back asynchronously. That's the contract.
@@ -1119,17 +1130,17 @@ namespace Sophos.Commands
 
             public void CommandSucceeded(object result)
             {
-                _command.DecrementExecuting(_listener, result, null, _asyncExeThreadId);
+                _command.DecrementExecuting(_listener, result, null, _asyncExeThreadId, _command._abortThreadId);
             }
 
             public void CommandAborted()
             {
-                _command.DecrementExecuting(_listener, null, new CommandAbortedException(), _asyncExeThreadId);
+                _command.DecrementExecuting(_listener, null, new CommandAbortedException(), _asyncExeThreadId, _command._abortThreadId);
             }
 
             public void CommandFailed(Exception exc)
             {
-                _command.DecrementExecuting(_listener, null, exc, _asyncExeThreadId);
+                _command.DecrementExecuting(_listener, null, exc, _asyncExeThreadId, _command._abortThreadId);
             }
 
             private readonly Command _command;
@@ -1140,6 +1151,7 @@ namespace Sophos.Commands
         private volatile Command _owner;
         private readonly HashSet<Command> _children = new HashSet<Command>();
         private volatile int _executing;
+        private int? _abortThreadId;
         private readonly ManualResetEvent _doneEvent = new ManualResetEvent(true);
         private volatile ManualResetEvent _cancelEvent = new ManualResetEvent(false);
         private readonly object _childLock = new object();
