@@ -4,3 +4,4 @@ TestResults/
 .vs/
 *.suo
 *.psess
+*.user

@@ -656,7 +656,7 @@ namespace Sophos.Commands
         }
 
         /// <summary>
-        /// The exact same effect as a call to <see cref="Abort"/> immediately followed by a call to <see cref="Wait()"/>
+        /// The exact same effect as a call to <see cref="Abort()"/> immediately followed by a call to <see cref="Wait()"/>
         /// </summary>
         public void AbortAndWait()
         {
@@ -664,7 +664,7 @@ namespace Sophos.Commands
         }
 
         /// <summary>
-        /// The exact same effect as a call to <see cref="Abort"/> immediately followed by a call to <see cref="Wait(TimeSpan)"/>
+        /// The exact same effect as a call to <see cref="Abort()"/> immediately followed by a call to <see cref="Wait(TimeSpan)"/>
         /// </summary>
         /// <param name="duration">The maximum amount of time to wait</param>
         /// <returns>true if the the command completed within 'duration', false otherwise</returns>
