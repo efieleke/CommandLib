@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Threading;
 
 namespace Sophos.Commands
 {
@@ -107,30 +108,33 @@ namespace Sophos.Commands
         /// </remarks>
         public void Dispatch(Command command)
         {
-            if (command.ParentInfo != null)
+            using (new ReentrancyGuard(_guarded))
             {
-                throw new ArgumentException("Only top-level commands can be dispatched");
-            }
-
-            lock (_criticalSection)
-            {
-                _nothingToDoEvent.Reset();
-
-                foreach (Command cmd in _finishedCommands)
+                if (command.ParentInfo != null)
                 {
-                    cmd.Dispose();
+                    throw new ArgumentException("Only top-level commands can be dispatched");
                 }
 
-                _finishedCommands.Clear();
+                lock (_criticalSection)
+                {
+                    _nothingToDoEvent.Reset();
 
-                if (_runningCommands.Count == _maxConcurrent)
-                {
-                    _commandBacklog.Enqueue(command);
-                }
-                else
-                {
-                    _runningCommands.Add(command);
-                    command.AsyncExecute(new Listener(this, command));
+                    foreach (Command cmd in _finishedCommands)
+                    {
+                        cmd.Dispose();
+                    }
+
+                    _finishedCommands.Clear();
+
+                    if (_runningCommands.Count == _maxConcurrent)
+                    {
+                        _commandBacklog.Enqueue(command);
+                    }
+                    else
+                    {
+                        _runningCommands.Add(command);
+                        command.AsyncExecute(new Listener(this, command));
+                    }
                 }
             }
         }
@@ -140,18 +144,21 @@ namespace Sophos.Commands
         /// </summary>
         public void Abort()
         {
-            lock(_criticalSection)
+            using (new ReentrancyGuard(_guarded))
             {
-                foreach(Command cmd in _commandBacklog)
+                lock (_criticalSection)
                 {
-                    cmd.Dispose();
-                }
+                    foreach (Command cmd in _commandBacklog)
+                    {
+                        cmd.Dispose();
+                    }
 
-                _commandBacklog.Clear();
+                    _commandBacklog.Clear();
 
-                foreach(Command cmd in _runningCommands)
-                {
-                    cmd.Abort();
+                    foreach (Command cmd in _runningCommands)
+                    {
+                        cmd.Abort();
+                    }
                 }
             }
         }
@@ -216,38 +223,41 @@ namespace Sophos.Commands
 
         private void OnCommandFinished(Command command, object result, Exception exc)
         {
-	        CommandFinishedEvent?.Invoke(this, new CommandFinishedEventArgs(command, result, exc));
-            bool shouldReleaseLock = false;
-
-            try
+            using (new ReentrancyGuard(_guarded))
             {
-                System.Threading.Monitor.Enter(_criticalSection, ref shouldReleaseLock);
-                _runningCommands.Remove(command);
+                CommandFinishedEvent?.Invoke(this, new CommandFinishedEventArgs(command, result, exc));
+                bool shouldReleaseLock = false;
 
-                // We cannot dispose of this command here, because it's not quite done executing yet.
-                _finishedCommands.AddLast(command);
-
-                if (_commandBacklog.Count == 0)
+                try
                 {
-                    if (_runningCommands.Count == 0)
+                    Monitor.Enter(_criticalSection, ref shouldReleaseLock);
+                    _runningCommands.Remove(command);
+
+                    // We cannot dispose of this command here, because it's not quite done executing yet.
+                    _finishedCommands.AddLast(command);
+
+                    if (_commandBacklog.Count == 0)
                     {
-                        System.Threading.Monitor.Exit(_criticalSection);
-                        shouldReleaseLock = false;
-                        _nothingToDoEvent.Set();
+                        if (_runningCommands.Count == 0)
+                        {
+                            Monitor.Exit(_criticalSection);
+                            shouldReleaseLock = false;
+                            _nothingToDoEvent.Set();
+                        }
+                    }
+                    else
+                    {
+                        Command nextInLine = _commandBacklog.Dequeue();
+                        _runningCommands.Add(nextInLine);
+                        nextInLine.AsyncExecute(new Listener(this, nextInLine));
                     }
                 }
-                else
+                finally
                 {
-                    Command nextInLine = _commandBacklog.Dequeue();
-                    _runningCommands.Add(nextInLine);
-                    nextInLine.AsyncExecute(new Listener(this, nextInLine));
-                }
-            }
-            finally
-            {
-                if (shouldReleaseLock)
-                {
-                    System.Threading.Monitor.Exit(_criticalSection);
+                    if (shouldReleaseLock)
+                    {
+                        Monitor.Exit(_criticalSection);
+                    }
                 }
             }
         }
@@ -279,12 +289,35 @@ namespace Sophos.Commands
             private readonly CommandDispatcher _dispatcher;
         }
 
+        private class ReentrancyGuard : IDisposable
+        {
+            internal ReentrancyGuard(ThreadLocal<bool> guarded)
+            {
+                _guarded = guarded;
+
+                if (guarded.Value)
+                {
+                    throw new Exception($"Unexpected reentrancy on thread {Thread.CurrentThread.ManagedThreadId}:{Thread.CurrentThread.Name}");
+                }
+
+                guarded.Value = true;
+            }
+
+            public void Dispose()
+            {
+                _guarded.Value = false;
+            }
+
+            private readonly ThreadLocal<bool> _guarded;
+        }
+
         private readonly int _maxConcurrent;
         private readonly List<Command> _runningCommands = new List<Command>();
         private readonly Queue<Command> _commandBacklog = new Queue<Command>();
         private readonly LinkedList<Command> _finishedCommands = new LinkedList<Command>();
         private readonly object _criticalSection = new object();
-        private readonly System.Threading.ManualResetEvent _nothingToDoEvent = new System.Threading.ManualResetEvent(true);
+        private readonly ManualResetEvent _nothingToDoEvent = new ManualResetEvent(true);
+        private readonly ThreadLocal<bool> _guarded = new ThreadLocal<bool>(() => false);
         private volatile bool _disposed;
     }
 }

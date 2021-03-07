@@ -625,7 +625,7 @@
             <param name="owner">
             Specify null to indicate a top-level command. Otherwise, this command will be owned by 'owner'. Owned commands respond to
             abort requests made of their owner. Also, owned commands are disposed of when the owner is disposed.
-            <para>Note that it is also possible to set the owner at a later time via <see cref="!:Command.TakeOwnership(Command, bool)"/></para>
+            <para>Note that it is also possible to set the owner at a later time via <see cref="M:Sophos.Commands.Command.TakeOwnership(Sophos.Commands.Command)"/></para>
             </param>
         </member>
         <member name="M:Sophos.Commands.Command.TakeOwnership(Sophos.Commands.Command)">
@@ -2152,7 +2152,7 @@
             Concrete classes must implement the abstract method that creates the Task. If your implementation is
             naturally asynchronous but does not make use of Tasks (i.e. the Task class), inherit directly from
             AsyncCommand instead. If your command is actually synchronous in nature, in that its execution finishes
-            omn the same thread it started on, inherit directly from SyncCommand instead (otherwise asynchronous
+            on the same thread it started on, inherit directly from SyncCommand instead (otherwise asynchronous
             execution will block, because it is expected that TaskCommand implementations are asynchronous).
             </summary>
             <remarks>
