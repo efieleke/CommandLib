@@ -115,6 +115,7 @@ namespace Sophos.Commands
                     throw new ArgumentException("Only top-level commands can be dispatched");
                 }
 
+                bool shouldExecute = false;
                 lock (_criticalSection)
                 {
                     _nothingToDoEvent.Reset();
@@ -133,8 +134,13 @@ namespace Sophos.Commands
                     else
                     {
                         _runningCommands.Add(command);
-                        command.AsyncExecute(new Listener(this, command));
+                        shouldExecute = true;
                     }
+                }
+
+                if (shouldExecute)
+                {
+                    command.AsyncExecute(new Listener(this, command));
                 }
             }
         }
@@ -249,6 +255,8 @@ namespace Sophos.Commands
                     {
                         Command nextInLine = _commandBacklog.Dequeue();
                         _runningCommands.Add(nextInLine);
+                            Monitor.Exit(_criticalSection);
+                            shouldReleaseLock = false;
                         nextInLine.AsyncExecute(new Listener(this, nextInLine));
                     }
                 }
