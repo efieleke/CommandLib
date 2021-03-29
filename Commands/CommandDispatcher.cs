@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Threading;
+using System.Threading.Tasks;
 
 namespace Sophos.Commands
 {
@@ -108,8 +109,14 @@ namespace Sophos.Commands
         /// </remarks>
         public void Dispatch(Command command)
         {
-            using (new ReentrancyGuard(_guarded))
+            using (var counter = new ReentrancyCounter(_reentrantCount))
             {
+                if (counter.Count > 1)
+                {
+                    Task.Run(() => Dispatch(command));
+                    return;
+                }
+
                 if (command.ParentInfo != null)
                 {
                     throw new ArgumentException("Only top-level commands can be dispatched");
@@ -150,8 +157,14 @@ namespace Sophos.Commands
         /// </summary>
         public void Abort()
         {
-            using (new ReentrancyGuard(_guarded))
+            using (var counter = new ReentrancyCounter(_reentrantCount))
             {
+                if (counter.Count > 1)
+                {
+                    Task.Run(() => Abort());
+                    return;
+                }
+
                 lock (_criticalSection)
                 {
                     foreach (Command cmd in _commandBacklog)
@@ -229,8 +242,14 @@ namespace Sophos.Commands
 
         private void OnCommandFinished(Command command, object result, Exception exc)
         {
-            using (new ReentrancyGuard(_guarded))
+            using (var counter = new ReentrancyCounter(_reentrantCount))
             {
+                if (counter.Count > 1)
+                {
+                    Task.Run(() => OnCommandFinished(command, result, exc));
+                    return;
+                }
+
                 CommandFinishedEvent?.Invoke(this, new CommandFinishedEventArgs(command, result, exc));
                 bool shouldReleaseLock = false;
 
@@ -255,8 +274,8 @@ namespace Sophos.Commands
                     {
                         Command nextInLine = _commandBacklog.Dequeue();
                         _runningCommands.Add(nextInLine);
-                            Monitor.Exit(_criticalSection);
-                            shouldReleaseLock = false;
+                        Monitor.Exit(_criticalSection);
+                        shouldReleaseLock = false;
                         nextInLine.AsyncExecute(new Listener(this, nextInLine));
                     }
                 }
@@ -297,26 +316,22 @@ namespace Sophos.Commands
             private readonly CommandDispatcher _dispatcher;
         }
 
-        private class ReentrancyGuard : IDisposable
+        private class ReentrancyCounter : IDisposable
         {
-            internal ReentrancyGuard(ThreadLocal<bool> guarded)
+            internal ReentrancyCounter(ThreadLocal<int> counter)
             {
-                _guarded = guarded;
-
-                if (guarded.Value)
-                {
-                    throw new Exception($"Unexpected reentrancy on thread {Thread.CurrentThread.ManagedThreadId}:{Thread.CurrentThread.Name}");
-                }
-
-                guarded.Value = true;
+                _counter = counter;
+                ++counter.Value;
             }
+
+            internal int Count => _counter.Value;
 
             public void Dispose()
             {
-                _guarded.Value = false;
+                --_counter.Value;
             }
 
-            private readonly ThreadLocal<bool> _guarded;
+            private readonly ThreadLocal<int> _counter;
         }
 
         private readonly int _maxConcurrent;
@@ -325,7 +340,7 @@ namespace Sophos.Commands
         private readonly LinkedList<Command> _finishedCommands = new LinkedList<Command>();
         private readonly object _criticalSection = new object();
         private readonly ManualResetEvent _nothingToDoEvent = new ManualResetEvent(true);
-        private readonly ThreadLocal<bool> _guarded = new ThreadLocal<bool>(() => false);
+        private readonly ThreadLocal<int> _reentrantCount = new ThreadLocal<int>(() => 0);
         private volatile bool _disposed;
     }
 }
