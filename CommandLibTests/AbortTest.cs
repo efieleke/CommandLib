@@ -62,6 +62,8 @@ namespace CommandLibTests
                 Assert.IsTrue(aborted);
                 Assert.IsFalse(failed);
 
+                cmd = new AbsolutelyAsyncCommand(cmd);
+
                 using (Task<object> task = cmd.RunAsTask<object>(runtimeArg))
 	            {
 		            try
@@ -108,6 +110,37 @@ namespace CommandLibTests
                 Command.Monitors = null;
                 System.IO.File.Delete(tempFile);
             }
+        }
+
+        private class AbsolutelyAsyncCommand : AsyncCommand
+        {
+            internal AbsolutelyAsyncCommand(Command command) : base(null)
+            {
+                _cmd = command;
+                TakeOwnership(_cmd);
+            }
+
+            protected override void AsyncExecuteImpl(ICommandListener listener, object runtimeArg)
+            {
+                Task.Run(() =>
+                {
+                    try
+                    {
+                        object result = _cmd.SyncExecute(runtimeArg);
+                        listener.CommandSucceeded(result);
+                    }
+                    catch (CommandAbortedException)
+                    {
+                        listener.CommandAborted();
+                    }
+                    catch (Exception e)
+                    {
+                        listener.CommandFailed(e);
+                    }
+                });
+            }
+
+            private readonly Command _cmd;
         }
     }
 }

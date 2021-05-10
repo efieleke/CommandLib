@@ -318,67 +318,38 @@ namespace Sophos.Commands
         /// <returns>
         /// The Task, which will have been started.
         /// </returns>
-        public Task<TResult> RunAsTask<TResult>(object runtimeArg, Command owner)
+        public async Task<TResult> RunAsTask<TResult>(object runtimeArg, Command owner)
         {
             CheckDisposed();
             if (ParentInfo != null) { throw new InvalidOperationException("Only top level commands can be run as a Task"); }
-            return IsNaturallySynchronous() ? RunAsSyncTask<TResult>(runtimeArg, owner) : RunAsAsyncTask<TResult>(runtimeArg, owner);
-        }
-
-        private Task<TResult> RunAsSyncTask<TResult>(object runtimeArg, Command owner)
-        {
-            // ReSharper disable once MethodSupportsCancellation
-            return Task.Run(() =>
-            {
-                try
-                {
-                    CheckAbortFlag();
-                    TResult result = (TResult)SyncExecute(runtimeArg, owner);
-                    Dispose();
-                    return result;
-                }
-                catch (CommandAbortedException)
-                {
-                    Dispose();
-                    throw new TaskCanceledException();
-                }
-                catch (Exception)
-                {
-                    Dispose();
-                    throw;
-                }
-            });
-        }
-
-        private async Task<TResult> RunAsAsyncTask<TResult>(object runtimeArg, Command owner)
-        {
             owner?.TakeOwnership(this);
 
             try
             {
-                TResult result = default(TResult);
-                Exception error = null;
+                var taskCompletionSource = new TaskCompletionSource<TResult>();
 
-                using (Task task = Task.Run(() =>
+                if (AbortRequested || (owner != null && owner.AbortRequested))
                 {
-                    AsyncExecute(o => result = (TResult) o, () => error = new TaskCanceledException(), e => error = e, runtimeArg);
-                }))
-                {
-                    await task.ConfigureAwait(continueOnCapturedContext: false);
-                    DoneEvent.WaitOne();
-                    Dispose();
-
-                    if (error != null)
-                    {
-                        throw error;
-                    }
-
-                    return result;
+                    taskCompletionSource.SetCanceled();
                 }
+                else
+                {
+                    AsyncExecute(
+                        o => taskCompletionSource.SetResult((TResult)o),
+                        () => taskCompletionSource.SetCanceled(),
+                        e => taskCompletionSource.SetException(e),
+                        runtimeArg);
+                }
+
+                return await taskCompletionSource.Task.ConfigureAwait(false);
             }
             finally
             {
                 owner?.RelinquishOwnership(this);
+
+                // This may occur on the same thread that the async callback occured on.
+                // We must dispose asynchronously.
+                await Task.Run(() => { Dispose(); }).ConfigureAwait(false);
             }
         }
         #endregion
@@ -987,6 +958,7 @@ namespace Sophos.Commands
                     }
                 }
 
+                owner?.CheckAbortFlag();
                 object result = SyncExecuteImpl(runtimeArg);
                 DecrementExecuting(null, null, null, null, null);
                 return result;
@@ -1114,10 +1086,7 @@ namespace Sophos.Commands
                 }
             }
 
-            if (!Disposed) // only possible if converting this command to a task (via AsTask)
-            {
-                _doneEvent.Set();
-            }
+            _doneEvent.Set();
         }
 
         private class ListenerProxy : ICommandListener
@@ -1154,7 +1123,7 @@ namespace Sophos.Commands
         private volatile int _executing;
         private readonly ThreadLocal<int?> _abortThreadId = new ThreadLocal<int?>();
         private readonly ManualResetEvent _doneEvent = new ManualResetEvent(true);
-        private volatile ManualResetEvent _cancelEvent = new ManualResetEvent(false);
+        private readonly ManualResetEvent _cancelEvent = new ManualResetEvent(false);
         private readonly object _childLock = new object();
 
         private static volatile int _nextId;

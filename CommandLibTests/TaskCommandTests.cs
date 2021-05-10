@@ -38,8 +38,15 @@ namespace CommandLibTests
 
                 try
                 {
-                    cmdSequence.Commands.First().RunAsTask<object>();
+                    cmdSequence.Commands.First().RunAsTask<object>().Wait();
                     Assert.Fail("Did not expect to get here");
+                }
+                catch (AggregateException e)
+                {
+                    if (!(e.InnerException is InvalidOperationException))
+                    {
+                        Assert.Fail("Did not expect to get here");
+                    }
                 }
                 catch (InvalidOperationException)
                 {

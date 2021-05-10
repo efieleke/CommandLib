@@ -111,15 +111,15 @@ namespace Sophos.Commands
         {
             using (var counter = new ReentrancyCounter(_reentrantCount))
             {
+                if (command.ParentInfo != null)
+                {
+                    throw new ArgumentException("Only top-level commands can be dispatched");
+                }
+
                 if (counter.Count > 1)
                 {
                     Task.Run(() => Dispatch(command));
                     return;
-                }
-
-                if (command.ParentInfo != null)
-                {
-                    throw new ArgumentException("Only top-level commands can be dispatched");
                 }
 
                 bool shouldExecute = false;
@@ -147,7 +147,24 @@ namespace Sophos.Commands
 
                 if (shouldExecute)
                 {
-                    command.AsyncExecute(new Listener(this, command));
+                    try
+                    {
+                        command.AsyncExecute(new Listener(this, command));
+                    }
+                    catch (Exception)
+                    {
+                        lock (_criticalSection)
+                        {
+                            _runningCommands.Remove(command);
+
+                            if (_runningCommands.Count == 0 && _commandBacklog.Count == 0)
+                            {
+                                _nothingToDoEvent.Set();
+                            }
+                        }
+
+                        throw;
+                    }
                 }
             }
         }
