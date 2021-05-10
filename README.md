@@ -25,7 +25,7 @@ Guidelines for developing your own Command-derived class:
 
 - Make your implementation responsive to abort requests. To do this, make ocassional calls to Command.CheckAbortFlag() or Command.AbortRequested.
 
-Versions for C++ and Java exist at https://github.com/efieleke/CommandLibForCPP.git and https://github.com/efieleke/CommandLibForJava.git.
+A version for C++ exists at https://github.com/efieleke/CommandLibForCPP.git.
 
 Complete documentation is checked in to the Commands project source directory as file Commands.chm.
 
